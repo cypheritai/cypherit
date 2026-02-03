@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CypherIt - 60 Seconds to Fixed</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        .tagline {
+            color: #888;
+            font-size: 1.2rem;
+        }
+        
+        .search-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 12px;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 16px 20px;
+            font-size: 1rem;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            border-color: #00d9ff;
+        }
+        
+        input[type="text"]::placeholder {
+            color: #666;
+        }
+        
+        button {
+            padding: 16px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            color: #000;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,217,255,0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 30px;
+            display: none;
+        }
+        
+        .result.visible {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .result-header {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .result-problem {
+            color: #aaa;
+        }
+        
+        .steps {
+            list-style: none;
+        }
+        
+        .step {
+            display: flex;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .step:last-child {
+            border-bottom: none;
+        }
+        
+        .step-number {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #000;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-action {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .step-detail {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .step-timestamp {
+            color: #00d9ff;
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+        
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .loading.visible {
+            display: block;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #00d9ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: rgba(255,0,0,0.1);
+            border: 1px solid rgba(255,0,0,0.3);
+            border-radius: 12px;
+            padding: 16px;
+            color: #ff6b6b;
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .error.visible {
+            display: block;
+        }
+        
+        .demo-btn {
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.2);
+            color: #888;
+            margin-top: 16px;
+            width: 100%;
+        }
+        
+        .demo-btn:hover {
+            border-color: #00d9ff;
+            color: #fff;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">CypherIt</div>
+            <p class="tagline">TikTok speed. YouTube depth. 60 seconds to fixed.</p>
+        </header>
+        
+        <div class="search-box">
+            <div class="input-group">
+                <input type="text" id="urlInput" placeholder="Paste YouTube URL (e.g., https://youtube.com/watch?v=...)">
+                <button id="extractBtn" onclick="extract()">Extract Fix</button>
+            </div>
+            <button class="demo-btn" onclick="demo()">Try Demo</button>
+            <div class="error" id="error"></div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Extracting fix steps...</p>
+        </div>
+        
+        <div class="result" id="result">
+            <div class="result-header">
+                <h2 class="result-title" id="resultTitle"></h2>
+                <p class="result-problem" id="resultProblem"></p>
+            </div>
+            <ul class="steps" id="steps"></ul>
+            <div class="meta">
+                <span id="readTime"></span>
+                <a href="#" id="sourceLink" target="_blank" style="color: #00d9ff;">View Source Video →</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'http://localhost:8080';
+        
+        async function extract() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) {
+                showError('Please enter a YouTube URL');
+                return;
+            }
+            
+            showLoading(true);
+            hideError();
+            hideResult();
+            
+            try {
+                const response = await fetch(`${API_URL}/extract`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Extraction failed');
+                }
+                
+                const data = await response.json();
+                displayResult(data);
+            } catch (err) {
+                showError(err.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        async function demo() {
+            showLoading(true);
+            hideError();
+            hideResult();
+            
+            try {
+                const response = await fetch(`${API_URL}/demo`, { method: 'POST' });
+                const data = await response.json();
+                displayResult(data);
+            } catch (err) {
+                showError('Could not load demo. Is the server running?');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        function displayResult(data) {
+            document.getElementById('resultTitle').textContent = data.title;
+            document.getElementById('resultProblem').textContent = data.problem;
+            document.getElementById('readTime').textContent = `⏱️ ${data.time_to_read}`;
+            document.getElementById('sourceLink').href = data.source_url;
+            
+            const stepsEl = document.getElementById('steps');
+            stepsEl.innerHTML = data.steps.map(step => `
+                <li class="step">
+                    <div class="step-number">${step.number}</div>
+                    <div class="step-content">
+                        <div class="step-action">${step.action}</div>
+                        ${step.detail ? `<div class="step-detail">${step.detail}</div>` : ''}
+                        ${step.timestamp ? `<div class="step-timestamp">📍 ${step.timestamp}</div>` : ''}
+                    </div>
+                </li>
+            `).join('');
+            
+            document.getElementById('result').classList.add('visible');
+        }
+        
+        function showLoading(show) {
+            document.getElementById('loading').classList.toggle('visible', show);
+            document.getElementById('extractBtn').disabled = show;
+        }
+        
+        function showError(msg) {
+            const el = document.getElementById('error');
+            el.textContent = msg;
+            el.classList.add('visible');
+        }
+        
+        function hideError() {
+            document.getElementById('error').classList.remove('visible');
+        }
+        
+        function hideResult() {
+            document.getElementById('result').classList.remove('visible');
+        }
+        
+        // Enter key to submit
+        document.getElementById('urlInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') extract();
+        });
+    </script>
+</body>
+</html>
