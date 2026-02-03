@@ -8,6 +8,8 @@ import json
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, field_validator
 from anthropic import Anthropic
 from dotenv import load_dotenv
@@ -175,8 +177,8 @@ Respond in this exact JSON format (no markdown, just JSON):
     return result
 
 
-@app.get("/")
-async def root():
+@app.get("/api")
+async def api_info():
     return {
         "name": "CypherIt API",
         "tagline": "TikTok speed. YouTube depth.",
@@ -232,6 +234,21 @@ async def demo_extract(request: Request):
         "time_to_read": "60 seconds",
         "source_url": "https://youtube.com/watch?v=demo123"
     }
+
+
+# Serve frontend
+frontend_path = Path(__file__).parent.parent / "frontend"
+
+@app.get("/app")
+async def serve_frontend():
+    """Serve the frontend app"""
+    return FileResponse(frontend_path / "index.html")
+
+# Serve index.html at root for the frontend
+@app.get("/", include_in_schema=False)
+async def root_frontend():
+    """Serve frontend at root"""
+    return FileResponse(frontend_path / "index.html")
 
 
 if __name__ == "__main__":

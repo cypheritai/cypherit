@@ -6,8 +6,11 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
+# Copy backend
 COPY backend/ ./backend/
+
+# Copy frontend
+COPY frontend/ ./frontend/
 
 # Set environment
 ENV PORT=8080
