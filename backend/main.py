@@ -5,11 +5,9 @@ Secure, rate-limited API for production use
 import os
 import re
 import json
-import subprocess
 from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from pydantic import BaseModel, field_validator
 from anthropic import Anthropic
 from dotenv import load_dotenv
@@ -17,6 +15,8 @@ from pathlib import Path
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from youtube_transcript_api import YouTubeTranscriptApi
+from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
 
 # Load .env from project root
 env_path = Path(__file__).parent.parent / '.env'
@@ -106,35 +106,25 @@ def extract_video_id(url: str) -> str:
 
 
 def get_transcript(url: str) -> str:
-    """Fetch transcript using the summarize CLI tool."""
+    """Fetch transcript using YouTube Transcript API."""
     try:
-        result = subprocess.run(
-            ["summarize", "--extract", url],
-            capture_output=True,
-            text=True,
-            timeout=120
-        )
+        video_id = extract_video_id(url)
         
-        if result.returncode != 0:
-            raise HTTPException(status_code=400, detail=f"Failed to get transcript: {result.stderr}")
+        # New API: instantiate and fetch
+        api = YouTubeTranscriptApi()
+        transcript = api.fetch(video_id)
         
-        transcript = result.stdout.strip()
+        # Combine all snippets into full text
+        full_text = ' '.join([snippet.text for snippet in transcript.snippets])
         
-        # Remove the timing footer line
-        lines = transcript.split('\n')
-        if lines and '·' in lines[-1]:
-            lines = lines[:-1]
+        return full_text
         
-        transcript = '\n'.join(lines)
-        if transcript.lower().startswith('transcript:'):
-            transcript = transcript[11:].strip()
-            
-        return transcript
-        
-    except subprocess.TimeoutExpired:
-        raise HTTPException(status_code=408, detail="Transcript extraction timed out")
-    except FileNotFoundError:
-        raise HTTPException(status_code=500, detail="Transcript service unavailable")
+    except TranscriptsDisabled:
+        raise HTTPException(status_code=400, detail="Transcripts are disabled for this video")
+    except NoTranscriptFound:
+        raise HTTPException(status_code=400, detail="No English transcript available for this video")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to get transcript: {str(e)}")
 
 
 def extract_fix_steps(transcript: str, url: str, max_steps: int = 5) -> dict:
