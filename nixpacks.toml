@@ -1,10 +1,10 @@
 # Nixpacks config for Railway deployment
 
 [phases.setup]
-nixPkgs = ["python311", "ffmpeg"]
+nixPkgs = ["python311", "python311Packages.pip"]
 
 [phases.install]
-cmds = ["pip install -r backend/requirements.txt"]
+cmds = ["python3.11 -m pip install -r backend/requirements.txt"]
 
 [start]
-cmd = "cd backend && python main.py"
+cmd = "cd backend && python3.11 main.py"
