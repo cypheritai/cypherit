@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CypherIt - 60 Seconds to Fixed</title>
+    <title>CypherIt - Get the Fix in 60 Seconds</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,7 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 40px 20px;
         }
@@ -30,41 +30,46 @@
         }
         
         .logo {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 800;
             background: linear-gradient(90deg, #00d9ff, #00ff88);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+            background-clip: text;
+            margin-bottom: 12px;
         }
         
         .tagline {
-            color: #888;
-            font-size: 1.2rem;
+            color: #aaa;
+            font-size: 1.3rem;
+            font-weight: 500;
         }
         
         .search-box {
             background: rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 30px;
+            border-radius: 20px;
+            padding: 32px;
             margin-bottom: 30px;
         }
         
         .input-group {
             display: flex;
             gap: 12px;
+            flex-wrap: wrap;
         }
         
         input[type="text"] {
             flex: 1;
-            padding: 16px 20px;
+            min-width: 280px;
+            padding: 18px 24px;
             font-size: 1rem;
             border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
+            border-radius: 14px;
             background: rgba(0,0,0,0.3);
             color: #fff;
             outline: none;
             transition: border-color 0.3s;
+            text-overflow: ellipsis;
         }
         
         input[type="text"]:focus {
@@ -73,35 +78,78 @@
         
         input[type="text"]::placeholder {
             color: #666;
+            font-size: 0.95rem;
         }
         
-        button {
-            padding: 16px 32px;
-            font-size: 1rem;
-            font-weight: 600;
+        .primary-btn {
+            padding: 18px 36px;
+            font-size: 1.1rem;
+            font-weight: 700;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             background: linear-gradient(90deg, #00d9ff, #00ff88);
             color: #000;
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
+            white-space: nowrap;
         }
         
-        button:hover {
+        .primary-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 30px rgba(0,217,255,0.3);
         }
         
-        button:disabled {
+        .primary-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
         }
         
+        .demo-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .demo-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+        
+        .demo-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .demo-btn {
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .demo-btn:hover {
+            border-color: #00d9ff;
+            color: #fff;
+            background: rgba(0,217,255,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .demo-btn .emoji {
+            margin-right: 6px;
+        }
+        
         .result {
             background: rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 30px;
+            border-radius: 20px;
+            padding: 32px;
             display: none;
         }
         
@@ -116,19 +164,22 @@
         }
         
         .result-header {
-            margin-bottom: 20px;
-            padding-bottom: 20px;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
         
         .result-title {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 700;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            line-height: 1.3;
         }
         
         .result-problem {
             color: #aaa;
+            font-size: 1.05rem;
+            line-height: 1.5;
         }
         
         .steps {
@@ -137,8 +188,8 @@
         
         .step {
             display: flex;
-            gap: 16px;
-            padding: 16px 0;
+            gap: 18px;
+            padding: 20px 0;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         
@@ -147,51 +198,74 @@
         }
         
         .step-number {
-            width: 36px;
-            height: 36px;
+            width: 44px;
+            height: 44px;
             background: linear-gradient(135deg, #00d9ff, #00ff88);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
+            font-weight: 800;
+            font-size: 1.2rem;
             color: #000;
             flex-shrink: 0;
         }
         
         .step-content {
             flex: 1;
+            padding-top: 4px;
         }
         
         .step-action {
-            font-weight: 600;
-            margin-bottom: 4px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+            line-height: 1.4;
         }
         
         .step-detail {
-            color: #888;
-            font-size: 0.9rem;
+            color: #999;
+            font-size: 0.95rem;
+            line-height: 1.5;
         }
         
         .step-timestamp {
+            display: inline-block;
+            background: rgba(0,217,255,0.15);
             color: #00d9ff;
-            font-size: 0.8rem;
-            margin-top: 4px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-top: 8px;
         }
         
         .meta {
             display: flex;
             justify-content: space-between;
-            margin-top: 20px;
-            padding-top: 20px;
+            align-items: center;
+            margin-top: 24px;
+            padding-top: 24px;
             border-top: 1px solid rgba(255,255,255,0.1);
             color: #666;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .meta a {
+            color: #00d9ff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .meta a:hover {
+            text-decoration: underline;
         }
         
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 50px;
             display: none;
         }
         
@@ -200,13 +274,18 @@
         }
         
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255,255,255,0.1);
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(255,255,255,0.1);
             border-top-color: #00d9ff;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 16px;
+            margin: 0 auto 20px;
+        }
+        
+        .loading p {
+            color: #aaa;
+            font-size: 1.1rem;
         }
         
         @keyframes spin {
@@ -214,53 +293,88 @@
         }
         
         .error {
-            background: rgba(255,0,0,0.1);
-            border: 1px solid rgba(255,0,0,0.3);
+            background: rgba(255,59,48,0.1);
+            border: 1px solid rgba(255,59,48,0.3);
             border-radius: 12px;
-            padding: 16px;
+            padding: 16px 20px;
             color: #ff6b6b;
             display: none;
             margin-top: 20px;
+            font-size: 0.95rem;
         }
         
         .error.visible {
             display: block;
         }
         
-        .demo-btn {
-            background: transparent;
-            border: 2px solid rgba(255,255,255,0.2);
-            color: #888;
-            margin-top: 16px;
-            width: 100%;
-        }
-        
-        .demo-btn:hover {
-            border-color: #00d9ff;
-            color: #fff;
-            box-shadow: none;
+        /* Mobile responsiveness */
+        @media (max-width: 600px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+            
+            .tagline {
+                font-size: 1.1rem;
+            }
+            
+            .input-group {
+                flex-direction: column;
+            }
+            
+            input[type="text"] {
+                min-width: 100%;
+            }
+            
+            .primary-btn {
+                width: 100%;
+            }
+            
+            .step-number {
+                width: 38px;
+                height: 38px;
+                font-size: 1rem;
+            }
+            
+            .step-action {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <div class="logo">CypherIt</div>
-            <p class="tagline">TikTok speed. YouTube depth. 60 seconds to fixed.</p>
+            <div class="logo">🔐 CypherIt</div>
+            <p class="tagline">Get the fix in 60 seconds or less.</p>
         </header>
         
         <div class="search-box">
             <div class="input-group">
-                <input type="text" id="urlInput" placeholder="Paste YouTube URL (e.g., https://youtube.com/watch?v=...)">
-                <button id="extractBtn" onclick="extract()">Extract Fix</button>
+                <input type="text" id="urlInput" placeholder="Paste any YouTube tutorial link — we'll extract the steps instantly...">
+                <button class="primary-btn" id="extractBtn" onclick="extract()">Get Steps</button>
             </div>
-            <button class="demo-btn" onclick="demo()">Try Demo</button>
+            
+            <div class="demo-section">
+                <p class="demo-label">✨ First time? Try one of these:</p>
+                <div class="demo-buttons">
+                    <button class="demo-btn" onclick="tryDemo(0)">
+                        <span class="emoji">📱</span>iPhone Fix
+                    </button>
+                    <button class="demo-btn" onclick="tryDemo(1)">
+                        <span class="emoji">🔧</span>Quick Repair
+                    </button>
+                    <button class="demo-btn" onclick="tryDemo(2)">
+                        <span class="emoji">💻</span>Tech Tutorial
+                    </button>
+                </div>
+            </div>
+            
             <div class="error" id="error"></div>
         </div>
         
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Extracting fix steps...</p>
+            <p>Decoding your fix... ✨</p>
         </div>
         
         <div class="result" id="result">
@@ -271,7 +385,7 @@
             <ul class="steps" id="steps"></ul>
             <div class="meta">
                 <span id="readTime"></span>
-                <a href="#" id="sourceLink" target="_blank" style="color: #00d9ff;">View Source Video →</a>
+                <a href="#" id="sourceLink" target="_blank">Watch Full Video →</a>
             </div>
         </div>
     </div>
@@ -279,10 +393,26 @@
     <script>
         const API_URL = '';
         
+        // Demo examples with real working YouTube videos
+        const DEMO_EXAMPLES = [
+            {
+                name: "iPhone Fix",
+                url: "https://www.youtube.com/watch?v=0HBA9Nov17Q"
+            },
+            {
+                name: "Quick Repair", 
+                url: "https://www.youtube.com/watch?v=ZcwsREuvaTE"
+            },
+            {
+                name: "Tech Tutorial",
+                url: "https://www.youtube.com/watch?v=Hc79sDi3f0U"
+            }
+        ];
+        
         async function extract() {
             const url = document.getElementById('urlInput').value.trim();
             if (!url) {
-                showError('Please enter a YouTube URL');
+                showError('Please paste a YouTube URL to get started');
                 return;
             }
             
@@ -294,7 +424,7 @@
                 const response = await fetch(`${API_URL}/extract`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url })
+                    body: JSON.stringify({ url, max_steps: 6 })
                 });
                 
                 if (!response.ok) {
@@ -311,20 +441,15 @@
             }
         }
         
-        async function demo() {
-            showLoading(true);
-            hideError();
-            hideResult();
+        async function tryDemo(index) {
+            const demo = DEMO_EXAMPLES[index];
+            const input = document.getElementById('urlInput');
             
-            try {
-                const response = await fetch(`${API_URL}/demo`, { method: 'POST' });
-                const data = await response.json();
-                displayResult(data);
-            } catch (err) {
-                showError('Could not load demo. Is the server running?');
-            } finally {
-                showLoading(false);
-            }
+            // Auto-fill the URL
+            input.value = demo.url;
+            
+            // Trigger extraction immediately
+            await extract();
         }
         
         function displayResult(data) {
@@ -340,22 +465,28 @@
                     <div class="step-content">
                         <div class="step-action">${step.action}</div>
                         ${step.detail ? `<div class="step-detail">${step.detail}</div>` : ''}
-                        ${step.timestamp ? `<div class="step-timestamp">📍 ${step.timestamp}</div>` : ''}
+                        ${step.timestamp ? `<div class="step-timestamp">⏱️ ${step.timestamp}</div>` : ''}
                     </div>
                 </li>
             `).join('');
             
             document.getElementById('result').classList.add('visible');
+            
+            // Smooth scroll to result
+            document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         
         function showLoading(show) {
             document.getElementById('loading').classList.toggle('visible', show);
             document.getElementById('extractBtn').disabled = show;
+            
+            // Disable demo buttons while loading
+            document.querySelectorAll('.demo-btn').forEach(btn => btn.disabled = show);
         }
         
         function showError(msg) {
             const el = document.getElementById('error');
-            el.textContent = msg;
+            el.textContent = '⚠️ ' + msg;
             el.classList.add('visible');
         }
         
