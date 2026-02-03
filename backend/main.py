@@ -108,12 +108,24 @@ def extract_video_id(url: str) -> str:
 
 
 def get_transcript(url: str) -> str:
-    """Fetch transcript using YouTube Transcript API."""
+    """Fetch transcript using YouTube Transcript API with proxy support."""
     try:
         video_id = extract_video_id(url)
         
-        # New API: instantiate and fetch
-        api = YouTubeTranscriptApi()
+        # Check for proxy configuration
+        proxy_url = os.getenv("PROXY_URL")
+        
+        if proxy_url:
+            # Use proxy if configured
+            from youtube_transcript_api.proxies import GenericProxyConfig
+            proxy_config = GenericProxyConfig(
+                http_url=proxy_url,
+                https_url=proxy_url
+            )
+            api = YouTubeTranscriptApi(proxy_config=proxy_config)
+        else:
+            api = YouTubeTranscriptApi()
+        
         transcript = api.fetch(video_id)
         
         # Combine all snippets into full text
