@@ -112,12 +112,20 @@ def get_transcript(url: str) -> str:
     try:
         video_id = extract_video_id(url)
         
-        # Check for proxy configuration
+        # Check for proxy configuration - support multiple env var names
         proxy_url = os.getenv("PROXY_URL")
+        scraper_api_key = os.getenv("SCRAPER_API_KEY") or os.getenv("SCRAPERAPI_KEY")
+        
+        # Build proxy URL from ScraperAPI key if provided
+        if scraper_api_key and not proxy_url:
+            proxy_url = f"http://scraperapi:{scraper_api_key}@proxy-server.scraperapi.com:8001"
         
         if proxy_url:
-            # Use proxy if configured
+            # Use proxy with requests session
+            import requests
             from youtube_transcript_api.proxies import GenericProxyConfig
+            
+            # Create proxy config
             proxy_config = GenericProxyConfig(
                 http_url=proxy_url,
                 https_url=proxy_url
@@ -204,9 +212,11 @@ async def api_info():
 
 @app.get("/health")
 async def health():
+    proxy_configured = bool(os.getenv("PROXY_URL") or os.getenv("SCRAPER_API_KEY") or os.getenv("SCRAPERAPI_KEY"))
     return {
         "status": "healthy", 
-        "api_key_configured": bool(os.getenv("ANTHROPIC_API_KEY"))
+        "api_key_configured": bool(os.getenv("ANTHROPIC_API_KEY")),
+        "proxy_configured": proxy_configured
     }
 
 
