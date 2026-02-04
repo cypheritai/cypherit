@@ -833,8 +833,22 @@
             const textEl = captionEl.querySelector('.caption-text');
             captionEl.classList.remove('complete');
             
+            // Get step timing to sync caption with audio
+            const step = document.querySelector(`.step[data-step-index="${index}"]`);
+            const startTime = timestampToSeconds(step.dataset.timestamp || '0:00');
+            let endTime = parseFloat(step.dataset.endTime) || (startTime + 15);
+            
+            // Ensure minimum segment duration
+            if (endTime - startTime < MIN_SEGMENT_DURATION) {
+                endTime = startTime + MIN_SEGMENT_DURATION;
+            }
+            
+            // Calculate typing speed to match segment duration
+            const segmentDurationMs = (endTime - startTime) * 1000;
+            const typingSpeed = Math.max(20, Math.min(100, segmentDurationMs / fullText.length));
+            // Clamp between 20ms (fast) and 100ms (slow) per character
+            
             let charIndex = 0;
-            const typingSpeed = 30; // ms per character
             
             // Reset text
             textEl.textContent = '';
