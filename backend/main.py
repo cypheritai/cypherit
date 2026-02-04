@@ -108,45 +108,51 @@ def extract_video_id(url: str) -> str:
 
 
 def get_transcript(url: str) -> str:
-    """Fetch transcript using YouTube Transcript API with proxy support."""
+    """Fetch transcript using YouTube Transcript API. Tries direct first, falls back to proxy."""
+    video_id = extract_video_id(url)
+    
+    # Check for proxy configuration - support multiple env var names
+    proxy_url = os.getenv("PROXY_URL")
+    scraper_api_key = os.getenv("SCRAPER_API_KEY") or os.getenv("SCRAPERAPI_KEY")
+    
+    # Build proxy URL from ScraperAPI key if provided
+    if scraper_api_key and not proxy_url:
+        proxy_url = f"http://scraperapi:{scraper_api_key}@proxy-server.scraperapi.com:8001"
+    
+    # Try direct first (faster, no proxy limits)
     try:
-        video_id = extract_video_id(url)
-        
-        # Check for proxy configuration - support multiple env var names
-        proxy_url = os.getenv("PROXY_URL")
-        scraper_api_key = os.getenv("SCRAPER_API_KEY") or os.getenv("SCRAPERAPI_KEY")
-        
-        # Build proxy URL from ScraperAPI key if provided
-        if scraper_api_key and not proxy_url:
-            proxy_url = f"http://scraperapi:{scraper_api_key}@proxy-server.scraperapi.com:8001"
-        
-        if proxy_url:
-            # Use proxy with requests session
-            import requests
-            from youtube_transcript_api.proxies import GenericProxyConfig
-            
-            # Create proxy config
-            proxy_config = GenericProxyConfig(
-                http_url=proxy_url,
-                https_url=proxy_url
-            )
-            api = YouTubeTranscriptApi(proxy_config=proxy_config)
-        else:
-            api = YouTubeTranscriptApi()
-        
+        api = YouTubeTranscriptApi()
         transcript = api.fetch(video_id)
-        
-        # Combine all snippets into full text
         full_text = ' '.join([snippet.text for snippet in transcript.snippets])
-        
         return full_text
-        
-    except TranscriptsDisabled:
-        raise HTTPException(status_code=400, detail="Transcripts are disabled for this video")
-    except NoTranscriptFound:
+    except (TranscriptsDisabled, NoTranscriptFound) as e:
+        # These are video-specific errors, proxy won't help
+        if isinstance(e, TranscriptsDisabled):
+            raise HTTPException(status_code=400, detail="Transcripts are disabled for this video")
         raise HTTPException(status_code=400, detail="No English transcript available for this video")
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to get transcript: {str(e)}")
+    except Exception as direct_error:
+        # Direct failed - try proxy if available
+        if not proxy_url:
+            raise HTTPException(status_code=400, detail=f"Failed to get transcript: {str(direct_error)}")
+    
+    # Fallback to proxy
+    try:
+        from youtube_transcript_api.proxies import GenericProxyConfig
+        
+        proxy_config = GenericProxyConfig(
+            http_url=proxy_url,
+            https_url=proxy_url
+        )
+        api = YouTubeTranscriptApi(proxy_config=proxy_config)
+        transcript = api.fetch(video_id)
+        full_text = ' '.join([snippet.text for snippet in transcript.snippets])
+        return full_text
+    except (TranscriptsDisabled, NoTranscriptFound) as e:
+        if isinstance(e, TranscriptsDisabled):
+            raise HTTPException(status_code=400, detail="Transcripts are disabled for this video")
+        raise HTTPException(status_code=400, detail="No English transcript available for this video")
+    except Exception as proxy_error:
+        raise HTTPException(status_code=400, detail=f"Failed to get transcript (tried proxy): {str(proxy_error)}")
 
 
 def extract_fix_steps(transcript: str, url: str, max_steps: int = 5) -> dict:
