@@ -19,6 +19,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
+import time
 
 # Load .env from project root
 env_path = Path(__file__).parent.parent / '.env'
@@ -54,6 +55,80 @@ api_key = os.getenv("ANTHROPIC_API_KEY")
 if not api_key:
     raise ValueError("ANTHROPIC_API_KEY environment variable required")
 client = Anthropic(api_key=api_key)
+
+# Demo videos with fallbacks - first working video per category wins
+DEMO_VIDEOS = {
+    "iphone": {
+        "emoji": "📱",
+        "label": "iPhone Fix",
+        "videos": [
+            "0HBA9Nov17Q",  # iPhone repair tutorial
+            "Hc79sDi3f0U",  # Backup
+        ]
+    },
+    "dev": {
+        "emoji": "🐍",
+        "label": "Dev Setup",
+        "videos": [
+            "kqtD5dpn9C8",  # Python setup
+            "rfscVS0vtbw",  # freeCodeCamp Python (long)
+        ]
+    },
+    "tech": {
+        "emoji": "💻",
+        "label": "Tech Tutorial",
+        "videos": [
+            "Hc79sDi3f0U",  # Tech tutorial
+            "kqtD5dpn9C8",  # Backup
+        ]
+    }
+}
+
+# Cache for validated demos (revalidate every 6 hours)
+_demo_cache = {"data": None, "timestamp": 0}
+DEMO_CACHE_TTL = 6 * 60 * 60  # 6 hours
+
+
+def validate_video(video_id: str) -> bool:
+    """Quick check if video has available transcript."""
+    try:
+        api = YouTubeTranscriptApi()
+        api.fetch(video_id)
+        return True
+    except Exception:
+        return False
+
+
+def get_validated_demos() -> List[dict]:
+    """Get demo videos, validating and caching results."""
+    now = time.time()
+    
+    # Return cached if fresh
+    if _demo_cache["data"] and (now - _demo_cache["timestamp"]) < DEMO_CACHE_TTL:
+        return _demo_cache["data"]
+    
+    # Validate each category
+    validated = []
+    for key, config in DEMO_VIDEOS.items():
+        working_video = None
+        for video_id in config["videos"]:
+            if validate_video(video_id):
+                working_video = video_id
+                break
+        
+        if working_video:
+            validated.append({
+                "key": key,
+                "emoji": config["emoji"],
+                "label": config["label"],
+                "url": f"https://www.youtube.com/watch?v={working_video}"
+            })
+    
+    # Cache results
+    _demo_cache["data"] = validated
+    _demo_cache["timestamp"] = now
+    
+    return validated
 
 
 class ExtractRequest(BaseModel):
@@ -224,6 +299,13 @@ async def health():
         "api_key_configured": bool(os.getenv("ANTHROPIC_API_KEY")),
         "proxy_configured": proxy_configured
     }
+
+
+@app.get("/demos")
+async def get_demos():
+    """Get validated demo videos. Caches results for 6 hours."""
+    demos = get_validated_demos()
+    return {"demos": demos}
 
 
 @app.post("/extract", response_model=ExtractResponse)

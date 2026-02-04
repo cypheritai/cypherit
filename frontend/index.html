@@ -354,18 +354,11 @@
                 <button class="primary-btn" id="extractBtn" onclick="extract()">Get Steps</button>
             </div>
             
-            <div class="demo-section">
+            <div class="demo-section" id="demoSection">
                 <p class="demo-label">✨ First time? Try one of these:</p>
-                <div class="demo-buttons">
-                    <button class="demo-btn" onclick="tryDemo(0)">
-                        <span class="emoji">📱</span>iPhone Fix
-                    </button>
-                    <button class="demo-btn" onclick="tryDemo(1)">
-                        <span class="emoji">🐍</span>Dev Setup
-                    </button>
-                    <button class="demo-btn" onclick="tryDemo(2)">
-                        <span class="emoji">💻</span>Tech Tutorial
-                    </button>
+                <div class="demo-buttons" id="demoButtons">
+                    <!-- Populated dynamically from /demos API -->
+                    <span style="color: #666; font-size: 0.9rem;">Loading examples...</span>
                 </div>
             </div>
             
@@ -393,21 +386,41 @@
     <script>
         const API_URL = '';
         
-        // Demo examples with real working YouTube videos
-        const DEMO_EXAMPLES = [
-            {
-                name: "iPhone Fix",
-                url: "https://www.youtube.com/watch?v=0HBA9Nov17Q"
-            },
-            {
-                name: "Dev Setup", 
-                url: "https://www.youtube.com/watch?v=kqtD5dpn9C8"
-            },
-            {
-                name: "Tech Tutorial",
-                url: "https://www.youtube.com/watch?v=Hc79sDi3f0U"
+        // Demo examples - loaded from API
+        let DEMO_EXAMPLES = [];
+        
+        // Load validated demos on page load
+        async function loadDemos() {
+            try {
+                const response = await fetch(`${API_URL}/demos`);
+                if (response.ok) {
+                    const data = await response.json();
+                    DEMO_EXAMPLES = data.demos;
+                    renderDemoButtons();
+                }
+            } catch (err) {
+                console.warn('Failed to load demos:', err);
+                // Hide demo section if we can't load demos
+                document.getElementById('demoSection').style.display = 'none';
             }
-        ];
+        }
+        
+        function renderDemoButtons() {
+            const container = document.getElementById('demoButtons');
+            if (!DEMO_EXAMPLES.length) {
+                container.innerHTML = '<span style="color: #666;">No examples available</span>';
+                return;
+            }
+            
+            container.innerHTML = DEMO_EXAMPLES.map((demo, index) => `
+                <button class="demo-btn" onclick="tryDemo(${index})">
+                    <span class="emoji">${demo.emoji}</span>${demo.label}
+                </button>
+            `).join('');
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', loadDemos);
         
         async function extract() {
             const url = document.getElementById('urlInput').value.trim();
@@ -443,12 +456,13 @@
         
         async function tryDemo(index) {
             const demo = DEMO_EXAMPLES[index];
+            if (!demo) {
+                showError('Demo not available');
+                return;
+            }
+            
             const input = document.getElementById('urlInput');
-            
-            // Auto-fill the URL
             input.value = demo.url;
-            
-            // Trigger extraction immediately
             await extract();
         }
         
