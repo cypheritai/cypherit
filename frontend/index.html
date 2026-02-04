@@ -465,7 +465,7 @@
         
         <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Decoding your fix... ✨</p>
+            <p id="loadingText">Preparing your fix... ✨</p>
         </div>
         
         <div class="result" id="result">
@@ -520,6 +520,68 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', loadDemos);
         
+        // Hidden preload container for video
+        let preloadPlayer = null;
+        let preloadReady = false;
+        
+        function extractVideoId(url) {
+            const patterns = [
+                /(?:v=|\/v\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+                /(?:embed\/)([a-zA-Z0-9_-]{11})/,
+                /^([a-zA-Z0-9_-]{11})$/
+            ];
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) return match[1];
+            }
+            return null;
+        }
+        
+        function preloadVideo(videoId) {
+            return new Promise((resolve) => {
+                preloadReady = false;
+                
+                // Create hidden container if not exists
+                let container = document.getElementById('preload-container');
+                if (!container) {
+                    container = document.createElement('div');
+                    container.id = 'preload-container';
+                    container.style.cssText = 'position:absolute;left:-9999px;width:320px;height:180px;';
+                    document.body.appendChild(container);
+                }
+                container.innerHTML = '<div id="preload-player"></div>';
+                
+                // Destroy old player
+                if (preloadPlayer) {
+                    try { preloadPlayer.destroy(); } catch(e) {}
+                }
+                
+                const checkYT = () => {
+                    if (window.YT && window.YT.Player) {
+                        preloadPlayer = new YT.Player('preload-player', {
+                            videoId: videoId,
+                            playerVars: { autoplay: 1, mute: 1 },
+                            events: {
+                                onReady: () => {
+                                    // Wait for some buffering
+                                    setTimeout(() => {
+                                        preloadReady = true;
+                                        resolve(true);
+                                    }, 1500);
+                                },
+                                onError: () => resolve(false)
+                            }
+                        });
+                        // Timeout fallback
+                        setTimeout(() => resolve(preloadReady), 8000);
+                    } else {
+                        setTimeout(checkYT, 100);
+                    }
+                };
+                checkYT();
+            });
+        }
+        
         async function extract() {
             const url = document.getElementById('urlInput').value.trim();
             if (!url) {
@@ -531,12 +593,20 @@
             hideError();
             hideResult();
             
+            // Extract video ID and start preloading immediately
+            const videoId = extractVideoId(url);
+            const preloadPromise = videoId ? preloadVideo(videoId) : Promise.resolve(false);
+            
             try {
-                const response = await fetch(`${API_URL}/extract`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url, max_steps: 6 })
-                });
+                // Run API call and preload in parallel
+                const [response] = await Promise.all([
+                    fetch(`${API_URL}/extract`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url, max_steps: 6 })
+                    }),
+                    preloadPromise
+                ]);
                 
                 if (!response.ok) {
                     const err = await response.json();
