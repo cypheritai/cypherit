@@ -368,11 +368,13 @@ def add_captions_to_steps(result: dict, transcript: str) -> dict:
                 seconds = _ts_to_seconds(ts_str)
                 lines.append({'time': seconds, 'text': text})
         
-        if not lines:
-            print(f"[CAPTION] No lines parsed from transcript ({len(transcript)} chars)")
-            return result
+        # DEBUG: Add to result
+        result['_debug_transcript_lines'] = len(lines)
+        result['_debug_transcript_sample'] = transcript[:200] if transcript else 'EMPTY'
         
-        print(f"[CAPTION] Parsed {len(lines)} transcript lines")
+        if not lines:
+            result['_debug_error'] = f"No lines parsed from {len(transcript)} chars"
+            return result
         
         steps = result.get('steps', [])
         for i, step in enumerate(steps):
@@ -412,7 +414,7 @@ async def api_info():
     return {
         "name": "CypherIt API",
         "tagline": "TikTok speed. YouTube depth.",
-        "version": "0.4.1-captions",
+        "version": "0.4.2-debug",
         "endpoints": {
             "/extract": "POST - Extract fix steps from YouTube URL",
             "/health": "GET - Health check"
