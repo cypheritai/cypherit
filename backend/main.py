@@ -475,6 +475,22 @@ async def demo_extract(request: Request):
 # Serve frontend
 frontend_path = Path(__file__).parent.parent / "frontend"
 
+# Mount static files (logo, favicon, etc.)
+app.mount("/static", StaticFiles(directory=frontend_path), name="static")
+
+# Serve specific static files at root level
+@app.get("/logo.png", include_in_schema=False)
+async def serve_logo():
+    return FileResponse(frontend_path / "logo.png")
+
+@app.get("/favicon.png", include_in_schema=False)
+async def serve_favicon():
+    return FileResponse(frontend_path / "favicon.png")
+
+@app.get("/apple-touch-icon.png", include_in_schema=False)
+async def serve_apple_icon():
+    return FileResponse(frontend_path / "apple-touch-icon.png")
+
 @app.get("/app")
 async def serve_frontend():
     """Serve the frontend app"""
