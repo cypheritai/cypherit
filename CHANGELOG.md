@@ -48,6 +48,14 @@
 
 **Result:** "Stunning great work! Everything works!" — Carlos ✅
 
+### Share Links ✅ (Verified Feb 4, 2026 @ 6:00 PM)
+- [x] **Share CypherIt button** — Share the app via native share or copy link
+- [x] **Share step links** — Each step has shareable deep link
+- [x] **Deep link navigation** — Shared links open directly to the step
+- [x] **URL includes video + step** — Links preserve extraction state
+
+**Result:** "The shared links work and take you to the steps!" — Carlos ✅
+
 ### Logo Integration ✅ (Verified Feb 4, 2026 @ 6:00 PM)
 - [x] **Header logo** — CypherIt branding image replaces text
 - [x] **Favicon** — 32x32 icon for browser tab
@@ -116,6 +124,7 @@ Must pass:
 - Logo tap = reset/start fresh
 - Cancel button during extraction with AbortController
 - Custom logo, favicon, apple-touch-icon branding
+- Share links with deep link navigation to steps
 
 ### v0.3.0 (2026-02-04) — Video Looping
 - Added video looping within step segments
