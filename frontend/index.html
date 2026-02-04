@@ -37,6 +37,23 @@
             margin-bottom: 12px;
         }
         
+        .share-app-btn {
+            background: transparent;
+            border: 1px solid rgba(0,217,255,0.5);
+            color: #00d9ff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 8px;
+        }
+        
+        .share-app-btn:hover {
+            background: rgba(0,217,255,0.1);
+            border-color: #00d9ff;
+        }
+        
         .tagline {
             color: #aaa;
             font-size: 1.3rem;
@@ -601,6 +618,7 @@
         <header>
             <img src="logo.png" alt="CypherIt" class="logo-img">
             <p class="tagline">Get the steps in 60sec or Less.</p>
+            <button class="share-app-btn" onclick="shareApp()">📤 Share CypherIt</button>
         </header>
         
         <div class="search-box">
@@ -696,10 +714,17 @@
             // Check for shared video link (?v=VIDEO_ID)
             const params = new URLSearchParams(window.location.search);
             const videoId = params.get('v');
-            if (videoId) {
-                document.getElementById('urlInput').value = `https://youtube.com/watch?v=${videoId}`;
-                // Auto-extract after a short delay
-                setTimeout(extract, 500);
+            console.log('URL params:', window.location.search, 'videoId:', videoId);
+            
+            if (videoId && videoId.length === 11) {
+                const ytUrl = `https://youtube.com/watch?v=${videoId}`;
+                console.log('Auto-loading shared video:', ytUrl);
+                document.getElementById('urlInput').value = ytUrl;
+                // Auto-extract after demos load
+                setTimeout(() => {
+                    console.log('Starting auto-extract...');
+                    extract();
+                }, 1000);
             }
         });
         
@@ -1233,8 +1258,28 @@
         });
         
         // ============ SHARE FUNCTIONS ============
+        function shareApp() {
+            const text = "🔧 Check out CypherIt — get any YouTube tutorial as step-by-step instructions in 60 seconds!\n\n";
+            const url = "https://www.cypherit.ai";
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: "CypherIt - Get the steps in 60sec",
+                    text: text,
+                    url: url
+                }).catch(() => {});
+            } else {
+                // Fallback: copy link
+                navigator.clipboard.writeText(text + url).then(() => {
+                    showToast('Link copied!');
+                }).catch(() => {
+                    showToast('Share: ' + url);
+                });
+            }
+        }
+        
         function getShareUrl() {
-            return `https://cypherit.ai/?v=${currentVideoId}`;
+            return `https://www.cypherit.ai/?v=${currentVideoId}`;
         }
         
         function getShareText() {
