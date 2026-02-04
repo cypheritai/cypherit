@@ -188,9 +188,17 @@ class Step(BaseModel):
     caption: Optional[str] = None  # Transcript text for this step's segment
 
 
+class QuickInfo(BaseModel):
+    tools_needed: List[str] = []      # e.g., ["USB drive (8GB+)", "Mac computer"]
+    time_estimate: Optional[str] = None  # e.g., "15-20 minutes"
+    warnings: List[str] = []          # e.g., ["This will erase your USB drive"]
+    tips: List[str] = []              # e.g., ["Use USB 3.0 for faster transfer"]
+
+
 class ExtractResponse(BaseModel):
     title: str
     problem: str
+    quick_info: Optional[QuickInfo] = None
     steps: List[Step]
     time_to_read: str
     source_url: str
@@ -294,8 +302,9 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 5) -> dict:
 The transcript below has timestamps in [MM:SS] format. Extract:
 1. A clear, short title (what's being taught/fixed)
 2. The problem being solved (one sentence)
-3. Step-by-step instructions (max {max_steps} key steps)
-4. The EXACT timestamp from the transcript where each step is explained
+3. Quick info: tools needed, time estimate, warnings, and helpful tips
+4. Step-by-step instructions (max {max_steps} key steps)
+5. The EXACT timestamp from the transcript where each step is explained
 
 Rules:
 - Each step = ONE clear action with an imperative verb
@@ -306,6 +315,13 @@ Rules:
 - CRITICAL: Each step MUST have a UNIQUE timestamp at least 5 seconds apart from other steps
 - If multiple actions happen at the same time, pick the MOST relevant moment for each step
 
+Quick Info Guidelines:
+- tools_needed: Physical items, software, accounts, or prerequisites (e.g., "USB drive 8GB+", "Admin password")
+- time_estimate: Realistic completion time (e.g., "5-10 minutes", "About 1 hour")
+- warnings: Important cautions like data loss, irreversible actions, or requirements (e.g., "This will erase your drive")
+- tips: Helpful shortcuts or pro tips mentioned in the video (e.g., "Use USB 3.0 for faster speeds")
+- Only include fields that are actually relevant - empty arrays are fine
+
 Transcript:
 {transcript[:12000]}
 
@@ -313,6 +329,12 @@ Respond in this exact JSON format (no markdown, just JSON):
 {{
     "title": "How to [Do Thing]",
     "problem": "Brief description of what this teaches/fixes",
+    "quick_info": {{
+        "tools_needed": ["Tool 1", "Tool 2"],
+        "time_estimate": "15-20 minutes",
+        "warnings": ["Warning if any"],
+        "tips": ["Helpful tip if any"]
+    }},
     "steps": [
         {{"number": 1, "action": "First key action", "detail": "Optional extra context", "timestamp": "0:45"}},
         {{"number": 2, "action": "Second key action", "detail": null, "timestamp": "2:15"}}
