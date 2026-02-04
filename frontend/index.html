@@ -71,6 +71,33 @@
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .clear-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.3);
+            color: #888;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .clear-btn:hover {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+            background: rgba(255,107,107,0.1);
+        }
+        
+        .clear-btn:active {
+            transform: scale(0.95);
         }
         
         input[type="text"] {
@@ -590,15 +617,24 @@
             }
             
             .input-group {
-                flex-direction: column;
+                flex-wrap: nowrap;
+            }
+            
+            .clear-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
             }
             
             input[type="text"] {
-                min-width: 100%;
+                min-width: 0;
+                flex: 1;
+                padding: 14px 16px;
             }
             
             .primary-btn {
-                width: 100%;
+                padding: 14px 20px;
+                white-space: nowrap;
             }
             
             .step-number {
@@ -623,6 +659,7 @@
         
         <div class="search-box">
             <div class="input-group">
+                <button class="clear-btn" id="clearBtn" onclick="clearInput()" title="Clear">✕</button>
                 <input type="text" id="urlInput" placeholder="Paste any YouTube tutorial link — we'll extract the steps instantly...">
                 <button class="primary-btn" id="extractBtn" onclick="extract()">Get Steps</button>
             </div>
@@ -1256,6 +1293,13 @@
         document.getElementById('urlInput').addEventListener('keypress', e => {
             if (e.key === 'Enter') extract();
         });
+        
+        // ============ CLEAR INPUT ============
+        function clearInput() {
+            const input = document.getElementById('urlInput');
+            input.value = '';
+            input.focus();
+        }
         
         // ============ SHARE FUNCTIONS ============
         function shareApp() {
