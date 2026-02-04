@@ -22,10 +22,18 @@ from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFoun
 import time
 import ssl
 import certifi
+import requests
 
-# Fix SSL certificates for containerized environments
-os.environ['SSL_CERT_FILE'] = certifi.where()
-os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
+# Fix SSL certificates for containerized environments - multiple approaches
+cert_path = certifi.where()
+os.environ['SSL_CERT_FILE'] = cert_path
+os.environ['SSL_CERT_DIR'] = ''
+os.environ['REQUESTS_CA_BUNDLE'] = cert_path
+os.environ['CURL_CA_BUNDLE'] = cert_path
+
+# Patch requests session to use certifi
+requests.adapters.DEFAULT_CA_BUNDLE_PATH = cert_path
+requests.certs.where = lambda: cert_path
 
 # Load .env from project root
 env_path = Path(__file__).parent.parent / '.env'
