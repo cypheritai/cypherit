@@ -478,3 +478,4 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.getenv("PORT", 8080))
     uvicorn.run(app, host="0.0.0.0", port=port)
+# Trigger rebuild Wed Feb  4 10:30:54 EST 2026
