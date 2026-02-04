@@ -296,6 +296,42 @@
             border: none;
         }
         
+        .video-thumbnail {
+            position: relative;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .video-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 217, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #000;
+            transition: transform 0.2s, background 0.2s;
+        }
+        
+        .video-thumbnail:hover .play-overlay {
+            transform: translate(-50%, -50%) scale(1.1);
+            background: rgba(0, 255, 136, 0.9);
+        }
+        
         .step-caption {
             margin-top: 12px;
             padding: 12px 16px;
@@ -520,68 +556,6 @@
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', loadDemos);
         
-        // Hidden preload container for video
-        let preloadPlayer = null;
-        let preloadReady = false;
-        
-        function extractVideoId(url) {
-            const patterns = [
-                /(?:v=|\/v\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/,
-                /(?:embed\/)([a-zA-Z0-9_-]{11})/,
-                /^([a-zA-Z0-9_-]{11})$/
-            ];
-            for (const pattern of patterns) {
-                const match = url.match(pattern);
-                if (match) return match[1];
-            }
-            return null;
-        }
-        
-        function preloadVideo(videoId) {
-            return new Promise((resolve) => {
-                preloadReady = false;
-                
-                // Create hidden container if not exists
-                let container = document.getElementById('preload-container');
-                if (!container) {
-                    container = document.createElement('div');
-                    container.id = 'preload-container';
-                    container.style.cssText = 'position:absolute;left:-9999px;width:320px;height:180px;';
-                    document.body.appendChild(container);
-                }
-                container.innerHTML = '<div id="preload-player"></div>';
-                
-                // Destroy old player
-                if (preloadPlayer) {
-                    try { preloadPlayer.destroy(); } catch(e) {}
-                }
-                
-                const checkYT = () => {
-                    if (window.YT && window.YT.Player) {
-                        preloadPlayer = new YT.Player('preload-player', {
-                            videoId: videoId,
-                            playerVars: { autoplay: 1, mute: 1 },
-                            events: {
-                                onReady: () => {
-                                    // Wait for some buffering
-                                    setTimeout(() => {
-                                        preloadReady = true;
-                                        resolve(true);
-                                    }, 1500);
-                                },
-                                onError: () => resolve(false)
-                            }
-                        });
-                        // Timeout fallback
-                        setTimeout(() => resolve(preloadReady), 8000);
-                    } else {
-                        setTimeout(checkYT, 100);
-                    }
-                };
-                checkYT();
-            });
-        }
-        
         async function extract() {
             const url = document.getElementById('urlInput').value.trim();
             if (!url) {
@@ -593,20 +567,12 @@
             hideError();
             hideResult();
             
-            // Extract video ID and start preloading immediately
-            const videoId = extractVideoId(url);
-            const preloadPromise = videoId ? preloadVideo(videoId) : Promise.resolve(false);
-            
             try {
-                // Run API call and preload in parallel
-                const [response] = await Promise.all([
-                    fetch(`${API_URL}/extract`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ url, max_steps: 6 })
-                    }),
-                    preloadPromise
-                ]);
+                const response = await fetch(`${API_URL}/extract`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url, max_steps: 6 })
+                });
                 
                 if (!response.ok) {
                     const err = await response.json();
@@ -747,18 +713,15 @@
             pendingPlayers.length = 0;
         }
         
-        // ============ AGGRESSIVE PRELOADING ============
+        // ============ INSTANT THUMBNAIL LOADING ============
         function loadVideosSequentially() {
             const steps = document.querySelectorAll('.step[data-timestamp]');
             
-            // Load ALL videos quickly with minimal delay (preload)
+            // Load thumbnails instantly - they're just images!
             steps.forEach((step, index) => {
                 const timestamp = step.dataset.timestamp;
                 if (timestamp && currentVideoId) {
-                    // Stagger by just 200ms to avoid overwhelming the browser
-                    setTimeout(() => {
-                        loadVideoEmbed(index, timestamp);
-                    }, 200 + (index * 200));
+                    loadVideoEmbed(index, timestamp);
                 }
             });
             
@@ -995,7 +958,7 @@
             }, 250); // Check every 250ms
         }
         
-        // ============ VIDEO EMBED CREATION ============
+        // ============ THUMBNAIL + TAP-TO-PLAY ============
         function loadVideoEmbed(index, timestamp) {
             const container = document.getElementById(`step-video-${index}`);
             if (!container) return;
@@ -1003,6 +966,23 @@
             const seconds = timestampToSeconds(timestamp);
             const idx = String(index);
             
+            // Show thumbnail with play button - INSTANT loading!
+            container.innerHTML = `
+                <div class="video-thumbnail" onclick="activatePlayer(${index}, ${seconds})">
+                    <img src="https://img.youtube.com/vi/${currentVideoId}/mqdefault.jpg" alt="Video thumbnail">
+                    <div class="play-overlay">▶</div>
+                </div>
+            `;
+            container.classList.add('visible');
+        }
+        
+        function activatePlayer(index, seconds) {
+            const container = document.getElementById(`step-video-${index}`);
+            if (!container) return;
+            
+            const idx = String(index);
+            
+            // Replace thumbnail with actual player
             container.innerHTML = `<div id="yt-player-${index}"></div>`;
             
             const createPlayer = () => {
@@ -1011,7 +991,7 @@
                     playerVars: {
                         start: seconds,
                         autoplay: 1,
-                        mute: 1,
+                        mute: 0, // Start with sound since user tapped
                         modestbranding: 1,
                         rel: 0,
                         playsinline: 1,
@@ -1019,28 +999,17 @@
                     },
                     events: {
                         onStateChange: (event) => {
-                            // Start boundary check when player actually starts playing
                             if (event.data === YT.PlayerState.PLAYING && activeStepIndex === idx) {
                                 startBoundaryCheck(idx);
                             }
                         },
                         onReady: (event) => {
-                            // Start with lower quality for faster loading
                             try {
-                                event.target.setPlaybackQuality('medium'); // 360p - fast load
+                                event.target.setPlaybackQuality('medium');
                             } catch (e) {}
-                            
-                            // Play briefly to load the frame, then pause
                             event.target.playVideo();
-                            
-                            setTimeout(() => {
-                                // If this is the first step and nothing is active, make it active
-                                if (index === 0 && activeStepIndex === null) {
-                                    setActiveStep('0');
-                                } else if (activeStepIndex !== idx) {
-                                    event.target.pauseVideo();
-                                }
-                            }, 600);
+                            setActiveStep(idx);
+                            userEnabledSound = true;
                         }
                     }
                 });
