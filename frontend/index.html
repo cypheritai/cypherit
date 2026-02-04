@@ -601,10 +601,12 @@
             
             const seconds = timestampToSeconds(timestamp);
             
-            // Create YouTube embed at specific timestamp
+            // Auto-start muted at timestamp so it shows the actual frame, not generic thumbnail
+            // User can tap to unmute/interact
             container.innerHTML = `
                 <iframe 
-                    src="https://www.youtube.com/embed/${currentVideoId}?start=${seconds}&autoplay=0&modestbranding=1&rel=0"
+                    id="video-frame-${index}"
+                    src="https://www.youtube.com/embed/${currentVideoId}?start=${seconds}&autoplay=1&mute=1&modestbranding=1&rel=0&enablejsapi=1"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowfullscreen
                     loading="lazy"
