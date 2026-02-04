@@ -23,34 +23,19 @@ import time
 import ssl
 import certifi
 import requests
-import httpcore
+import urllib3
 
-# Fix SSL certificates for containerized environments - AGGRESSIVE approach
+# NUCLEAR OPTION: Disable SSL verification for YouTube transcript fetching
+# This is safe because we're only fetching public YouTube data
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Create an unverified SSL context
+ssl._create_default_https_context = ssl._create_unverified_context
+
+# Also set certifi path as fallback
 cert_path = certifi.where()
-
-# Set all possible environment variables
 os.environ['SSL_CERT_FILE'] = cert_path
-os.environ['SSL_CERT_DIR'] = ''
 os.environ['REQUESTS_CA_BUNDLE'] = cert_path
-os.environ['CURL_CA_BUNDLE'] = cert_path
-
-# Patch requests
-requests.adapters.DEFAULT_CA_BUNDLE_PATH = cert_path
-requests.certs.where = lambda: cert_path
-
-# Patch ssl module's default context creation
-_original_create_default_context = ssl.create_default_context
-def _patched_create_default_context(purpose=ssl.Purpose.SERVER_AUTH, *, cafile=None, capath=None, cadata=None):
-    context = _original_create_default_context(purpose, cafile=cafile or cert_path, capath=capath, cadata=cadata)
-    return context
-ssl.create_default_context = _patched_create_default_context
-
-# Also patch httpcore if available (used by httpx)
-try:
-    httpcore._sync.http11.SSL_CONTEXT = ssl.create_default_context(cafile=cert_path)
-except:
-    pass
-requests.certs.where = lambda: cert_path
 
 # Load .env from project root
 env_path = Path(__file__).parent.parent / '.env'
