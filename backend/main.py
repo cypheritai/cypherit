@@ -336,7 +336,59 @@ Respond in this exact JSON format (no markdown, just JSON):
     result["source_url"] = url
     result["video_id"] = extract_video_id(url)
     result["time_to_read"] = f"{len(result['steps']) * 12} seconds"
+    
+    # Add caption text for each step from the transcript
+    result = add_captions_to_steps(result, transcript)
+    
     return result
+
+
+def add_captions_to_steps(result: dict, transcript: str) -> dict:
+    """Extract caption text for each step's time segment from the transcript."""
+    import re
+    
+    # Parse transcript lines with timestamps
+    lines = []
+    for line in transcript.split('\n'):
+        match = re.match(r'\[(\d+:\d+)\]\s*(.+)', line)
+        if match:
+            ts_str, text = match.groups()
+            seconds = timestampToSeconds(ts_str)
+            lines.append({'time': seconds, 'text': text})
+    
+    if not lines:
+        return result
+    
+    steps = result.get('steps', [])
+    for i, step in enumerate(steps):
+        if not step.get('timestamp'):
+            continue
+            
+        start_time = timestampToSeconds(step['timestamp'])
+        
+        # End time is next step's timestamp or +15 seconds
+        if i + 1 < len(steps) and steps[i + 1].get('timestamp'):
+            end_time = timestampToSeconds(steps[i + 1]['timestamp'])
+        else:
+            end_time = start_time + 15
+        
+        # Collect caption text for this segment
+        caption_parts = []
+        for line in lines:
+            if start_time <= line['time'] < end_time:
+                caption_parts.append(line['text'])
+        
+        step['caption'] = ' '.join(caption_parts) if caption_parts else None
+    
+    return result
+
+
+def timestampToSeconds(ts: str) -> float:
+    """Convert MM:SS or M:SS timestamp to seconds."""
+    parts = ts.split(':')
+    if len(parts) == 2:
+        return int(parts[0]) * 60 + int(parts[1])
+    return 0
 
 
 @app.get("/api")
