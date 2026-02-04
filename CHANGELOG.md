@@ -23,20 +23,26 @@
 - [x] **Lazy loading** — Videos load after 500ms+ delay
 - [x] **YouTube IFrame API** — Programmatic control of players
 - [x] **Sound button** — 🔇/🔊 tap-to-unmute (mobile browser policy)
+- [x] **Segment looping** — Videos loop within step's timestamp range
+- [x] **70vh step height** — Each step fills viewport, scroll-snap enabled
+- [x] **onStateChange** — Loop activates only when player actually playing
 
 ---
 
-### Video Looping ✅ (Verified Feb 4, 2026)
+### Video Looping ✅ (Verified Feb 4, 2026 @ 9:32 AM)
 - [x] **Segment looping** — Videos loop within step timestamp range
 - [x] **Minimum segment duration** — 8 seconds minimum per step
 - [x] **Scroll-triggered activation** — Active step plays, others pause
 - [x] **Topmost step priority** — Observer picks topmost visible step
 - [x] **Step 1 forced active** — Ensures first step activates on load
+- [x] **onStateChange detection** — Loop starts when player ACTUALLY playing
+- [x] **Fresh load works** — No more delayed activation on first load
 
 **Bugs Fixed:**
 - `videoPlayers` string key mismatch (was using number)
 - Observer picking wrong step (now uses topmost)
 - Steps too small (now 70vh height)
+- Loop not starting on fresh load (now uses YT.PlayerState.PLAYING)
 
 ---
 
