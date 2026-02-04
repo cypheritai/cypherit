@@ -525,13 +525,19 @@
             document.getElementById('readTime').textContent = `⏱️ ${data.time_to_read}`;
             document.getElementById('sourceLink').href = data.source_url;
             
-            // Store video ID for embeds
+            // Clean up any previous video state
+            cleanupVideos();
+            
+            // Store video ID and timestamps for embeds
             currentVideoId = data.video_id;
+            stepTimestamps = data.steps
+                .filter(s => s.timestamp)
+                .map(s => timestampToSeconds(s.timestamp));
             loadedSteps.clear();
             
             const stepsEl = document.getElementById('steps');
             stepsEl.innerHTML = data.steps.map((step, index) => `
-                <li class="step" data-step-index="${index}" data-timestamp="${step.timestamp || ''}">
+                <li class="step" data-step-index="${index}" data-timestamp="${step.timestamp || ''}" data-end-time="${stepTimestamps[index + 1] || 9999}">
                     <div class="step-number">${step.number}</div>
                     <div class="step-content">
                         <div class="step-action">${step.action}</div>
@@ -553,8 +559,8 @@
             // Smooth scroll to result
             document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
             
-            // Set up lazy loading for video embeds
-            setupVideoObserver();
+            // Load videos sequentially (Step 1 first, then 2, etc.)
+            loadVideosSequentially();
         }
         
         function jumpToTimestamp(ts) {
@@ -562,50 +568,79 @@
             window.open(`https://www.youtube.com/watch?v=${currentVideoId}&t=${seconds}s`, '_blank');
         }
         
-        // Track active step for play/pause control
+        // ============ VIDEO PLAYER STATE ============
         let activeStepIndex = null;
         const videoPlayers = {};
-        
-        // Load YouTube IFrame API
+        let stepTimestamps = [];
+        let boundaryCheckInterval = null;
         let ytApiReady = false;
         const pendingPlayers = [];
         
+        // Load YouTube IFrame API
         const ytApiScript = document.createElement('script');
         ytApiScript.src = 'https://www.youtube.com/iframe_api';
         document.head.appendChild(ytApiScript);
         
-        // Called by YouTube API when ready
         window.onYouTubeIframeAPIReady = function() {
             console.log('YouTube IFrame API ready');
             ytApiReady = true;
-            // Create any pending players
             pendingPlayers.forEach(fn => fn());
             pendingPlayers.length = 0;
         };
         
-        function setupVideoObserver() {
+        // ============ CLEANUP ============
+        function cleanupVideos() {
+            // Stop boundary checking
+            if (boundaryCheckInterval) {
+                clearInterval(boundaryCheckInterval);
+                boundaryCheckInterval = null;
+            }
+            
+            // Destroy all players
+            Object.keys(videoPlayers).forEach(idx => {
+                try {
+                    videoPlayers[idx].destroy();
+                } catch (e) {}
+            });
+            
+            // Clear state
+            Object.keys(videoPlayers).forEach(k => delete videoPlayers[k]);
+            activeStepIndex = null;
+            stepTimestamps = [];
+            pendingPlayers.length = 0;
+        }
+        
+        // ============ SEQUENTIAL LOADING ============
+        function loadVideosSequentially() {
+            const steps = document.querySelectorAll('.step[data-timestamp]');
+            let delay = 500; // Start loading after 500ms
+            
+            steps.forEach((step, index) => {
+                const timestamp = step.dataset.timestamp;
+                if (timestamp && currentVideoId) {
+                    setTimeout(() => {
+                        loadVideoEmbed(index, timestamp);
+                    }, delay);
+                    delay += 800; // 800ms between each step load
+                }
+            });
+            
+            // Set up scroll observer for active step detection
+            setupActiveStepObserver();
+        }
+        
+        // ============ ACTIVE STEP OBSERVER ============
+        function setupActiveStepObserver() {
             const options = {
                 root: null,
-                rootMargin: '-20% 0px -20% 0px',  // Trigger when step is in middle 60% of viewport
-                threshold: 0.6
+                rootMargin: '-30% 0px -30% 0px',
+                threshold: 0.5
             };
             
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    const step = entry.target;
-                    const index = step.dataset.stepIndex;
-                    const timestamp = step.dataset.timestamp;
-                    
                     if (entry.isIntersecting) {
-                        // Load video if not already loaded
-                        if (!loadedSteps.has(index) && timestamp && currentVideoId) {
-                            setTimeout(() => {
-                                loadVideoEmbed(index, timestamp);
-                            }, 1500);
-                            loadedSteps.add(index);
-                        }
-                        
-                        // This step is now active - pause others, play this one
+                        const index = entry.target.dataset.stepIndex;
                         if (activeStepIndex !== index) {
                             setActiveStep(index);
                         }
@@ -613,7 +648,6 @@
                 });
             }, options);
             
-            // Observe all steps with timestamps
             document.querySelectorAll('.step[data-timestamp]').forEach(step => {
                 if (step.dataset.timestamp) {
                     observer.observe(step);
@@ -621,83 +655,119 @@
             });
         }
         
+        // ============ ACTIVE STEP CONTROL ============
         function setActiveStep(index) {
-            // Pause and mute all other videos
-            Object.keys(videoPlayers).forEach(idx => {
-                if (idx !== index && videoPlayers[idx]) {
-                    try {
-                        videoPlayers[idx].pauseVideo();
-                        videoPlayers[idx].mute();
-                    } catch (e) {}
-                }
+            const idx = String(index);
+            
+            // Pause and mute ALL videos first
+            Object.keys(videoPlayers).forEach(playerIdx => {
+                try {
+                    const player = videoPlayers[playerIdx];
+                    player.pauseVideo();
+                    player.mute();
+                } catch (e) {}
             });
             
-            // Play and unmute the active video
-            if (videoPlayers[index]) {
-                try {
-                    videoPlayers[index].unMute();
-                    videoPlayers[index].playVideo();
-                } catch (e) {}
-            }
+            activeStepIndex = idx;
             
-            activeStepIndex = index;
+            // Play and unmute only the active video
+            if (videoPlayers[idx]) {
+                try {
+                    const player = videoPlayers[idx];
+                    const step = document.querySelector(`.step[data-step-index="${idx}"]`);
+                    const startTime = timestampToSeconds(step.dataset.timestamp);
+                    
+                    // Seek to start of this step's segment
+                    player.seekTo(startTime, true);
+                    player.unMute();
+                    player.playVideo();
+                    
+                    // Start boundary checking
+                    startBoundaryCheck(idx);
+                } catch (e) {
+                    console.error('Error playing video:', e);
+                }
+            }
         }
         
+        // ============ BOUNDARY CHECKING ============
+        function startBoundaryCheck(index) {
+            // Clear any existing interval
+            if (boundaryCheckInterval) {
+                clearInterval(boundaryCheckInterval);
+            }
+            
+            const step = document.querySelector(`.step[data-step-index="${index}"]`);
+            const endTime = parseFloat(step.dataset.endTime) || 9999;
+            
+            boundaryCheckInterval = setInterval(() => {
+                if (activeStepIndex !== index) {
+                    clearInterval(boundaryCheckInterval);
+                    return;
+                }
+                
+                const player = videoPlayers[index];
+                if (!player) return;
+                
+                try {
+                    const currentTime = player.getCurrentTime();
+                    
+                    // Stop at boundary (next step's timestamp)
+                    if (currentTime >= endTime - 0.5) {
+                        player.pauseVideo();
+                        clearInterval(boundaryCheckInterval);
+                    }
+                } catch (e) {}
+            }, 250); // Check every 250ms
+        }
+        
+        // ============ VIDEO EMBED CREATION ============
         function loadVideoEmbed(index, timestamp) {
             const container = document.getElementById(`step-video-${index}`);
             if (!container) return;
             
             const seconds = timestampToSeconds(timestamp);
+            const idx = String(index);
             
-            // Create placeholder for YouTube player
             container.innerHTML = `<div id="yt-player-${index}"></div>`;
             
-            // Function to create the player
             const createPlayer = () => {
-                videoPlayers[index] = new YT.Player(`yt-player-${index}`, {
+                videoPlayers[idx] = new YT.Player(`yt-player-${index}`, {
                     videoId: currentVideoId,
                     playerVars: {
                         start: seconds,
                         autoplay: 1,
-                        mute: 1,  // Start muted so autoplay works
+                        mute: 1,
                         modestbranding: 1,
                         rel: 0,
-                        playsinline: 1
+                        playsinline: 1,
+                        controls: 1
                     },
                     events: {
                         onReady: (event) => {
-                            // Always play briefly to load the correct frame
+                            // Play briefly to load the frame, then pause
                             event.target.playVideo();
                             
-                            // After a moment, pause if not active and unmute active
                             setTimeout(() => {
-                                if (activeStepIndex === index) {
-                                    event.target.unMute();
-                                } else {
+                                // If this is the first step and nothing is active, make it active
+                                if (index === 0 && activeStepIndex === null) {
+                                    setActiveStep('0');
+                                } else if (activeStepIndex !== idx) {
                                     event.target.pauseVideo();
                                 }
-                            }, 500);
-                        },
-                        onStateChange: (event) => {
-                            // When video starts playing, handle mute state
-                            if (event.data === YT.PlayerState.PLAYING && activeStepIndex !== index) {
-                                event.target.pauseVideo();
-                            }
+                            }, 600);
                         }
                     }
                 });
             };
             
-            // Create player when API is ready
             if (ytApiReady && window.YT && window.YT.Player) {
                 createPlayer();
             } else {
-                // Queue for when API is ready
                 pendingPlayers.push(createPlayer);
             }
             
-            // Animate in
-            setTimeout(() => container.classList.add('visible'), 50);
+            setTimeout(() => container.classList.add('visible'), 100);
         }
         
         function showLoading(show) {
@@ -720,6 +790,8 @@
         
         function hideResult() {
             document.getElementById('result').classList.remove('visible');
+            // Clean up videos when hiding results (new search starting)
+            cleanupVideos();
         }
         
         // Enter key to submit
