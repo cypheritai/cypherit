@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CypherIt - Get the Fix in 60 Seconds</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <style>
         * {
             margin: 0;
@@ -29,13 +31,9 @@
             margin-bottom: 50px;
         }
         
-        .logo {
-            font-size: 3.5rem;
-            font-weight: 800;
-            background: linear-gradient(90deg, #00d9ff, #00ff88);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .logo-img {
+            max-width: 280px;
+            height: auto;
             margin-bottom: 12px;
         }
         
@@ -460,8 +458,8 @@
         
         /* Mobile responsiveness */
         @media (max-width: 600px) {
-            .logo {
-                font-size: 2.5rem;
+            .logo-img {
+                max-width: 200px;
             }
             
             .tagline {
@@ -495,7 +493,7 @@
 <body>
     <div class="container">
         <header>
-            <div class="logo">🔐 CypherIt</div>
+            <img src="logo.png" alt="CypherIt" class="logo-img">
             <p class="tagline">Get the fix in 60 seconds or less.</p>
         </header>
         
