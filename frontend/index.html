@@ -799,6 +799,13 @@
             
             console.log(`Step ${idx}: loop from ${startTime}s to ${endTime}s (${endTime - startTime}s segment)`);
             
+            // DEBUG: Show loop info on screen
+            const debugEl = document.createElement('div');
+            debugEl.id = `debug-${idx}`;
+            debugEl.style.cssText = 'background:#ff0;color:#000;padding:4px 8px;font-size:12px;border-radius:4px;margin-top:8px;';
+            debugEl.textContent = `🔄 Loop: ${startTime}s → ${endTime}s`;
+            step.querySelector('.step-content').appendChild(debugEl);
+            
             boundaryCheckInterval = setInterval(() => {
                 if (activeStepIndex !== idx) {
                     console.log(`Step ${idx}: no longer active, stopping loop check`);
@@ -815,9 +822,17 @@
                 try {
                     const currentTime = player.getCurrentTime();
                     
-                    // Debug: log every 2 seconds
-                    if (Math.floor(currentTime) % 2 === 0) {
-                        console.log(`Step ${idx}: time=${currentTime.toFixed(1)}s, end=${endTime}s`);
+                    // DEBUG: Update visual indicator
+                    const debugEl = document.getElementById(`debug-${idx}`);
+                    if (debugEl) {
+                        debugEl.textContent = `⏱️ ${currentTime.toFixed(1)}s / ${endTime}s`;
+                        if (currentTime >= endTime - 1) {
+                            debugEl.style.background = '#f00';
+                            debugEl.style.color = '#fff';
+                        } else {
+                            debugEl.style.background = '#ff0';
+                            debugEl.style.color = '#000';
+                        }
                     }
                     
                     // LOOP: When reaching end of segment, seek back to start
