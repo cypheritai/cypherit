@@ -185,6 +185,7 @@ class Step(BaseModel):
     action: str
     detail: Optional[str] = None
     timestamp: Optional[str] = None
+    caption: Optional[str] = None  # Transcript text for this step's segment
 
 
 class ExtractResponse(BaseModel):
@@ -194,6 +195,9 @@ class ExtractResponse(BaseModel):
     time_to_read: str
     source_url: str
     video_id: str
+    
+    class Config:
+        extra = "allow"  # Allow debug fields during development
 
 
 def extract_video_id(url: str) -> str:
@@ -416,7 +420,7 @@ async def api_info():
     return {
         "name": "CypherIt API",
         "tagline": "TikTok speed. YouTube depth.",
-        "version": "0.4.3-debug2",
+        "version": "0.4.4-captions-fix",
         "endpoints": {
             "/extract": "POST - Extract fix steps from YouTube URL",
             "/health": "GET - Health check"
