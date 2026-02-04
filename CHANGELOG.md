@@ -39,6 +39,20 @@
 
 **Result:** "Executes flawlessly and loads instantly" — Carlos ✅
 
+### Mobile UX Improvements ✅ (Verified Feb 4, 2026 @ 6:17 PM)
+- [x] **Clear button** — ✕ button left of input to quickly clear URL
+- [x] **Mobile layout** — "Get Steps" button below input (not cramped inline)
+- [x] **Logo tap = Reset** — Tap CypherIt logo to clear all and start fresh
+- [x] **Cancel extraction** — "✕ Cancel" button during loading to abort
+- [x] **AbortController** — Properly cancels fetch request on stop
+
+**Result:** "Stunning great work! Everything works!" — Carlos ✅
+
+### Logo Integration ✅ (Verified Feb 4, 2026 @ 6:00 PM)
+- [x] **Header logo** — CypherIt branding image replaces text
+- [x] **Favicon** — 32x32 icon for browser tab
+- [x] **Apple touch icon** — 180x180 for iOS home screen
+
 ### Live Captions ✅ (Verified Feb 4, 2026 @ 11:00 AM)
 - [x] **Caption extraction** — Backend extracts transcript text per step
 - [x] **Synced to video time** — Captions pause when video buffers
@@ -95,6 +109,13 @@ Must pass:
 ---
 
 ## 📅 Version History
+
+### v0.4.0 (2026-02-04) — Mobile UX Polish
+- Clear button (✕) for quick URL clearing
+- Mobile: "Get Steps" button moves below input
+- Logo tap = reset/start fresh
+- Cancel button during extraction with AbortController
+- Custom logo, favicon, apple-touch-icon branding
 
 ### v0.3.0 (2026-02-04) — Video Looping
 - Added video looping within step segments
