@@ -677,18 +677,18 @@
             pendingPlayers.length = 0;
         }
         
-        // ============ SEQUENTIAL LOADING ============
+        // ============ AGGRESSIVE PRELOADING ============
         function loadVideosSequentially() {
             const steps = document.querySelectorAll('.step[data-timestamp]');
-            let delay = 500; // Start loading after 500ms
             
+            // Load ALL videos quickly with minimal delay (preload)
             steps.forEach((step, index) => {
                 const timestamp = step.dataset.timestamp;
                 if (timestamp && currentVideoId) {
+                    // Stagger by just 200ms to avoid overwhelming the browser
                     setTimeout(() => {
                         loadVideoEmbed(index, timestamp);
-                    }, delay);
-                    delay += 800; // 800ms between each step load
+                    }, 200 + (index * 200));
                 }
             });
             
