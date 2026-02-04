@@ -562,26 +562,45 @@
             window.open(`https://www.youtube.com/watch?v=${currentVideoId}&t=${seconds}s`, '_blank');
         }
         
+        // Track active step for play/pause control
+        let activeStepIndex = null;
+        const videoPlayers = {};
+        
+        // Load YouTube IFrame API
+        const ytApiScript = document.createElement('script');
+        ytApiScript.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(ytApiScript);
+        
+        // Called by YouTube API when ready
+        window.onYouTubeIframeAPIReady = function() {
+            console.log('YouTube IFrame API ready');
+        };
+        
         function setupVideoObserver() {
             const options = {
                 root: null,
-                rootMargin: '0px',
-                threshold: 0.5  // 50% visible
+                rootMargin: '-20% 0px -20% 0px',  // Trigger when step is in middle 60% of viewport
+                threshold: 0.6
             };
             
             const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
+                    const step = entry.target;
+                    const index = step.dataset.stepIndex;
+                    const timestamp = step.dataset.timestamp;
+                    
                     if (entry.isIntersecting) {
-                        const step = entry.target;
-                        const index = step.dataset.stepIndex;
-                        const timestamp = step.dataset.timestamp;
-                        
+                        // Load video if not already loaded
                         if (!loadedSteps.has(index) && timestamp && currentVideoId) {
-                            // Delay loading so user reads first
                             setTimeout(() => {
                                 loadVideoEmbed(index, timestamp);
-                            }, 1500);  // 1.5 second delay
+                            }, 1500);
                             loadedSteps.add(index);
+                        }
+                        
+                        // This step is now active - pause others, play this one
+                        if (activeStepIndex !== index) {
+                            setActiveStep(index);
                         }
                     }
                 });
@@ -595,23 +614,70 @@
             });
         }
         
+        function setActiveStep(index) {
+            // Pause all other videos
+            Object.keys(videoPlayers).forEach(idx => {
+                if (idx !== index && videoPlayers[idx]) {
+                    try {
+                        videoPlayers[idx].pauseVideo();
+                    } catch (e) {}
+                }
+            });
+            
+            // Play the active video (muted)
+            if (videoPlayers[index]) {
+                try {
+                    videoPlayers[index].playVideo();
+                } catch (e) {}
+            }
+            
+            activeStepIndex = index;
+        }
+        
         function loadVideoEmbed(index, timestamp) {
             const container = document.getElementById(`step-video-${index}`);
             if (!container) return;
             
             const seconds = timestampToSeconds(timestamp);
             
-            // Auto-start muted at timestamp so it shows the actual frame, not generic thumbnail
-            // User can tap to unmute/interact
-            container.innerHTML = `
-                <iframe 
-                    id="video-frame-${index}"
-                    src="https://www.youtube.com/embed/${currentVideoId}?start=${seconds}&autoplay=1&mute=1&modestbranding=1&rel=0&enablejsapi=1"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowfullscreen
-                    loading="lazy"
-                ></iframe>
-            `;
+            // Create placeholder for YouTube player
+            container.innerHTML = `<div id="yt-player-${index}"></div>`;
+            
+            // Create YouTube player with API control
+            if (window.YT && window.YT.Player) {
+                videoPlayers[index] = new YT.Player(`yt-player-${index}`, {
+                    videoId: currentVideoId,
+                    playerVars: {
+                        start: seconds,
+                        autoplay: 1,
+                        mute: 1,
+                        modestbranding: 1,
+                        rel: 0,
+                        playsinline: 1
+                    },
+                    events: {
+                        onReady: (event) => {
+                            // Only play if this is the active step
+                            if (activeStepIndex === index) {
+                                event.target.playVideo();
+                            } else {
+                                event.target.pauseVideo();
+                            }
+                        }
+                    }
+                });
+            } else {
+                // Fallback if API not ready
+                container.innerHTML = `
+                    <iframe 
+                        id="video-frame-${index}"
+                        src="https://www.youtube.com/embed/${currentVideoId}?start=${seconds}&autoplay=1&mute=1&modestbranding=1&rel=0&enablejsapi=1"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                        loading="lazy"
+                    ></iframe>
+                `;
+            }
             
             // Animate in
             setTimeout(() => container.classList.add('visible'), 50);
