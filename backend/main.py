@@ -343,52 +343,68 @@ Respond in this exact JSON format (no markdown, just JSON):
     return result
 
 
+def _ts_to_seconds(ts: str) -> float:
+    """Convert MM:SS or M:SS timestamp to seconds."""
+    try:
+        parts = ts.split(':')
+        if len(parts) == 2:
+            return int(parts[0]) * 60 + int(parts[1])
+    except:
+        pass
+    return 0
+
+
 def add_captions_to_steps(result: dict, transcript: str) -> dict:
     """Extract caption text for each step's time segment from the transcript."""
     import re
     
-    # Parse transcript lines with timestamps
-    lines = []
-    for line in transcript.split('\n'):
-        match = re.match(r'\[(\d+:\d+)\]\s*(.+)', line)
-        if match:
-            ts_str, text = match.groups()
-            seconds = timestampToSeconds(ts_str)
-            lines.append({'time': seconds, 'text': text})
-    
-    if not lines:
-        return result
-    
-    steps = result.get('steps', [])
-    for i, step in enumerate(steps):
-        if not step.get('timestamp'):
-            continue
+    try:
+        # Parse transcript lines with timestamps
+        lines = []
+        for line in transcript.split('\n'):
+            match = re.match(r'\[(\d+:\d+)\]\s*(.+)', line)
+            if match:
+                ts_str, text = match.groups()
+                seconds = _ts_to_seconds(ts_str)
+                lines.append({'time': seconds, 'text': text})
+        
+        if not lines:
+            print(f"[CAPTION] No lines parsed from transcript ({len(transcript)} chars)")
+            return result
+        
+        print(f"[CAPTION] Parsed {len(lines)} transcript lines")
+        
+        steps = result.get('steps', [])
+        for i, step in enumerate(steps):
+            if not step.get('timestamp'):
+                continue
+                
+            start_time = _ts_to_seconds(step['timestamp'])
             
-        start_time = timestampToSeconds(step['timestamp'])
-        
-        # End time is next step's timestamp or +15 seconds
-        if i + 1 < len(steps) and steps[i + 1].get('timestamp'):
-            end_time = timestampToSeconds(steps[i + 1]['timestamp'])
-        else:
-            end_time = start_time + 15
-        
-        # Collect caption text for this segment
-        caption_parts = []
-        for line in lines:
-            if start_time <= line['time'] < end_time:
-                caption_parts.append(line['text'])
-        
-        step['caption'] = ' '.join(caption_parts) if caption_parts else None
+            # End time is next step's timestamp or +15 seconds
+            if i + 1 < len(steps) and steps[i + 1].get('timestamp'):
+                end_time = _ts_to_seconds(steps[i + 1]['timestamp'])
+            else:
+                end_time = start_time + 15
+            
+            # Collect caption text for this segment
+            caption_parts = []
+            for line in lines:
+                if start_time <= line['time'] < end_time:
+                    caption_parts.append(line['text'])
+            
+            step['caption'] = ' '.join(caption_parts) if caption_parts else None
+            print(f"[CAPTION] Step {i+1}: {len(caption_parts)} parts, caption={'YES' if step['caption'] else 'NO'}")
+    
+    except Exception as e:
+        print(f"[CAPTION ERROR] {e}")
     
     return result
 
 
 def timestampToSeconds(ts: str) -> float:
-    """Convert MM:SS or M:SS timestamp to seconds."""
-    parts = ts.split(':')
-    if len(parts) == 2:
-        return int(parts[0]) * 60 + int(parts[1])
-    return 0
+    """Convert MM:SS or M:SS timestamp to seconds (alias for compatibility)."""
+    return _ts_to_seconds(ts)
 
 
 @app.get("/api")
