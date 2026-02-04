@@ -29,10 +29,20 @@
 
 ---
 
+### Thumbnail + Tap-to-Play ✅ (Verified Feb 4, 2026 @ 1:41 PM)
+- [x] **Instant thumbnails** — YouTube thumbnails load in milliseconds
+- [x] **Tap-to-play** — Video only loads when user taps
+- [x] **Timestamp badge** — Shows clip start time on thumbnail
+- [x] **Auto-mute previous** — Only one step plays at a time
+- [x] **Sound button sync** — Shows 🔊/🔇 based on state
+- [x] **Hidden captions** — Caption box only appears when video activated
+
+**Result:** "Executes flawlessly and loads instantly" — Carlos ✅
+
 ### Live Captions ✅ (Verified Feb 4, 2026 @ 11:00 AM)
 - [x] **Caption extraction** — Backend extracts transcript text per step
-- [x] **Typewriter animation** — Captions type out when step activates
-- [x] **Aggressive preloading** — All videos load with 200ms stagger
+- [x] **Synced to video time** — Captions pause when video buffers
+- [x] **Hidden until play** — Clean UI, captions appear on activation
 
 **Bug Fixed:** Pydantic model was filtering out `caption` field — added to Step model.
 
