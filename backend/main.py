@@ -412,7 +412,7 @@ async def api_info():
     return {
         "name": "CypherIt API",
         "tagline": "TikTok speed. YouTube depth.",
-        "version": "0.1.0",
+        "version": "0.4.1-captions",
         "endpoints": {
             "/extract": "POST - Extract fix steps from YouTube URL",
             "/health": "GET - Health check"
