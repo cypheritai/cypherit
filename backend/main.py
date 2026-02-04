@@ -29,10 +29,23 @@ import urllib3
 # This is safe because we're only fetching public YouTube data
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-# Create an unverified SSL context
+# Disable SSL verification globally
 ssl._create_default_https_context = ssl._create_unverified_context
 
-# Also set certifi path as fallback
+# Monkey-patch requests to disable SSL verification
+old_request = requests.Session.request
+def patched_request(self, method, url, **kwargs):
+    kwargs['verify'] = False
+    return old_request(self, method, url, **kwargs)
+requests.Session.request = patched_request
+
+# Also patch requests.get/post directly
+old_get = requests.get
+old_post = requests.post
+requests.get = lambda url, **kwargs: old_get(url, verify=False, **kwargs)
+requests.post = lambda url, **kwargs: old_post(url, verify=False, **kwargs)
+
+# Set certifi path as fallback
 cert_path = certifi.where()
 os.environ['SSL_CERT_FILE'] = cert_path
 os.environ['REQUESTS_CA_BUNDLE'] = cert_path
