@@ -815,15 +815,16 @@
             }
         }
         
-        // ============ CAPTION TYPING ANIMATION ============
-        let captionTypingInterval = null;
+        // ============ CAPTION SYNC WITH VIDEO ============
+        let captionSyncInterval = null;
         
         function startCaptionTyping(index) {
-            // Clear any existing typing animation
-            if (captionTypingInterval) {
-                clearInterval(captionTypingInterval);
+            // Clear any existing sync
+            if (captionSyncInterval) {
+                clearInterval(captionSyncInterval);
             }
             
+            const idx = String(index);
             const captionEl = document.getElementById(`step-caption-${index}`);
             if (!captionEl) return;
             
@@ -833,7 +834,7 @@
             const textEl = captionEl.querySelector('.caption-text');
             captionEl.classList.remove('complete');
             
-            // Get step timing to sync caption with audio
+            // Get step timing
             const step = document.querySelector(`.step[data-step-index="${index}"]`);
             const startTime = timestampToSeconds(step.dataset.timestamp || '0:00');
             let endTime = parseFloat(step.dataset.endTime) || (startTime + 15);
@@ -843,25 +844,36 @@
                 endTime = startTime + MIN_SEGMENT_DURATION;
             }
             
-            // Calculate typing speed to match segment duration
-            const segmentDurationMs = (endTime - startTime) * 1000;
-            const typingSpeed = Math.max(20, Math.min(100, segmentDurationMs / fullText.length));
-            // Clamp between 20ms (fast) and 100ms (slow) per character
-            
-            let charIndex = 0;
+            const segmentDuration = endTime - startTime;
             
             // Reset text
             textEl.textContent = '';
             
-            captionTypingInterval = setInterval(() => {
-                if (charIndex < fullText.length) {
-                    textEl.textContent += fullText[charIndex];
-                    charIndex++;
-                } else {
-                    clearInterval(captionTypingInterval);
-                    captionEl.classList.add('complete');
+            // Sync caption to video playback time (pauses when buffering!)
+            captionSyncInterval = setInterval(() => {
+                // Stop if no longer active step
+                if (activeStepIndex !== idx) {
+                    clearInterval(captionSyncInterval);
+                    return;
                 }
-            }, typingSpeed);
+                
+                const player = videoPlayers[idx];
+                if (!player) return;
+                
+                try {
+                    const currentTime = player.getCurrentTime();
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(1, Math.max(0, elapsed / segmentDuration));
+                    
+                    // Show caption text based on video progress
+                    const charsToShow = Math.floor(progress * fullText.length);
+                    textEl.textContent = fullText.substring(0, charsToShow);
+                    
+                    if (progress >= 1) {
+                        captionEl.classList.add('complete');
+                    }
+                } catch (e) {}
+            }, 100); // Update 10 times per second
         }
         
         // ============ BOUNDARY CHECKING (LOOP MODE) ============
