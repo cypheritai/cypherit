@@ -650,7 +650,7 @@
                     playerVars: {
                         start: seconds,
                         autoplay: 1,
-                        mute: 1,
+                        mute: 0,  // Sound enabled for guided walkthrough
                         modestbranding: 1,
                         rel: 0,
                         playsinline: 1
@@ -671,7 +671,7 @@
                 container.innerHTML = `
                     <iframe 
                         id="video-frame-${index}"
-                        src="https://www.youtube.com/embed/${currentVideoId}?start=${seconds}&autoplay=1&mute=1&modestbranding=1&rel=0&enablejsapi=1"
+                        src="https://www.youtube.com/embed/${currentVideoId}?start=${seconds}&autoplay=1&mute=0&modestbranding=1&rel=0&enablejsapi=1"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen
                         loading="lazy"
