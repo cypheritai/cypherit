@@ -302,6 +302,8 @@ Rules:
 - Use the timestamp format from the transcript (e.g., "1:23", "10:45")
 - Skip intros/outros - focus on the core how-to steps
 - Match timestamps to where the action is SHOWN, not just mentioned
+- CRITICAL: Each step MUST have a UNIQUE timestamp at least 5 seconds apart from other steps
+- If multiple actions happen at the same time, pick the MOST relevant moment for each step
 
 Transcript:
 {transcript[:12000]}

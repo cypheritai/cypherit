@@ -751,6 +751,8 @@
         }
         
         // ============ BOUNDARY CHECKING (LOOP MODE) ============
+        const MIN_SEGMENT_DURATION = 8; // Minimum 8 seconds per step segment
+        
         function startBoundaryCheck(index) {
             // Clear any existing interval
             if (boundaryCheckInterval) {
@@ -759,9 +761,14 @@
             
             const step = document.querySelector(`.step[data-step-index="${index}"]`);
             const startTime = timestampToSeconds(step.dataset.timestamp);
-            const endTime = parseFloat(step.dataset.endTime) || (startTime + 30); // Default 30s segment
+            let endTime = parseFloat(step.dataset.endTime) || (startTime + 30);
             
-            console.log(`Step ${index}: loop from ${startTime}s to ${endTime}s`);
+            // Ensure minimum segment duration
+            if (endTime - startTime < MIN_SEGMENT_DURATION) {
+                endTime = startTime + MIN_SEGMENT_DURATION;
+            }
+            
+            console.log(`Step ${index}: loop from ${startTime}s to ${endTime}s (${endTime - startTime}s segment)`);
             
             boundaryCheckInterval = setInterval(() => {
                 if (activeStepIndex !== String(index)) {
