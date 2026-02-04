@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CypherIt - Get the Fix in 60 Seconds</title>
+    <title>CypherIt - Get the Steps in 60sec or Less</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <style>
@@ -1550,7 +1550,7 @@
         }
         
         function getShareText() {
-            return `🔧 Just found this fix in 60 seconds on CypherIt!\n\n"${currentTitle}"\n\n`;
+            return `🔧 Got the steps in 60sec on CypherIt!\n\n"${currentTitle}"\n\n`;
         }
         
         function shareToX() {
@@ -1565,7 +1565,7 @@
         }
         
         function shareToReddit() {
-            const title = encodeURIComponent(`${currentTitle} - Found in 60 seconds on CypherIt`);
+            const title = encodeURIComponent(`${currentTitle} - Steps in 60sec via CypherIt`);
             const url = encodeURIComponent(getShareUrl());
             window.open(`https://reddit.com/submit?url=${url}&title=${title}`, '_blank');
         }

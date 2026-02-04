@@ -87,11 +87,11 @@ client = Anthropic(api_key=api_key)
 
 # Demo videos with fallbacks - first working video per category wins
 DEMO_VIDEOS = {
-    "iphone": {
-        "emoji": "📱",
-        "label": "iPhone Fix",
+    "usb": {
+        "emoji": "💾",
+        "label": "USB Installer",
         "videos": [
-            "0HBA9Nov17Q",  # iPhone repair tutorial
+            "0HBA9Nov17Q",  # macOS bootable USB tutorial
             "Hc79sDi3f0U",  # Backup
         ]
     },
