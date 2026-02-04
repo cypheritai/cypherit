@@ -615,18 +615,20 @@
         }
         
         function setActiveStep(index) {
-            // Pause all other videos
+            // Pause and mute all other videos
             Object.keys(videoPlayers).forEach(idx => {
                 if (idx !== index && videoPlayers[idx]) {
                     try {
                         videoPlayers[idx].pauseVideo();
+                        videoPlayers[idx].mute();
                     } catch (e) {}
                 }
             });
             
-            // Play the active video (muted)
+            // Play and unmute the active video
             if (videoPlayers[index]) {
                 try {
+                    videoPlayers[index].unMute();
                     videoPlayers[index].playVideo();
                 } catch (e) {}
             }
@@ -650,15 +652,16 @@
                     playerVars: {
                         start: seconds,
                         autoplay: 1,
-                        mute: 0,  // Sound enabled for guided walkthrough
+                        mute: 1,  // Start muted so autoplay works, unmute when active
                         modestbranding: 1,
                         rel: 0,
                         playsinline: 1
                     },
                     events: {
                         onReady: (event) => {
-                            // Only play if this is the active step
+                            // If this is the active step, unmute and play
                             if (activeStepIndex === index) {
+                                event.target.unMute();
                                 event.target.playVideo();
                             } else {
                                 event.target.pauseVideo();
@@ -667,11 +670,11 @@
                     }
                 });
             } else {
-                // Fallback if API not ready
+                // Fallback if API not ready - start muted
                 container.innerHTML = `
                     <iframe 
                         id="video-frame-${index}"
-                        src="https://www.youtube.com/embed/${currentVideoId}?start=${seconds}&autoplay=1&mute=0&modestbranding=1&rel=0&enablejsapi=1"
+                        src="https://www.youtube.com/embed/${currentVideoId}?start=${seconds}&autoplay=1&mute=1&modestbranding=1&rel=0&enablejsapi=1"
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowfullscreen
                         loading="lazy"
