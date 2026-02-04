@@ -491,6 +491,10 @@ async def serve_favicon():
 async def serve_apple_icon():
     return FileResponse(frontend_path / "apple-touch-icon.png")
 
+@app.get("/loading-icon.png", include_in_schema=False)
+async def serve_loading_icon():
+    return FileResponse(frontend_path / "loading-icon.png")
+
 @app.get("/app")
 async def serve_frontend():
     """Serve the frontend app"""
