@@ -567,6 +567,9 @@
         const videoPlayers = {};
         
         // Load YouTube IFrame API
+        let ytApiReady = false;
+        const pendingPlayers = [];
+        
         const ytApiScript = document.createElement('script');
         ytApiScript.src = 'https://www.youtube.com/iframe_api';
         document.head.appendChild(ytApiScript);
@@ -574,6 +577,10 @@
         // Called by YouTube API when ready
         window.onYouTubeIframeAPIReady = function() {
             console.log('YouTube IFrame API ready');
+            ytApiReady = true;
+            // Create any pending players
+            pendingPlayers.forEach(fn => fn());
+            pendingPlayers.length = 0;
         };
         
         function setupVideoObserver() {
@@ -645,41 +652,49 @@
             // Create placeholder for YouTube player
             container.innerHTML = `<div id="yt-player-${index}"></div>`;
             
-            // Create YouTube player with API control
-            if (window.YT && window.YT.Player) {
+            // Function to create the player
+            const createPlayer = () => {
                 videoPlayers[index] = new YT.Player(`yt-player-${index}`, {
                     videoId: currentVideoId,
                     playerVars: {
                         start: seconds,
                         autoplay: 1,
-                        mute: 1,  // Start muted so autoplay works, unmute when active
+                        mute: 1,  // Start muted so autoplay works
                         modestbranding: 1,
                         rel: 0,
                         playsinline: 1
                     },
                     events: {
                         onReady: (event) => {
-                            // If this is the active step, unmute and play
-                            if (activeStepIndex === index) {
-                                event.target.unMute();
-                                event.target.playVideo();
-                            } else {
+                            // Always play briefly to load the correct frame
+                            event.target.playVideo();
+                            
+                            // After a moment, pause if not active and unmute active
+                            setTimeout(() => {
+                                if (activeStepIndex === index) {
+                                    event.target.unMute();
+                                } else {
+                                    event.target.pauseVideo();
+                                }
+                            }, 500);
+                        },
+                        onStateChange: (event) => {
+                            // When video starts playing, handle mute state
+                            if (event.data === YT.PlayerState.PLAYING && activeStepIndex !== index) {
                                 event.target.pauseVideo();
                             }
                         }
                     }
                 });
+            };
+            
+            // Create player when API is ready
+            if (ytApiReady && window.YT && window.YT.Player) {
+                createPlayer();
             } else {
-                // Fallback if API not ready - start muted
-                container.innerHTML = `
-                    <iframe 
-                        id="video-frame-${index}"
-                        src="https://www.youtube.com/embed/${currentVideoId}?start=${seconds}&autoplay=1&mute=1&modestbranding=1&rel=0&enablejsapi=1"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowfullscreen
-                        loading="lazy"
-                    ></iframe>
-                `;
+                // Queue for when API is ready
+                pendingPlayers.push(createPlayer);
+            }
             }
             
             // Animate in
