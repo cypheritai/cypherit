@@ -219,6 +219,7 @@ def format_timestamp(seconds: float) -> str:
 
 def get_transcript(url: str) -> str:
     """Fetch transcript with timestamps. Tries direct first, falls back to proxy."""
+    import time
     video_id = extract_video_id(url)
     
     # Check for proxy configuration - support multiple env var names
@@ -229,48 +230,60 @@ def get_transcript(url: str) -> str:
     if scraper_api_key and not proxy_url:
         proxy_url = f"http://scraperapi:{scraper_api_key}@proxy-server.scraperapi.com:8001"
     
-    # Try direct first (faster, no proxy limits)
-    try:
-        api = YouTubeTranscriptApi()
-        transcript = api.fetch(video_id)
-        # Include timestamps in transcript for Claude to reference
-        timestamped_lines = []
-        for snippet in transcript.snippets:
-            ts = format_timestamp(snippet.start)
-            timestamped_lines.append(f"[{ts}] {snippet.text}")
-        return '\n'.join(timestamped_lines)
-    except (TranscriptsDisabled, NoTranscriptFound) as e:
-        # These are video-specific errors, proxy won't help
-        if isinstance(e, TranscriptsDisabled):
-            raise HTTPException(status_code=400, detail="Transcripts are disabled for this video")
-        raise HTTPException(status_code=400, detail="No English transcript available for this video")
-    except Exception as direct_error:
-        # Direct failed - try proxy if available
-        if not proxy_url:
-            raise HTTPException(status_code=400, detail=f"Failed to get transcript: {str(direct_error)}")
+    # Try direct first with retry (faster, no proxy limits)
+    last_error = None
+    for attempt in range(3):  # 3 attempts with backoff
+        try:
+            api = YouTubeTranscriptApi()
+            transcript = api.fetch(video_id)
+            # Include timestamps in transcript for Claude to reference
+            timestamped_lines = []
+            for snippet in transcript.snippets:
+                ts = format_timestamp(snippet.start)
+                timestamped_lines.append(f"[{ts}] {snippet.text}")
+            return '\n'.join(timestamped_lines)
+        except (TranscriptsDisabled, NoTranscriptFound) as e:
+            # These are video-specific errors, retry/proxy won't help
+            if isinstance(e, TranscriptsDisabled):
+                raise HTTPException(status_code=400, detail="Transcripts are disabled for this video")
+            raise HTTPException(status_code=400, detail="No English transcript available for this video")
+        except Exception as e:
+            last_error = e
+            if attempt < 2:  # Don't sleep on last attempt
+                time.sleep(1 * (attempt + 1))  # 1s, 2s backoff
     
-    # Fallback to proxy
-    try:
-        from youtube_transcript_api.proxies import GenericProxyConfig
-        
-        proxy_config = GenericProxyConfig(
-            http_url=proxy_url,
-            https_url=proxy_url
-        )
-        api = YouTubeTranscriptApi(proxy_config=proxy_config)
-        transcript = api.fetch(video_id)
-        # Include timestamps in transcript for Claude to reference
-        timestamped_lines = []
-        for snippet in transcript.snippets:
-            ts = format_timestamp(snippet.start)
-            timestamped_lines.append(f"[{ts}] {snippet.text}")
-        return '\n'.join(timestamped_lines)
-    except (TranscriptsDisabled, NoTranscriptFound) as e:
-        if isinstance(e, TranscriptsDisabled):
-            raise HTTPException(status_code=400, detail="Transcripts are disabled for this video")
-        raise HTTPException(status_code=400, detail="No English transcript available for this video")
-    except Exception as proxy_error:
-        raise HTTPException(status_code=400, detail=f"Failed to get transcript (tried proxy): {str(proxy_error)}")
+    # Direct failed after retries - try proxy if available
+    if not proxy_url:
+        raise HTTPException(status_code=400, detail=f"Failed to get transcript (try again): {str(last_error)}")
+    
+    # Fallback to proxy with retry
+    from youtube_transcript_api.proxies import GenericProxyConfig
+    
+    proxy_config = GenericProxyConfig(
+        http_url=proxy_url,
+        https_url=proxy_url
+    )
+    
+    for attempt in range(2):  # 2 attempts for proxy
+        try:
+            api = YouTubeTranscriptApi(proxy_config=proxy_config)
+            transcript = api.fetch(video_id)
+            # Include timestamps in transcript for Claude to reference
+            timestamped_lines = []
+            for snippet in transcript.snippets:
+                ts = format_timestamp(snippet.start)
+                timestamped_lines.append(f"[{ts}] {snippet.text}")
+            return '\n'.join(timestamped_lines)
+        except (TranscriptsDisabled, NoTranscriptFound) as e:
+            if isinstance(e, TranscriptsDisabled):
+                raise HTTPException(status_code=400, detail="Transcripts are disabled for this video")
+            raise HTTPException(status_code=400, detail="No English transcript available for this video")
+        except Exception as proxy_error:
+            last_error = proxy_error
+            if attempt < 1:
+                time.sleep(2)  # Wait 2s before proxy retry
+    
+    raise HTTPException(status_code=400, detail=f"Failed to get transcript. YouTube may be busy — try again in a moment.")
 
 
 def extract_fix_steps(transcript: str, url: str, max_steps: int = 5) -> dict:
