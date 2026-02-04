@@ -412,6 +412,89 @@
             text-decoration: underline;
         }
         
+        .share-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        
+        .share-label {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 12px;
+        }
+        
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .share-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .share-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .share-x {
+            background: #000;
+            color: #fff;
+            font-weight: bold;
+        }
+        
+        .share-whatsapp {
+            background: #25D366;
+        }
+        
+        .share-reddit {
+            background: #FF4500;
+        }
+        
+        .share-facebook {
+            background: #1877F2;
+        }
+        
+        .share-copy {
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+        }
+        
+        .share-native {
+            background: #333;
+        }
+        
+        .share-toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #00d9ff;
+            color: #000;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            opacity: 0;
+            transition: transform 0.3s, opacity 0.3s;
+            z-index: 1000;
+        }
+        
+        .share-toast.visible {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
         .loading {
             text-align: center;
             padding: 50px;
@@ -554,6 +637,19 @@
                 <span id="readTime"></span>
                 <a href="#" id="sourceLink" target="_blank">Watch Full Video →</a>
             </div>
+            
+            <div class="share-section">
+                <p class="share-label">Share this fix:</p>
+                <div class="share-buttons">
+                    <button class="share-btn share-x" onclick="shareToX()" title="Share on X">𝕏</button>
+                    <button class="share-btn share-whatsapp" onclick="shareToWhatsApp()" title="Share on WhatsApp">💬</button>
+                    <button class="share-btn share-reddit" onclick="shareToReddit()" title="Share on Reddit">🔴</button>
+                    <button class="share-btn share-facebook" onclick="shareToFacebook()" title="Share on Facebook">📘</button>
+                    <button class="share-btn share-copy" onclick="copyShareLink()" title="Copy Link">🔗</button>
+                    <button class="share-btn share-native" onclick="nativeShare()" title="Share">📤</button>
+                </div>
+                <div class="share-toast" id="shareToast">Link copied!</div>
+            </div>
         </div>
     </div>
     
@@ -594,7 +690,18 @@
         }
         
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', loadDemos);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDemos();
+            
+            // Check for shared video link (?v=VIDEO_ID)
+            const params = new URLSearchParams(window.location.search);
+            const videoId = params.get('v');
+            if (videoId) {
+                document.getElementById('urlInput').value = `https://youtube.com/watch?v=${videoId}`;
+                // Auto-extract after a short delay
+                setTimeout(extract, 500);
+            }
+        });
         
         async function extract() {
             const url = document.getElementById('urlInput').value.trim();
@@ -652,6 +759,7 @@
         // Track which steps have loaded videos
         const loadedSteps = new Set();
         let currentVideoId = null;
+        let currentTitle = '';
         
         function displayResult(data) {
             document.getElementById('resultTitle').textContent = data.title;
@@ -662,8 +770,9 @@
             // Clean up any previous video state
             cleanupVideos();
             
-            // Store video ID and timestamps for embeds
+            // Store video ID, title and timestamps for embeds and sharing
             currentVideoId = data.video_id;
+            currentTitle = data.title;
             stepTimestamps = data.steps
                 .filter(s => s.timestamp)
                 .map(s => timestampToSeconds(s.timestamp));
@@ -1122,6 +1231,72 @@
         document.getElementById('urlInput').addEventListener('keypress', e => {
             if (e.key === 'Enter') extract();
         });
+        
+        // ============ SHARE FUNCTIONS ============
+        function getShareUrl() {
+            return `https://cypherit.ai/?v=${currentVideoId}`;
+        }
+        
+        function getShareText() {
+            return `🔧 Just found this fix in 60 seconds on CypherIt!\n\n"${currentTitle}"\n\n`;
+        }
+        
+        function shareToX() {
+            const text = encodeURIComponent(getShareText());
+            const url = encodeURIComponent(getShareUrl());
+            window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+        }
+        
+        function shareToWhatsApp() {
+            const text = encodeURIComponent(getShareText() + getShareUrl());
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        }
+        
+        function shareToReddit() {
+            const title = encodeURIComponent(`${currentTitle} - Found in 60 seconds on CypherIt`);
+            const url = encodeURIComponent(getShareUrl());
+            window.open(`https://reddit.com/submit?url=${url}&title=${title}`, '_blank');
+        }
+        
+        function shareToFacebook() {
+            const url = encodeURIComponent(getShareUrl());
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+        }
+        
+        function copyShareLink() {
+            const url = getShareUrl();
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('Link copied!');
+            }).catch(() => {
+                // Fallback for older browsers
+                const input = document.createElement('input');
+                input.value = url;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                showToast('Link copied!');
+            });
+        }
+        
+        function nativeShare() {
+            if (navigator.share) {
+                navigator.share({
+                    title: currentTitle,
+                    text: getShareText(),
+                    url: getShareUrl()
+                }).catch(() => {});
+            } else {
+                copyShareLink();
+            }
+        }
+        
+        function showToast(message) {
+            const toast = document.getElementById('shareToast');
+            toast.textContent = message;
+            toast.classList.add('visible');
+            setTimeout(() => toast.classList.remove('visible'), 2000);
+        }
     </script>
 </body>
 </html>
