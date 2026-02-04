@@ -332,6 +332,18 @@
             background: rgba(0, 255, 136, 0.9);
         }
         
+        .timestamp-badge {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
         .step-caption {
             margin-top: 12px;
             padding: 12px 16px;
@@ -966,11 +978,12 @@
             const seconds = timestampToSeconds(timestamp);
             const idx = String(index);
             
-            // Show thumbnail with play button - INSTANT loading!
+            // Show thumbnail with play button and timestamp badge
             container.innerHTML = `
                 <div class="video-thumbnail" onclick="activatePlayer(${index}, ${seconds})">
-                    <img src="https://img.youtube.com/vi/${currentVideoId}/mqdefault.jpg" alt="Video thumbnail">
+                    <img src="https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg" alt="Video thumbnail">
                     <div class="play-overlay">▶</div>
+                    <div class="timestamp-badge">${timestamp}</div>
                 </div>
             `;
             container.classList.add('visible');
@@ -1007,9 +1020,12 @@
                             try {
                                 event.target.setPlaybackQuality('medium');
                             } catch (e) {}
-                            event.target.playVideo();
-                            setActiveStep(idx);
+                            // Set active step BEFORE playing so loop check can start
+                            activeStepIndex = idx;
                             userEnabledSound = true;
+                            event.target.playVideo();
+                            // Start caption sync
+                            startCaptionTyping(index);
                         }
                     }
                 });
