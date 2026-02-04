@@ -229,6 +229,13 @@
             line-height: 1.5;
         }
         
+        .step-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        
         .step-timestamp {
             display: inline-block;
             background: rgba(0,217,255,0.15);
@@ -237,13 +244,27 @@
             font-weight: 600;
             padding: 4px 10px;
             border-radius: 6px;
-            margin-top: 8px;
             cursor: pointer;
             transition: all 0.2s;
         }
         
         .step-timestamp:hover {
             background: rgba(0,217,255,0.3);
+        }
+        
+        .sound-btn {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .sound-btn:hover {
+            background: rgba(255,255,255,0.2);
+            transform: scale(1.1);
         }
         
         .step-video {
@@ -543,8 +564,11 @@
                         <div class="step-action">${step.action}</div>
                         ${step.detail ? `<div class="step-detail">${step.detail}</div>` : ''}
                         ${step.timestamp ? `
-                            <div class="step-timestamp" onclick="jumpToTimestamp('${step.timestamp}')">
-                                ▶️ ${step.timestamp}
+                            <div class="step-controls">
+                                <div class="step-timestamp" onclick="jumpToTimestamp('${step.timestamp}')">
+                                    ▶️ ${step.timestamp}
+                                </div>
+                                <button class="sound-btn" onclick="toggleSound(${index}, event)" title="Tap for sound">🔇</button>
                             </div>
                             <div class="step-video" id="step-video-${index}">
                                 <div class="step-video-placeholder">Loading preview...</div>
@@ -655,6 +679,9 @@
             });
         }
         
+        // ============ SOUND STATE ============
+        let userEnabledSound = false; // Track if user has tapped for sound
+        
         // ============ ACTIVE STEP CONTROL ============
         function setActiveStep(index) {
             const idx = String(index);
@@ -665,12 +692,16 @@
                     const player = videoPlayers[playerIdx];
                     player.pauseVideo();
                     player.mute();
+                    
+                    // Update sound button state
+                    const btn = document.querySelector(`.step[data-step-index="${playerIdx}"] .sound-btn`);
+                    if (btn) btn.textContent = '🔇';
                 } catch (e) {}
             });
             
             activeStepIndex = idx;
             
-            // Play and unmute only the active video
+            // Play the active video
             if (videoPlayers[idx]) {
                 try {
                     const player = videoPlayers[idx];
@@ -679,10 +710,16 @@
                     
                     // Seek to start of this step's segment
                     player.seekTo(startTime, true);
-                    player.unMute();
                     player.playVideo();
                     
-                    // Start boundary checking
+                    // Only unmute if user has tapped for sound (mobile autoplay policy)
+                    if (userEnabledSound) {
+                        player.unMute();
+                        const btn = step.querySelector('.sound-btn');
+                        if (btn) btn.textContent = '🔊';
+                    }
+                    
+                    // Start boundary checking (loop mode)
                     startBoundaryCheck(idx);
                 } catch (e) {
                     console.error('Error playing video:', e);
@@ -690,7 +727,30 @@
             }
         }
         
-        // ============ BOUNDARY CHECKING ============
+        // ============ TOGGLE SOUND (user gesture) ============
+        function toggleSound(index, event) {
+            event.stopPropagation();
+            const idx = String(index);
+            const player = videoPlayers[idx];
+            const btn = event.target;
+            
+            if (!player) return;
+            
+            try {
+                if (player.isMuted()) {
+                    userEnabledSound = true;
+                    player.unMute();
+                    btn.textContent = '🔊';
+                } else {
+                    player.mute();
+                    btn.textContent = '🔇';
+                }
+            } catch (e) {
+                console.error('Error toggling sound:', e);
+            }
+        }
+        
+        // ============ BOUNDARY CHECKING (LOOP MODE) ============
         function startBoundaryCheck(index) {
             // Clear any existing interval
             if (boundaryCheckInterval) {
@@ -698,10 +758,13 @@
             }
             
             const step = document.querySelector(`.step[data-step-index="${index}"]`);
-            const endTime = parseFloat(step.dataset.endTime) || 9999;
+            const startTime = timestampToSeconds(step.dataset.timestamp);
+            const endTime = parseFloat(step.dataset.endTime) || (startTime + 30); // Default 30s segment
+            
+            console.log(`Step ${index}: loop from ${startTime}s to ${endTime}s`);
             
             boundaryCheckInterval = setInterval(() => {
-                if (activeStepIndex !== index) {
+                if (activeStepIndex !== String(index)) {
                     clearInterval(boundaryCheckInterval);
                     return;
                 }
@@ -712,13 +775,14 @@
                 try {
                     const currentTime = player.getCurrentTime();
                     
-                    // Stop at boundary (next step's timestamp)
-                    if (currentTime >= endTime - 0.5) {
-                        player.pauseVideo();
-                        clearInterval(boundaryCheckInterval);
+                    // LOOP: When reaching end of segment, seek back to start
+                    if (currentTime >= endTime - 0.3) {
+                        console.log(`Step ${index}: looping back to ${startTime}s`);
+                        player.seekTo(startTime, true);
+                        player.playVideo();
                     }
                 } catch (e) {}
-            }, 250); // Check every 250ms
+            }, 200); // Check every 200ms for smoother looping
         }
         
         // ============ VIDEO EMBED CREATION ============
