@@ -26,14 +26,17 @@
 
 ---
 
-## 🔧 IN PROGRESS / NEEDS VERIFICATION
+### Video Looping ✅ (Verified Feb 4, 2026)
+- [x] **Segment looping** — Videos loop within step timestamp range
+- [x] **Minimum segment duration** — 8 seconds minimum per step
+- [x] **Scroll-triggered activation** — Active step plays, others pause
+- [x] **Topmost step priority** — Observer picks topmost visible step
+- [x] **Step 1 forced active** — Ensures first step activates on load
 
-### Video Looping (Feb 4, 2026)
-- [ ] **Segment looping** — Videos should loop within step timestamp range
-- [ ] **Minimum segment duration** — 8 seconds minimum per step
-- [ ] **Scroll-triggered activation** — Active step plays, others pause
-
-**Bug Fixed (this commit):** `videoPlayers` uses string keys, boundary check was using number — player lookup failed silently.
+**Bugs Fixed:**
+- `videoPlayers` string key mismatch (was using number)
+- Observer picking wrong step (now uses topmost)
+- Steps too small (now 70vh height)
 
 ---
 
