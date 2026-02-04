@@ -74,6 +74,14 @@
             align-items: center;
         }
         
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 280px;
+        }
+        
         .clear-btn {
             width: 44px;
             height: 44px;
@@ -102,7 +110,7 @@
         
         input[type="text"] {
             flex: 1;
-            min-width: 280px;
+            min-width: 0;
             padding: 18px 24px;
             font-size: 1rem;
             border: 2px solid rgba(255,255,255,0.1);
@@ -587,6 +595,23 @@
             50% { opacity: 1; transform: scale(1.02); }
         }
         
+        .stop-btn {
+            margin-top: 20px;
+            padding: 12px 28px;
+            background: transparent;
+            border: 2px solid rgba(255,107,107,0.5);
+            color: #ff6b6b;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .stop-btn:hover {
+            background: rgba(255,107,107,0.15);
+            border-color: #ff6b6b;
+        }
+        
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -617,7 +642,13 @@
             }
             
             .input-group {
-                flex-wrap: nowrap;
+                flex-direction: column;
+                gap: 14px;
+            }
+            
+            .input-row {
+                width: 100%;
+                min-width: 0;
             }
             
             .clear-btn {
@@ -627,14 +658,14 @@
             }
             
             input[type="text"] {
-                min-width: 0;
-                flex: 1;
-                padding: 14px 16px;
+                padding: 16px 18px;
+                font-size: 1rem;
             }
             
             .primary-btn {
-                padding: 14px 20px;
-                white-space: nowrap;
+                width: 100%;
+                padding: 16px 24px;
+                font-size: 1.1rem;
             }
             
             .step-number {
@@ -652,15 +683,17 @@
 <body>
     <div class="container">
         <header>
-            <img src="logo.png" alt="CypherIt" class="logo-img">
+            <img src="logo.png" alt="CypherIt" class="logo-img" onclick="resetAll()" style="cursor: pointer;" title="Start Fresh">
             <p class="tagline">Get the steps in 60sec or Less.</p>
             <button class="share-app-btn" onclick="shareApp()">📤 Share CypherIt</button>
         </header>
         
         <div class="search-box">
             <div class="input-group">
-                <button class="clear-btn" id="clearBtn" onclick="clearInput()" title="Clear">✕</button>
-                <input type="text" id="urlInput" placeholder="Paste any YouTube tutorial link — we'll extract the steps instantly...">
+                <div class="input-row">
+                    <button class="clear-btn" id="clearBtn" onclick="clearInput()" title="Clear">✕</button>
+                    <input type="text" id="urlInput" placeholder="Paste YouTube link...">
+                </div>
                 <button class="primary-btn" id="extractBtn" onclick="extract()">Get Steps</button>
             </div>
             
@@ -680,6 +713,7 @@
                 <img src="loading-icon.png" alt="Loading" class="loading-icon">
             </div>
             <p id="loadingText">Extracting your Steps...</p>
+            <button class="stop-btn" onclick="stopExtraction()">✕ Cancel</button>
         </div>
         
         <div class="result" id="result">
@@ -776,11 +810,15 @@
             hideError();
             hideResult();
             
+            // Set up abort controller for cancel functionality
+            currentAbortController = new AbortController();
+            
             try {
                 const response = await fetch(`${API_URL}/extract`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url, max_steps: 6 })
+                    body: JSON.stringify({ url, max_steps: 6 }),
+                    signal: currentAbortController.signal
                 });
                 
                 if (!response.ok) {
@@ -791,9 +829,13 @@
                 const data = await response.json();
                 displayResult(data);
             } catch (err) {
-                showError(err.message);
+                // Don't show error if user cancelled
+                if (err.name !== 'AbortError') {
+                    showError(err.message);
+                }
             } finally {
                 showLoading(false);
+                currentAbortController = null;
             }
         }
         
@@ -1299,6 +1341,43 @@
             const input = document.getElementById('urlInput');
             input.value = '';
             input.focus();
+        }
+        
+        // ============ RESET / STOP ============
+        let currentAbortController = null;
+        
+        function resetAll() {
+            // Stop any ongoing extraction
+            if (currentAbortController) {
+                currentAbortController.abort();
+                currentAbortController = null;
+            }
+            
+            // Clear input
+            document.getElementById('urlInput').value = '';
+            
+            // Hide loading, error, result
+            document.getElementById('loading').classList.remove('visible');
+            document.getElementById('error').classList.remove('visible');
+            document.getElementById('result').classList.remove('visible');
+            
+            // Show search box and demos
+            document.getElementById('demoSection').style.display = 'block';
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Focus input
+            document.getElementById('urlInput').focus();
+        }
+        
+        function stopExtraction() {
+            if (currentAbortController) {
+                currentAbortController.abort();
+                currentAbortController = null;
+            }
+            document.getElementById('loading').classList.remove('visible');
+            document.getElementById('urlInput').focus();
         }
         
         // ============ SHARE FUNCTIONS ============
