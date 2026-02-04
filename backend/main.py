@@ -195,9 +195,6 @@ class ExtractResponse(BaseModel):
     time_to_read: str
     source_url: str
     video_id: str
-    
-    class Config:
-        extra = "allow"  # Allow debug fields during development
 
 
 def extract_video_id(url: str) -> str:
@@ -362,13 +359,8 @@ def add_captions_to_steps(result: dict, transcript: str) -> dict:
     """Extract caption text for each step's time segment from the transcript."""
     import re
     
-    # DEBUG: Add info FIRST (before any potential errors)
-    result['_debug_transcript_len'] = len(transcript) if transcript else 0
-    result['_debug_transcript_sample'] = transcript[:300] if transcript else 'EMPTY'
-    result['_debug_called'] = True
-    
     try:
-        # Parse transcript lines with timestamps
+        # Parse transcript lines with timestamps [M:SS] format
         lines = []
         for line in transcript.split('\n'):
             match = re.match(r'\[(\d+:\d+)\]\s*(.+)', line)
@@ -377,10 +369,7 @@ def add_captions_to_steps(result: dict, transcript: str) -> dict:
                 seconds = _ts_to_seconds(ts_str)
                 lines.append({'time': seconds, 'text': text})
         
-        result['_debug_lines_parsed'] = len(lines)
-        
         if not lines:
-            result['_debug_error'] = f"No lines matched regex from {len(transcript)} chars"
             return result
         
         steps = result.get('steps', [])
@@ -404,8 +393,8 @@ def add_captions_to_steps(result: dict, transcript: str) -> dict:
             
             step['caption'] = ' '.join(caption_parts) if caption_parts else None
     
-    except Exception as e:
-        result['_debug_exception'] = str(e)
+    except Exception:
+        pass  # Captions are optional, don't break extraction
     
     return result
 
@@ -420,7 +409,7 @@ async def api_info():
     return {
         "name": "CypherIt API",
         "tagline": "TikTok speed. YouTube depth.",
-        "version": "0.4.4-captions-fix",
+        "version": "0.5.0",
         "endpoints": {
             "/extract": "POST - Extract fix steps from YouTube URL",
             "/health": "GET - Health check"

@@ -29,6 +29,13 @@
 
 ---
 
+### Live Captions ✅ (Verified Feb 4, 2026 @ 11:00 AM)
+- [x] **Caption extraction** — Backend extracts transcript text per step
+- [x] **Typewriter animation** — Captions type out when step activates
+- [x] **Aggressive preloading** — All videos load with 200ms stagger
+
+**Bug Fixed:** Pydantic model was filtering out `caption` field — added to Step model.
+
 ### Video Looping ✅ (Verified Feb 4, 2026 @ 9:32 AM)
 - [x] **Segment looping** — Videos loop within step timestamp range
 - [x] **Minimum segment duration** — 8 seconds minimum per step
