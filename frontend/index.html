@@ -744,12 +744,7 @@
                         if (btn) btn.textContent = '🔊';
                     }
                     
-                    // Start boundary checking after player is ready (delay for initialization)
-                    setTimeout(() => {
-                        if (activeStepIndex === idx) { // Still on this step
-                            startBoundaryCheck(idx);
-                        }
-                    }, 800); // Wait 800ms for player to stabilize
+                    // Boundary check starts via onStateChange when player actually plays
                 } catch (e) {
                     console.error('Error playing video:', e);
                 }
@@ -851,6 +846,12 @@
                         controls: 1
                     },
                     events: {
+                        onStateChange: (event) => {
+                            // Start boundary check when player actually starts playing
+                            if (event.data === YT.PlayerState.PLAYING && activeStepIndex === idx) {
+                                startBoundaryCheck(idx);
+                            }
+                        },
                         onReady: (event) => {
                             // Play briefly to load the frame, then pause
                             event.target.playVideo();
