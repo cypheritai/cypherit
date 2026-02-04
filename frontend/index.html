@@ -184,17 +184,22 @@
         
         .steps {
             list-style: none;
+            scroll-snap-type: y proximity;
         }
         
         .step {
             display: flex;
             gap: 18px;
-            padding: 20px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 30px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            min-height: 70vh; /* Each step fills most of the viewport */
+            align-items: flex-start;
+            scroll-snap-align: start;
         }
         
         .step:last-child {
             border-bottom: none;
+            min-height: 50vh; /* Last step can be shorter */
         }
         
         .step-number {
@@ -657,19 +662,32 @@
         function setupActiveStepObserver() {
             const options = {
                 root: null,
-                rootMargin: '-30% 0px -30% 0px',
-                threshold: 0.5
+                rootMargin: '-10% 0px -50% 0px', // Top 40% of viewport triggers
+                threshold: 0.1
             };
             
             const observer = new IntersectionObserver((entries) => {
+                // Find the TOPMOST intersecting step
+                let topmostEntry = null;
+                let topmostY = Infinity;
+                
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
-                        const index = entry.target.dataset.stepIndex;
-                        if (activeStepIndex !== index) {
-                            setActiveStep(index);
+                        const rect = entry.boundingClientRect;
+                        if (rect.top < topmostY) {
+                            topmostY = rect.top;
+                            topmostEntry = entry;
                         }
                     }
                 });
+                
+                if (topmostEntry) {
+                    const index = topmostEntry.target.dataset.stepIndex;
+                    if (activeStepIndex !== index) {
+                        console.log(`Activating step ${index} (topmost visible)`);
+                        setActiveStep(index);
+                    }
+                }
             }, options);
             
             document.querySelectorAll('.step[data-timestamp]').forEach(step => {
@@ -677,6 +695,13 @@
                     observer.observe(step);
                 }
             });
+            
+            // Force Step 1 active on initial load
+            setTimeout(() => {
+                if (activeStepIndex === null) {
+                    setActiveStep('0');
+                }
+            }, 1500);
         }
         
         // ============ SOUND STATE ============
@@ -776,6 +801,7 @@
             
             boundaryCheckInterval = setInterval(() => {
                 if (activeStepIndex !== idx) {
+                    console.log(`Step ${idx}: no longer active, stopping loop check`);
                     clearInterval(boundaryCheckInterval);
                     return;
                 }
@@ -789,16 +815,21 @@
                 try {
                     const currentTime = player.getCurrentTime();
                     
+                    // Debug: log every 2 seconds
+                    if (Math.floor(currentTime) % 2 === 0) {
+                        console.log(`Step ${idx}: time=${currentTime.toFixed(1)}s, end=${endTime}s`);
+                    }
+                    
                     // LOOP: When reaching end of segment, seek back to start
-                    if (currentTime >= endTime - 0.3) {
-                        console.log(`Step ${idx}: looping back to ${startTime}s`);
+                    if (currentTime >= endTime - 0.5) {
+                        console.log(`🔄 Step ${idx}: LOOPING back to ${startTime}s (was at ${currentTime.toFixed(1)}s)`);
                         player.seekTo(startTime, true);
                         player.playVideo();
                     }
                 } catch (e) {
                     console.error(`Boundary check error:`, e);
                 }
-            }, 200); // Check every 200ms for smoother looping
+            }, 250); // Check every 250ms
         }
         
         // ============ VIDEO EMBED CREATION ============
