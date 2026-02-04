@@ -18,8 +18,6 @@ COPY frontend/ ./frontend/
 # Set environment
 ENV PORT=8080
 ENV PYTHONUNBUFFERED=1
-ENV SSL_CERT_FILE=/usr/local/lib/python3.11/site-packages/certifi/cacert.pem
-ENV REQUESTS_CA_BUNDLE=/usr/local/lib/python3.11/site-packages/certifi/cacert.pem
 
 # Run
 CMD ["python", "backend/main.py"]

@@ -20,6 +20,12 @@ from slowapi.errors import RateLimitExceeded
 from youtube_transcript_api import YouTubeTranscriptApi
 from youtube_transcript_api._errors import TranscriptsDisabled, NoTranscriptFound
 import time
+import ssl
+import certifi
+
+# Fix SSL certificates for containerized environments
+os.environ['SSL_CERT_FILE'] = certifi.where()
+os.environ['REQUESTS_CA_BUNDLE'] = certifi.where()
 
 # Load .env from project root
 env_path = Path(__file__).parent.parent / '.env'
