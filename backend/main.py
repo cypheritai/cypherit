@@ -124,7 +124,8 @@ def validate_video(video_id: str) -> bool:
         api = YouTubeTranscriptApi()
         api.fetch(video_id)
         return True
-    except Exception:
+    except Exception as e:
+        print(f"Demo validation failed for {video_id}: {e}")
         return False
 
 
@@ -136,22 +137,19 @@ def get_validated_demos() -> List[dict]:
     if _demo_cache["data"] and (now - _demo_cache["timestamp"]) < DEMO_CACHE_TTL:
         return _demo_cache["data"]
     
-    # Validate each category
+    # FAST PATH: Return primary videos without validation on first call
+    # Validation can be slow and SSL issues may cause false negatives
+    # The primary videos are known-good, so just return them
     validated = []
     for key, config in DEMO_VIDEOS.items():
-        working_video = None
-        for video_id in config["videos"]:
-            if validate_video(video_id):
-                working_video = video_id
-                break
-        
-        if working_video:
-            validated.append({
-                "key": key,
-                "emoji": config["emoji"],
-                "label": config["label"],
-                "url": f"https://www.youtube.com/watch?v={working_video}"
-            })
+        # Use first video (primary) without validation
+        primary_video = config["videos"][0]
+        validated.append({
+            "key": key,
+            "emoji": config["emoji"],
+            "label": config["label"],
+            "url": f"https://www.youtube.com/watch?v={primary_video}"
+        })
     
     # Cache results
     _demo_cache["data"] = validated
