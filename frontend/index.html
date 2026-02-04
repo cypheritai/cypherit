@@ -238,6 +238,46 @@
             padding: 4px 10px;
             border-radius: 6px;
             margin-top: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .step-timestamp:hover {
+            background: rgba(0,217,255,0.3);
+        }
+        
+        .step-video {
+            margin-top: 12px;
+            border-radius: 10px;
+            overflow: hidden;
+            background: rgba(0,0,0,0.3);
+            aspect-ratio: 16/9;
+            max-width: 320px;
+            position: relative;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        
+        .step-video.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .step-video iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        .step-video-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 0.9rem;
         }
         
         .meta {
@@ -466,20 +506,44 @@
             await extract();
         }
         
+        // Convert timestamp string to seconds for YouTube embed
+        function timestampToSeconds(ts) {
+            if (!ts) return 0;
+            const parts = ts.split(':').map(Number);
+            if (parts.length === 2) return parts[0] * 60 + parts[1];
+            if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+            return 0;
+        }
+        
+        // Track which steps have loaded videos
+        const loadedSteps = new Set();
+        let currentVideoId = null;
+        
         function displayResult(data) {
             document.getElementById('resultTitle').textContent = data.title;
             document.getElementById('resultProblem').textContent = data.problem;
             document.getElementById('readTime').textContent = `⏱️ ${data.time_to_read}`;
             document.getElementById('sourceLink').href = data.source_url;
             
+            // Store video ID for embeds
+            currentVideoId = data.video_id;
+            loadedSteps.clear();
+            
             const stepsEl = document.getElementById('steps');
-            stepsEl.innerHTML = data.steps.map(step => `
-                <li class="step">
+            stepsEl.innerHTML = data.steps.map((step, index) => `
+                <li class="step" data-step-index="${index}" data-timestamp="${step.timestamp || ''}">
                     <div class="step-number">${step.number}</div>
                     <div class="step-content">
                         <div class="step-action">${step.action}</div>
                         ${step.detail ? `<div class="step-detail">${step.detail}</div>` : ''}
-                        ${step.timestamp ? `<div class="step-timestamp">⏱️ ${step.timestamp}</div>` : ''}
+                        ${step.timestamp ? `
+                            <div class="step-timestamp" onclick="jumpToTimestamp('${step.timestamp}')">
+                                ▶️ ${step.timestamp}
+                            </div>
+                            <div class="step-video" id="step-video-${index}">
+                                <div class="step-video-placeholder">Loading preview...</div>
+                            </div>
+                        ` : ''}
                     </div>
                 </li>
             `).join('');
@@ -488,6 +552,67 @@
             
             // Smooth scroll to result
             document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Set up lazy loading for video embeds
+            setupVideoObserver();
+        }
+        
+        function jumpToTimestamp(ts) {
+            const seconds = timestampToSeconds(ts);
+            window.open(`https://www.youtube.com/watch?v=${currentVideoId}&t=${seconds}s`, '_blank');
+        }
+        
+        function setupVideoObserver() {
+            const options = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.5  // 50% visible
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const step = entry.target;
+                        const index = step.dataset.stepIndex;
+                        const timestamp = step.dataset.timestamp;
+                        
+                        if (!loadedSteps.has(index) && timestamp && currentVideoId) {
+                            // Delay loading so user reads first
+                            setTimeout(() => {
+                                loadVideoEmbed(index, timestamp);
+                            }, 1500);  // 1.5 second delay
+                            loadedSteps.add(index);
+                        }
+                    }
+                });
+            }, options);
+            
+            // Observe all steps with timestamps
+            document.querySelectorAll('.step[data-timestamp]').forEach(step => {
+                if (step.dataset.timestamp) {
+                    observer.observe(step);
+                }
+            });
+        }
+        
+        function loadVideoEmbed(index, timestamp) {
+            const container = document.getElementById(`step-video-${index}`);
+            if (!container) return;
+            
+            const seconds = timestampToSeconds(timestamp);
+            
+            // Create YouTube embed at specific timestamp
+            container.innerHTML = `
+                <iframe 
+                    src="https://www.youtube.com/embed/${currentVideoId}?start=${seconds}&autoplay=0&modestbranding=1&rel=0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen
+                    loading="lazy"
+                ></iframe>
+            `;
+            
+            // Animate in
+            setTimeout(() => container.classList.add('visible'), 50);
         }
         
         function showLoading(show) {

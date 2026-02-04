@@ -172,6 +172,7 @@ class ExtractResponse(BaseModel):
     steps: List[Step]
     time_to_read: str
     source_url: str
+    video_id: str
 
 
 def extract_video_id(url: str) -> str:
@@ -188,8 +189,15 @@ def extract_video_id(url: str) -> str:
     raise ValueError("Could not extract video ID from URL")
 
 
+def format_timestamp(seconds: float) -> str:
+    """Convert seconds to MM:SS format."""
+    minutes = int(seconds // 60)
+    secs = int(seconds % 60)
+    return f"{minutes}:{secs:02d}"
+
+
 def get_transcript(url: str) -> str:
-    """Fetch transcript using YouTube Transcript API. Tries direct first, falls back to proxy."""
+    """Fetch transcript with timestamps. Tries direct first, falls back to proxy."""
     video_id = extract_video_id(url)
     
     # Check for proxy configuration - support multiple env var names
@@ -204,8 +212,12 @@ def get_transcript(url: str) -> str:
     try:
         api = YouTubeTranscriptApi()
         transcript = api.fetch(video_id)
-        full_text = ' '.join([snippet.text for snippet in transcript.snippets])
-        return full_text
+        # Include timestamps in transcript for Claude to reference
+        timestamped_lines = []
+        for snippet in transcript.snippets:
+            ts = format_timestamp(snippet.start)
+            timestamped_lines.append(f"[{ts}] {snippet.text}")
+        return '\n'.join(timestamped_lines)
     except (TranscriptsDisabled, NoTranscriptFound) as e:
         # These are video-specific errors, proxy won't help
         if isinstance(e, TranscriptsDisabled):
@@ -226,8 +238,12 @@ def get_transcript(url: str) -> str:
         )
         api = YouTubeTranscriptApi(proxy_config=proxy_config)
         transcript = api.fetch(video_id)
-        full_text = ' '.join([snippet.text for snippet in transcript.snippets])
-        return full_text
+        # Include timestamps in transcript for Claude to reference
+        timestamped_lines = []
+        for snippet in transcript.snippets:
+            ts = format_timestamp(snippet.start)
+            timestamped_lines.append(f"[{ts}] {snippet.text}")
+        return '\n'.join(timestamped_lines)
     except (TranscriptsDisabled, NoTranscriptFound) as e:
         if isinstance(e, TranscriptsDisabled):
             raise HTTPException(status_code=400, detail="Transcripts are disabled for this video")
@@ -240,27 +256,29 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 5) -> dict:
     """Use Claude to extract structured fix steps from transcript."""
     prompt = f"""You are CypherIt, an expert at extracting actionable fix steps from video transcripts.
 
-Given this transcript from a how-to/tutorial video, extract:
+The transcript below has timestamps in [MM:SS] format. Extract:
 1. A clear, short title (what's being taught/fixed)
-2. The problem being solved or topic being taught (one sentence)
-3. Step-by-step instructions (max {max_steps} key steps, each should be actionable)
+2. The problem being solved (one sentence)
+3. Step-by-step instructions (max {max_steps} key steps)
+4. The EXACT timestamp from the transcript where each step is explained
 
 Rules:
-- Be concise - each step should be ONE clear action
-- Use imperative verbs (Open, Click, Navigate, Install, Create, etc.)
-- Skip intros/outros/tangents - just the core steps
-- Focus on the most important steps if there are many
+- Each step = ONE clear action with an imperative verb
+- ALWAYS include the timestamp where the step is demonstrated/explained
+- Use the timestamp format from the transcript (e.g., "1:23", "10:45")
+- Skip intros/outros - focus on the core how-to steps
+- Match timestamps to where the action is SHOWN, not just mentioned
 
 Transcript:
-{transcript[:8000]}
+{transcript[:12000]}
 
 Respond in this exact JSON format (no markdown, just JSON):
 {{
     "title": "How to [Do Thing]",
     "problem": "Brief description of what this teaches/fixes",
     "steps": [
-        {{"number": 1, "action": "First key action", "detail": "Optional extra context"}},
-        {{"number": 2, "action": "Second key action", "detail": null}}
+        {{"number": 1, "action": "First key action", "detail": "Optional extra context", "timestamp": "0:45"}},
+        {{"number": 2, "action": "Second key action", "detail": null, "timestamp": "2:15"}}
     ]
 }}"""
 
@@ -280,6 +298,7 @@ Respond in this exact JSON format (no markdown, just JSON):
     
     result = json.loads(response_text)
     result["source_url"] = url
+    result["video_id"] = extract_video_id(url)
     result["time_to_read"] = f"{len(result['steps']) * 12} seconds"
     return result
 
