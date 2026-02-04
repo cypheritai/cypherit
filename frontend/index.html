@@ -744,8 +744,12 @@
                         if (btn) btn.textContent = '🔊';
                     }
                     
-                    // Start boundary checking (loop mode)
-                    startBoundaryCheck(idx);
+                    // Start boundary checking after player is ready (delay for initialization)
+                    setTimeout(() => {
+                        if (activeStepIndex === idx) { // Still on this step
+                            startBoundaryCheck(idx);
+                        }
+                    }, 800); // Wait 800ms for player to stabilize
                 } catch (e) {
                     console.error('Error playing video:', e);
                 }
