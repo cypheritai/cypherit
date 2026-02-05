@@ -1,91 +1,133 @@
 # 🔐 CypherIt
 
-**Decipher any problem in 60 seconds.**
+### Get the steps in 60sec or Less.
 
-TikTok speed + YouTube depth = CypherIt
+**TikTok speed. YouTube depth.**
 
-## What is this?
+Paste any YouTube tutorial → Get structured steps with video clips → Fix your problem.
 
-CypherIt extracts the essential fix from any YouTube tutorial or article. No fluff. No 20-minute intros. Just the solution.
+🌐 **Live at [cypherit.ai](https://www.cypherit.ai)**
 
-Paste a URL → Get structured steps → Fix your problem.
+---
 
-## Features
+## ✨ What It Does
 
-- 🎯 **60-second fixes** - Only the steps that matter
-- 🛠️ **Parts & tools list** - Know what you need before you start  
-- ⚠️ **Warnings included** - Avoid common mistakes
-- ⏱️ **Time estimates** - Know how long it'll take
-- 🔍 **Works on any "how to fix" video**
+CypherIt extracts the essential steps from any YouTube tutorial. No 20-minute intros. No fluff. Just the fix.
 
-## Setup (Development)
+**Features:**
+- 🎯 **Step-by-step extraction** — AI-powered breakdown of any tutorial
+- 📹 **Video clips** — Each step links to the exact timestamp
+- 🛠️ **Quick Info** — Tools needed, time estimate, warnings, pro tips
+- 🔗 **Shareable links** — Deep link directly to any step
+- 📱 **Mobile-first** — Designed for fixing things on the go
 
-### Backend
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Python 3.9+
+- [Anthropic API key](https://console.anthropic.com/)
+
+### Backend Setup
 
 ```bash
 cd backend
+
+# Create virtual environment
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
 pip install -r requirements.txt
 
-# Set your Anthropic API key
-export ANTHROPIC_API_KEY=your_key_here
+# Configure environment
+cp .env.example .env
+# Edit .env and add your ANTHROPIC_API_KEY
 
 # Run the API
-python main.py
+uvicorn main:app --reload --port 8000
 ```
 
-API runs at http://localhost:8000
-
-### Frontend
+### Frontend Setup
 
 ```bash
 cd frontend
 python -m http.server 3000
 ```
 
-Open http://localhost:3000
-
-## API Endpoints
-
-- `GET /` - API info
-- `GET /health` - Health check
-- `POST /cypher` - Extract fix from URL
-- `GET /categories` - List fix categories
-
-### Example Request
-
-```bash
-curl -X POST http://localhost:8000/cypher \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://www.youtube.com/watch?v=..."}'
-```
-
-## Tech Stack
-
-- **Backend:** Python, FastAPI, Anthropic Claude
-- **Frontend:** Vanilla HTML/CSS/JS (for now)
-- **Transcript:** summarize CLI
-- **Hosting:** TBD (Railway, Vercel, etc.)
-
-## Roadmap
-
-- [x] Core extraction API
-- [x] Basic web UI
-- [ ] User accounts
-- [ ] Save fixes library
-- [ ] Community upvotes
-- [ ] Mobile apps
-- [ ] Verified fixes
-
-## Team
-
-- 🌬️ **Zephyr** - Code, AI, Architecture  
-- 🔧 **Carlos** - Vision, Product, Domain Expert
+Open http://localhost:3000 and paste any YouTube URL!
 
 ---
 
-*Built with 🔥 in 2026*
+## 🏗️ Architecture
 
-**Domain:** cypherit.ai  
-**Contact:** contact@cypherit.ai
+```
+cypherit/
+├── backend/
+│   ├── main.py           # FastAPI server
+│   ├── requirements.txt  # Python dependencies
+│   └── .env.example      # Environment template
+├── frontend/
+│   └── index.html        # Single-page app
+├── scripts/
+│   └── health_check.sh   # Deployment verification
+├── ROADMAP.md            # What we're building
+├── CONTRIBUTING.md       # How to help
+└── CHANGELOG.md          # What's shipped
+```
+
+**Tech Stack:**
+- **Backend:** Python, FastAPI, Claude (Anthropic)
+- **Frontend:** Vanilla HTML/CSS/JS
+- **Transcripts:** youtube-transcript-api + ScraperAPI fallback
+- **Hosting:** Railway
+
+---
+
+## 🤝 Contributing
+
+We'd love your help! Check out [CONTRIBUTING.md](./CONTRIBUTING.md) to get started.
+
+**Good first issues:**
+- Improve extraction prompts
+- Add support for Gemini/Groq/Ollama
+- Frontend polish and animations
+- Accessibility improvements
+- Documentation and translations
+
+---
+
+## 🗺️ Roadmap
+
+See [ROADMAP.md](./ROADMAP.md) for what's shipped and what's coming.
+
+**Building now:**
+- Popular Fixes gallery (curated categories)
+- Community upvotes
+- Multi-LLM support
+
+---
+
+## 📜 License
+
+MIT License — see [LICENSE](./LICENSE)
+
+---
+
+## 🌬️ Team
+
+Built by humans + AI, shipping fast.
+
+- **Carlos** — Vision, Product, Strategy
+- **Zephyr** — Code, AI, Architecture
+
+---
+
+**🌐 Website:** [cypherit.ai](https://www.cypherit.ai)  
+**📧 Contact:** contact@cypherit.ai  
+**🐙 GitHub:** [github.com/cypheritai/cypherit](https://github.com/cypheritai/cypherit)
+
+---
+
+*Ship fast. Help millions. 🔧*
