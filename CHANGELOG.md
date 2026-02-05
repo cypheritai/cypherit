@@ -39,6 +39,16 @@
 
 **Result:** "Executes flawlessly and loads instantly" — Carlos ✅
 
+### Featured Fixes Gallery ✅ (Verified Feb 5, 2026 @ 10:22 AM)
+- [x] **Category system** — 6 categories (Home, Tech, Phone, Auto, Gaming, Kitchen)
+- [x] **Gallery grid** — Cards with thumbnails, upvotes, difficulty badges
+- [x] **Category filtering** — Click tabs to filter fixes
+- [x] **Click to load** — Tap any card to extract steps instantly
+- [x] **Mobile responsive** — Optimized grid for small screens
+- [x] **Verified videos only** — Only videos with working transcripts
+
+**Result:** "Everything is working great, and the overall look is impressive!" — Carlos ✅
+
 ### Monetization Prep ✅ (Verified Feb 4, 2026 @ 7:11 PM)
 - [x] **Free Beta badge** — Subtle cyan gradient pill next to tagline
 - [x] **Pro coming soon footer** — "Free during beta · Pro coming soon"
@@ -139,6 +149,12 @@ Must pass:
 ---
 
 ## 📅 Version History
+
+### v0.6.0 (2026-02-05) — Featured Fixes Gallery
+- Gallery with 6 categories
+- Verified videos only (transcript validation)
+- Mobile-responsive grid with thumbnails
+- Click-to-load any fix instantly
 
 ### v0.5.0 (2026-02-04) — Quick Info + Monetization Prep
 - Quick Info section: tools, time, warnings, pro tips
