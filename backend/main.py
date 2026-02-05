@@ -494,6 +494,97 @@ async def demo_extract(request: Request):
     }
 
 
+# ============ GALLERY ENDPOINTS ============
+
+# Load gallery data
+def load_gallery_data():
+    """Load gallery data from JSON file."""
+    gallery_path = Path(__file__).parent / "gallery_data.json"
+    if gallery_path.exists():
+        with open(gallery_path, 'r') as f:
+            return json.load(f)
+    return {"categories": [], "fixes": []}
+
+def save_gallery_data(data):
+    """Save gallery data to JSON file."""
+    gallery_path = Path(__file__).parent / "gallery_data.json"
+    with open(gallery_path, 'w') as f:
+        json.dump(data, f, indent=2)
+
+
+@app.get("/gallery/categories")
+async def get_categories():
+    """Get all categories."""
+    data = load_gallery_data()
+    return {"categories": data.get("categories", [])}
+
+
+@app.get("/gallery")
+async def get_gallery(category: Optional[str] = None, featured: Optional[bool] = None, limit: int = 50):
+    """Get gallery fixes with optional filters."""
+    data = load_gallery_data()
+    fixes = data.get("fixes", [])
+    
+    # Filter by category
+    if category:
+        fixes = [f for f in fixes if f.get("category") == category]
+    
+    # Filter by featured
+    if featured is not None:
+        fixes = [f for f in fixes if f.get("featured") == featured]
+    
+    # Sort by upvotes (most popular first)
+    fixes = sorted(fixes, key=lambda x: x.get("upvotes", 0), reverse=True)
+    
+    # Limit results
+    fixes = fixes[:limit]
+    
+    return {"fixes": fixes, "total": len(fixes)}
+
+
+@app.get("/gallery/{fix_id}")
+async def get_fix(fix_id: str):
+    """Get a specific fix by ID."""
+    data = load_gallery_data()
+    fixes = data.get("fixes", [])
+    
+    fix = next((f for f in fixes if f.get("id") == fix_id), None)
+    if not fix:
+        raise HTTPException(status_code=404, detail="Fix not found")
+    
+    return fix
+
+
+@app.post("/gallery/{fix_id}/upvote")
+async def upvote_fix(fix_id: str):
+    """Upvote a fix."""
+    data = load_gallery_data()
+    fixes = data.get("fixes", [])
+    
+    for fix in fixes:
+        if fix.get("id") == fix_id:
+            fix["upvotes"] = fix.get("upvotes", 0) + 1
+            save_gallery_data(data)
+            return {"success": True, "upvotes": fix["upvotes"]}
+    
+    raise HTTPException(status_code=404, detail="Fix not found")
+
+
+@app.post("/gallery/{fix_id}/view")
+async def track_view(fix_id: str):
+    """Track a view for a fix."""
+    data = load_gallery_data()
+    fixes = data.get("fixes", [])
+    
+    for fix in fixes:
+        if fix.get("id") == fix_id:
+            fix["views"] = fix.get("views", 0) + 1
+            save_gallery_data(data)
+            return {"success": True, "views": fix["views"]}
+    
+    raise HTTPException(status_code=404, detail="Fix not found")
+
+
 # Serve frontend
 frontend_path = Path(__file__).parent.parent / "frontend"
 

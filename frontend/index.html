@@ -237,6 +237,158 @@
             margin-right: 6px;
         }
         
+        /* Gallery Section */
+        .gallery-section {
+            margin: 40px 0;
+            padding: 32px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .gallery-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .gallery-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .gallery-subtitle {
+            color: #888;
+            font-size: 0.95rem;
+        }
+        
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        
+        .category-tab {
+            padding: 10px 18px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 25px;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .category-tab:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+        
+        .category-tab.active {
+            background: linear-gradient(90deg, rgba(0,217,255,0.2), rgba(0,255,136,0.2));
+            border-color: #00d9ff;
+            color: #00d9ff;
+        }
+        
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+        }
+        
+        .gallery-loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #666;
+            padding: 40px;
+        }
+        
+        .fix-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .fix-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(0,217,255,0.3);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+        
+        .fix-card-thumbnail {
+            width: 100%;
+            aspect-ratio: 16/9;
+            object-fit: cover;
+            background: #111;
+        }
+        
+        .fix-card-content {
+            padding: 16px;
+        }
+        
+        .fix-card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .fix-card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #888;
+            font-size: 0.85rem;
+        }
+        
+        .fix-card-stats {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .fix-card-stat {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .fix-card-difficulty {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .fix-card-difficulty.beginner {
+            background: rgba(0,255,136,0.15);
+            color: #00ff88;
+        }
+        
+        .fix-card-difficulty.intermediate {
+            background: rgba(255,180,0,0.15);
+            color: #ffb400;
+        }
+        
+        .fix-card-difficulty.advanced {
+            background: rgba(255,100,100,0.15);
+            color: #ff6464;
+        }
+        
+        .fix-card-time {
+            color: #00d9ff;
+        }
+        
         .result {
             background: rgba(255,255,255,0.05);
             border-radius: 20px;
@@ -822,6 +974,24 @@
             <div class="error" id="error"></div>
         </div>
         
+        <!-- Popular Fixes Gallery -->
+        <div class="gallery-section" id="gallerySection">
+            <div class="gallery-header">
+                <h2 class="gallery-title">🔥 Popular Fixes</h2>
+                <p class="gallery-subtitle">Curated tutorials trusted by the community</p>
+            </div>
+            
+            <div class="category-tabs" id="categoryTabs">
+                <button class="category-tab active" data-category="all" onclick="filterCategory('all')">All</button>
+                <!-- Categories loaded dynamically -->
+            </div>
+            
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Fixes loaded dynamically -->
+                <div class="gallery-loading">Loading popular fixes...</div>
+            </div>
+        </div>
+        
         <div class="loading" id="loading">
             <div class="loading-icon-container">
                 <img src="loading-icon.png" alt="Loading" class="loading-icon">
@@ -928,9 +1098,116 @@
             `).join('');
         }
         
+        // ============ GALLERY ============
+        let GALLERY_CATEGORIES = [];
+        let GALLERY_FIXES = [];
+        let currentCategory = 'all';
+        
+        async function loadGallery() {
+            try {
+                // Load categories
+                const catResponse = await fetch(`${API_URL}/gallery/categories`);
+                if (catResponse.ok) {
+                    const catData = await catResponse.json();
+                    GALLERY_CATEGORIES = catData.categories;
+                    renderCategoryTabs();
+                }
+                
+                // Load fixes
+                const fixResponse = await fetch(`${API_URL}/gallery`);
+                if (fixResponse.ok) {
+                    const fixData = await fixResponse.json();
+                    GALLERY_FIXES = fixData.fixes;
+                    renderGalleryGrid();
+                }
+            } catch (err) {
+                console.warn('Failed to load gallery:', err);
+                document.getElementById('galleryGrid').innerHTML = 
+                    '<div class="gallery-loading">Gallery coming soon...</div>';
+            }
+        }
+        
+        function renderCategoryTabs() {
+            const container = document.getElementById('categoryTabs');
+            const tabs = [
+                { id: 'all', name: 'All', emoji: '🌟' },
+                ...GALLERY_CATEGORIES
+            ];
+            
+            container.innerHTML = tabs.map(cat => `
+                <button class="category-tab ${currentCategory === cat.id ? 'active' : ''}" 
+                        data-category="${cat.id}" 
+                        onclick="filterCategory('${cat.id}')">
+                    ${cat.emoji} ${cat.name}
+                </button>
+            `).join('');
+        }
+        
+        function filterCategory(categoryId) {
+            currentCategory = categoryId;
+            renderCategoryTabs();
+            renderGalleryGrid();
+        }
+        
+        function renderGalleryGrid() {
+            const container = document.getElementById('galleryGrid');
+            
+            let fixes = GALLERY_FIXES;
+            if (currentCategory !== 'all') {
+                fixes = fixes.filter(f => f.category === currentCategory);
+            }
+            
+            if (!fixes.length) {
+                container.innerHTML = '<div class="gallery-loading">No fixes in this category yet</div>';
+                return;
+            }
+            
+            container.innerHTML = fixes.map(fix => `
+                <div class="fix-card" onclick="loadFix('${fix.video_id}')">
+                    <img class="fix-card-thumbnail" src="${fix.thumbnail}" alt="${fix.title}" loading="lazy">
+                    <div class="fix-card-content">
+                        <div class="fix-card-title">${fix.title}</div>
+                        <div class="fix-card-meta">
+                            <div class="fix-card-stats">
+                                <span class="fix-card-stat">👍 ${fix.upvotes}</span>
+                                <span class="fix-card-stat fix-card-time">⏱️ ${fix.time_estimate}</span>
+                            </div>
+                            <span class="fix-card-difficulty ${fix.difficulty}">${fix.difficulty}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function loadFix(videoId) {
+            const url = `https://youtube.com/watch?v=${videoId}`;
+            document.getElementById('urlInput').value = url;
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Hide gallery, trigger extraction
+            setTimeout(() => extract(), 300);
+        }
+        
+        async function upvoteFix(fixId, event) {
+            event.stopPropagation(); // Don't trigger card click
+            try {
+                const response = await fetch(`${API_URL}/gallery/${fixId}/upvote`, { method: 'POST' });
+                if (response.ok) {
+                    const data = await response.json();
+                    // Refresh gallery to show updated count
+                    loadGallery();
+                }
+            } catch (err) {
+                console.warn('Failed to upvote:', err);
+            }
+        }
+        
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
             loadDemos();
+            loadGallery();
             
             // Check for shared video link (?v=VIDEO_ID)
             const params = new URLSearchParams(window.location.search);
@@ -1020,6 +1297,9 @@
             document.getElementById('resultProblem').textContent = data.problem;
             document.getElementById('readTime').textContent = `⏱️ ${data.time_to_read}`;
             document.getElementById('sourceLink').href = data.source_url;
+            
+            // Hide gallery when showing results
+            document.getElementById('gallerySection').style.display = 'none';
             
             // Display Quick Info section
             displayQuickInfo(data.quick_info);
@@ -1562,8 +1842,9 @@
             document.getElementById('error').classList.remove('visible');
             document.getElementById('result').classList.remove('visible');
             
-            // Show search box and demos
+            // Show search box, demos, and gallery
             document.getElementById('demoSection').style.display = 'block';
+            document.getElementById('gallerySection').style.display = 'block';
             
             // Scroll to top
             window.scrollTo({ top: 0, behavior: 'smooth' });
