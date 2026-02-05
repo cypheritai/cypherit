@@ -1687,9 +1687,9 @@
             
             let hasContent = false;
             
-            // Tools Needed
+            // Tools Needed - display as list
             if (quickInfo.tools_needed && quickInfo.tools_needed.length > 0) {
-                document.getElementById('toolsValue').textContent = quickInfo.tools_needed.join(' • ');
+                document.getElementById('toolsValue').innerHTML = quickInfo.tools_needed.map(t => `• ${t}`).join('<br>');
                 document.getElementById('toolsNeeded').classList.add('visible');
                 hasContent = true;
             }
@@ -1701,16 +1701,16 @@
                 hasContent = true;
             }
             
-            // Warnings
+            // Warnings - display as list
             if (quickInfo.warnings && quickInfo.warnings.length > 0) {
-                document.getElementById('warningsValue').textContent = quickInfo.warnings.join(' • ');
+                document.getElementById('warningsValue').innerHTML = quickInfo.warnings.map(w => `• ${w}`).join('<br>');
                 document.getElementById('warningsBox').classList.add('visible');
                 hasContent = true;
             }
             
-            // Tips
+            // Tips - display as list
             if (quickInfo.tips && quickInfo.tips.length > 0) {
-                document.getElementById('tipsValue').textContent = quickInfo.tips.join(' • ');
+                document.getElementById('tipsValue').innerHTML = quickInfo.tips.map(t => `• ${t}`).join('<br>');
                 document.getElementById('tipsBox').classList.add('visible');
                 hasContent = true;
             }
