@@ -1862,12 +1862,6 @@
                             <div class="step-video" id="step-video-${index}">
                                 <div class="step-video-placeholder">Loading preview...</div>
                             </div>
-                            ${step.caption ? `
-                                <div class="step-caption" id="step-caption-${index}" data-full-text="${step.caption.replace(/"/g, '&quot;')}">
-                                    <span class="caption-text"></span>
-                                    <span class="caption-cursor">|</span>
-                                </div>
-                            ` : ''}
                         ` : ''}
                         ${!isLastStep ? `
                             <div class="step-controls-wrapper" id="step-controls-${index}">
@@ -1892,6 +1886,12 @@
                                 </button>
                             </div>
                         `}
+                        ${step.caption ? `
+                            <div class="step-caption" id="step-caption-${index}" data-full-text="${step.caption.replace(/"/g, '&quot;')}">
+                                <span class="caption-text"></span>
+                                <span class="caption-cursor">|</span>
+                            </div>
+                        ` : ''}
                     </div>
                 </li>
             `}).join('');
@@ -2099,6 +2099,7 @@
         
         // ============ CAPTION SYNC WITH VIDEO ============
         let captionSyncInterval = null;
+        const captionShownSteps = {}; // Track which captions have been fully shown
         
         function startCaptionTyping(index) {
             // Clear any existing sync
@@ -2114,6 +2115,14 @@
             if (!fullText) return;
             
             const textEl = captionEl.querySelector('.caption-text');
+            
+            // If caption was already shown, keep it and don't reset
+            if (captionShownSteps[idx]) {
+                textEl.textContent = fullText;
+                captionEl.classList.add('complete');
+                return; // Caption already complete, no sync needed
+            }
+            
             captionEl.classList.remove('complete');
             
             // Get step timing
@@ -2128,7 +2137,7 @@
             
             const segmentDuration = endTime - startTime;
             
-            // Reset text
+            // Reset text only if not already shown
             textEl.textContent = '';
             
             // Sync caption to video playback time (pauses when buffering!)
@@ -2153,6 +2162,7 @@
                     
                     if (progress >= 1) {
                         captionEl.classList.add('complete');
+                        captionShownSteps[idx] = true; // Mark as fully shown
                     }
                 } catch (e) {}
             }, 100); // Update 10 times per second
@@ -2409,13 +2419,7 @@
             player.seekTo(startTime, true);
             player.playVideo();
             
-            // Restart caption animation
-            const captionEl = document.getElementById(`step-caption-${idx}`);
-            if (captionEl) {
-                captionEl.classList.remove('complete');
-                const textEl = captionEl.querySelector('.caption-text');
-                if (textEl) textEl.textContent = '';
-            }
+            // Captions stay visible (don't reset) - only reset on page refresh
         }
         
         // ============ THUMBNAIL + TAP-TO-PLAY ============
