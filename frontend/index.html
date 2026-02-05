@@ -1049,6 +1049,42 @@
             border-color: #ff6b6b;
         }
         
+        /* Progress Bar */
+        .progress-container {
+            width: 80%;
+            max-width: 300px;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin: 20px auto 0;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 10px rgba(0,217,255,0.5);
+        }
+        
+        .progress-bar.animating {
+            animation: progressPulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes progressPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(0,217,255,0.5); }
+            50% { box-shadow: 0 0 20px rgba(0,255,136,0.8); }
+        }
+        
+        .progress-text {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 8px;
+        }
+        
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
@@ -1295,6 +1331,10 @@
                 <img src="loading-icon.png" alt="Loading" class="loading-icon">
             </div>
             <p id="loadingText">Extracting your Steps...</p>
+            <div class="progress-container">
+                <div class="progress-bar animating" id="progressBar"></div>
+            </div>
+            <p class="progress-text" id="progressText">Analyzing video...</p>
             <button class="stop-btn" onclick="stopExtraction()">✕ Cancel</button>
         </div>
         
@@ -1600,6 +1640,8 @@
                 }
                 
                 const data = await response.json();
+                completeProgress(); // Fill progress to 100%
+                await new Promise(r => setTimeout(r, 300)); // Brief pause to show completion
                 displayResult(data);
             } catch (err) {
                 // Don't show error if user cancelled
@@ -2190,12 +2232,73 @@
             setTimeout(() => container.classList.add('visible'), 100);
         }
         
+        let progressInterval = null;
+        
         function showLoading(show) {
             document.getElementById('loading').classList.toggle('visible', show);
             document.getElementById('extractBtn').disabled = show;
             
             // Disable demo buttons while loading
             document.querySelectorAll('.demo-btn').forEach(btn => btn.disabled = show);
+            
+            // Control progress bar
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            if (show) {
+                // Reset and start progress animation
+                progressBar.style.width = '0%';
+                progressBar.classList.add('animating');
+                startProgressAnimation();
+            } else {
+                // Stop and reset progress
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+                progressBar.style.width = '0%';
+                progressBar.classList.remove('animating');
+                progressText.textContent = 'Analyzing video...';
+            }
+        }
+        
+        function startProgressAnimation() {
+            let progress = 0;
+            const stages = [
+                { at: 10, text: 'Fetching transcript...' },
+                { at: 30, text: 'Analyzing content...' },
+                { at: 50, text: 'Identifying steps...' },
+                { at: 70, text: 'Extracting timestamps...' },
+                { at: 85, text: 'Finalizing...' }
+            ];
+            let stageIndex = 0;
+            
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            
+            progressInterval = setInterval(() => {
+                // Slow down as we approach 90% (we never hit 100% until complete)
+                const increment = progress < 50 ? 2 : progress < 80 ? 1 : 0.3;
+                progress = Math.min(progress + increment, 90);
+                progressBar.style.width = progress + '%';
+                
+                // Update stage text
+                if (stageIndex < stages.length && progress >= stages[stageIndex].at) {
+                    progressText.textContent = stages[stageIndex].text;
+                    stageIndex++;
+                }
+            }, 200);
+        }
+        
+        function completeProgress() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            progressBar.style.width = '100%';
+            progressText.textContent = 'Complete!';
         }
         
         function showError(msg) {
