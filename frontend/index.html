@@ -2222,26 +2222,32 @@
             const segmentDuration = endTime - startTime;
             console.log(`Step ${idx}: loop from ${startTime}s to ${endTime}s (${segmentDuration}s segment)`);
             
-            // Get UI elements
-            const btnProgress = document.getElementById(`btn-progress-${idx}`);
-            const nextBtn = document.getElementById(`next-btn-${idx}`);
-            const replayBtn = document.getElementById(`replay-btn-${idx}`);
+            // Set up scrubbing on the button FIRST (before getting references, since it clones the button)
+            setupButtonScrubbing(idx, startTime, endTime, segmentDuration);
+            
+            // Now get UI elements (after cloning)
+            const getProgressEl = () => document.getElementById(`btn-progress-${idx}`);
+            const getNextBtn = () => document.getElementById(`next-btn-${idx}`);
+            const getReplayBtn = () => document.getElementById(`replay-btn-${idx}`);
             
             // Check if step was already completed - restore state
             if (completedSteps[idx]) {
                 console.log(`Step ${idx}: already completed, restoring state`);
-                if (btnProgress) btnProgress.style.width = '100%';
-                if (nextBtn) nextBtn.classList.add('completed');
-                if (replayBtn) replayBtn.style.display = 'block';
+                const bp = getProgressEl();
+                const nb = getNextBtn();
+                const rb = getReplayBtn();
+                if (bp) bp.style.width = '100%';
+                if (nb) nb.classList.add('completed');
+                if (rb) rb.style.display = 'block';
             } else {
                 // Fresh start - reset visuals
-                if (btnProgress) btnProgress.style.width = '0%';
-                if (nextBtn) nextBtn.classList.remove('completed');
-                if (replayBtn) replayBtn.style.display = 'none';
+                const bp = getProgressEl();
+                const nb = getNextBtn();
+                const rb = getReplayBtn();
+                if (bp) bp.style.width = '0%';
+                if (nb) nb.classList.remove('completed');
+                if (rb) rb.style.display = 'none';
             }
-            
-            // Set up scrubbing on the button
-            setupButtonScrubbing(idx, startTime, endTime, segmentDuration);
             
             let loopCount = completedSteps[idx] ? 1 : 0; // Preserve loop count if already completed
             
@@ -2265,6 +2271,7 @@
                     if (!isScrubbing) {
                         const elapsed = currentTime - startTime;
                         const progress = Math.min(100, Math.max(0, (elapsed / segmentDuration) * 100));
+                        const btnProgress = getProgressEl();
                         if (btnProgress) {
                             btnProgress.style.width = progress + '%';
                         }
@@ -2278,6 +2285,8 @@
                         // Mark step as completed after first loop
                         if (loopCount === 1) {
                             completedSteps[idx] = true;
+                            const nextBtn = getNextBtn();
+                            const replayBtn = getReplayBtn();
                             if (nextBtn) nextBtn.classList.add('completed');
                             if (replayBtn) replayBtn.style.display = 'block';
                         }
