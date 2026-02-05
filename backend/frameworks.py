@@ -1,65 +1,72 @@
 """
 CypherIt - Golden Nugget Extraction
-Find the treasure, skip the dirt.
+Total extraction ≤ 60 seconds. Final step = verification.
 """
 
-def get_extraction_prompt(category: str, transcript: str, max_steps: int = 5) -> str:
-    """Extract golden nuggets - the moments that deliver the value."""
+def get_extraction_prompt(category: str, transcript: str, max_steps: int = 6) -> str:
+    """Extract golden nuggets - total time ≤ 60 seconds."""
     
-    return f"""You are a GOLDEN NUGGET MINER. Your job is to find the treasure buried in this video.
+    return f"""You are CypherIt. Extract the essential moments from this video in 60 SECONDS OR LESS total.
 
-A golden nugget is a 15-45 second moment that:
-• Delivers the "hit" — the viewer goes "wait, that's it!" or "oh, I get it now"
-• Stands ALONE — you don't need the full video to understand it
-• Is the REASON someone would watch this video
-• Contains the core technique, the key insight, or the actionable tip
+RULES:
+1. Find the KEY MOMENTS that deliver the value (not explanations, the actual demonstrations)
+2. TOTAL clip time must be ≤ 60 seconds combined
+3. Each clip: 8-20 seconds (find the tightest moment)
+4. FINAL step MUST be VERIFICATION (how to confirm it worked)
+5. Quality over quantity — fewer great clips beats more mediocre ones
 
-The rest of the video is the "dirt" — setup, explanations, tangents, filler. Skip it.
+WHAT TO EXTRACT:
+• The moment the technique is SHOWN (not explained)
+• The "trick" or insight that makes it work
+• Any "don't do this" warnings shown
+• The verification/proof it worked (ALWAYS include this last)
 
-YOUR MISSION:
-Find 3-5 golden nuggets in this video. Each one should be:
-1. SELF-CONTAINED — Someone watching just this clip "gets it"
-2. VALUABLE — It's the part that actually matters
-3. TIGHT — 15-45 seconds max, no fat
-4. VISUAL — The moment where the action/technique is SHOWN, not explained
-
-For how-to content, nuggets are usually:
-• The moment the technique is demonstrated (not explained)
-• The "trick" or hack that makes it easier
-• The before/after or the proof it works
-• The "don't make this mistake" warning shown
-
-DON'T extract:
-• Intros, outros, sponsor reads
+SKIP:
+• Intros, outros, sponsors
 • Long explanations (find the demo instead)
-• Filler or repetition
-• Setup without payoff
+• Repetition or filler
 
-The transcript has timestamps in [MM:SS] format. Find the nuggets.
+The transcript has timestamps in [MM:SS] format.
 
 Transcript:
 {transcript[:12000]}
 
 Respond with ONLY valid JSON:
 {{
-    "title": "What this video teaches",
-    "hook": "The one-sentence reason to watch (the core insight)",
+    "title": "Clear title of what this teaches",
+    "problem": "One sentence: what you'll be able to do after watching",
     "category": "{category}",
-    "nuggets": [
+    "quick_info": {{
+        "tools_needed": ["What you need"],
+        "time_estimate": "How long the actual task takes",
+        "warnings": ["Key safety/important warnings"],
+        "tips": ["Helpful tips mentioned"]
+    }},
+    "steps": [
         {{
             "number": 1,
-            "moment": "What happens in this nugget",
-            "why_valuable": "Why this moment matters",
+            "action": "What happens in this moment",
+            "detail": "Why this moment matters (optional)",
             "timestamp": "2:15",
-            "end_timestamp": "2:45"
+            "end_timestamp": "2:28"
+        }},
+        {{
+            "number": 2,
+            "action": "Verify: How to confirm it worked",
+            "detail": "What to check",
+            "timestamp": "5:30",
+            "end_timestamp": "5:42"
         }}
     ],
-    "verify": "How you know you did it right"
-}}"""
+    "summary": "2-3 sentence summary: what was covered and the key takeaway"
+}}
+
+CRITICAL: Total of all clips (end_timestamp - timestamp) must be ≤ 60 seconds!
+CRITICAL: Last step must be verification/confirmation!"""
 
 
 def detect_category(title: str, transcript: str) -> str:
-    """Simple category detection for badge display."""
+    """Simple category detection."""
     text = (title + " " + transcript[:2000]).lower()
     
     if any(kw in text for kw in ["oil change", "brake", "tire", "car", "engine", "vehicle", "automotive"]):

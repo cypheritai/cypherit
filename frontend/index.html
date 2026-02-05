@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CypherIt - Find the Golden Nuggets</title>
+    <title>CypherIt - Get the Steps in 60sec or Less</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <style>
@@ -648,7 +648,7 @@
         .step-number {
             width: 48px;
             height: 48px;
-            background: linear-gradient(135deg, #FFD700, #FFA500);
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -658,7 +658,6 @@
             color: #000;
             flex-shrink: 0;
             margin-bottom: 16px;
-            box-shadow: 0 0 15px rgba(255,215,0,0.4);
         }
         
         .step-content {
@@ -688,6 +687,39 @@
         
         .step-controls-wrapper {
             margin-top: 20px;
+        }
+        
+        /* Summary Section */
+        .summary-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+        }
+        
+        .summary-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        
+        .summary-icon {
+            font-size: 1.2rem;
+        }
+        
+        .summary-title {
+            font-weight: 700;
+            font-size: 1rem;
+            color: #00d9ff;
+        }
+        
+        .summary-text {
+            color: #ccc;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
         }
         
         /* Verify Checklist Section */
@@ -1433,7 +1465,7 @@
         <header>
             <img src="logo.png" alt="CypherIt" class="logo-img" onclick="resetAll()" style="cursor: pointer;" title="Start Fresh">
             <div class="tagline-row">
-                <p class="tagline">Find the Golden Nuggets. Skip the fluff.</p>
+                <p class="tagline">Get the Steps in 60sec or Less.</p>
                 <span class="beta-badge" title="Pro coming soon">✨ Free Beta</span>
             </div>
             <button class="share-app-btn" onclick="shareApp()">📤 Share CypherIt</button>
@@ -1552,6 +1584,14 @@
                     <span class="verify-title">Verify It Worked</span>
                 </div>
                 <ul class="verify-checklist" id="verifyChecklist"></ul>
+            </div>
+            
+            <div class="summary-section" id="summarySection" style="display:none;">
+                <div class="summary-header">
+                    <span class="summary-icon">📋</span>
+                    <span class="summary-title">Summary</span>
+                </div>
+                <p class="summary-text" id="summaryText"></p>
             </div>
             
             <div class="meta">
@@ -1947,7 +1987,7 @@
                             <div class="step-controls-wrapper" id="step-controls-${index}">
                                 <button class="next-step-btn" id="next-btn-${index}" onclick="goToNextStep(${index + 1})">
                                     <div class="btn-progress" id="btn-progress-${index}"></div>
-                                    <span class="btn-text">Next Nugget →</span>
+                                    <span class="btn-text">Next Step →</span>
                                 </button>
                                 <button class="replay-btn" id="replay-btn-${index}" onclick="replayStep(${index})" style="display:none;">
                                     🔄 Replay This Step
@@ -1995,6 +2035,16 @@
                 verifySection.style.display = 'block';
             } else {
                 verifySection.style.display = 'none';
+            }
+            
+            // Display summary if present
+            const summarySection = document.getElementById('summarySection');
+            const summaryText = document.getElementById('summaryText');
+            if (data.summary) {
+                summaryText.textContent = data.summary;
+                summarySection.style.display = 'block';
+            } else {
+                summarySection.style.display = 'none';
             }
             
             document.getElementById('result').classList.add('visible');
@@ -2705,7 +2755,7 @@
             
             if (navigator.share) {
                 navigator.share({
-                    title: "CypherIt - Golden Nuggets from any video",
+                    title: "CypherIt - Get the steps in 60sec",
                     text: text,
                     url: url
                 }).catch(() => {});
@@ -2724,7 +2774,7 @@
         }
         
         function getShareText() {
-            return `✨ Found the golden nuggets on CypherIt!\n\n"${currentTitle}"\n\n`;
+            return `🔧 Got the steps in 60sec on CypherIt!\n\n"${currentTitle}"\n\n`;
         }
         
         function shareToX() {
