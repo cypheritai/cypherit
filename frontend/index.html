@@ -191,9 +191,20 @@
         }
         
         .primary-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.7;
             cursor: not-allowed;
             transform: none;
+            background: linear-gradient(90deg, #00a0cc, #00cc66);
+        }
+        
+        .btn-loading {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         
         .demo-section {
@@ -1053,6 +1064,46 @@
                 font-size: 1rem;
             }
             
+            /* Quick Info mobile styles - make it appealing like desktop */
+            .quick-info {
+                padding: 12px;
+                gap: 10px;
+                background: linear-gradient(135deg, rgba(0,20,40,0.8), rgba(0,30,60,0.6));
+                border: 1px solid rgba(0,217,255,0.15);
+            }
+            
+            .quick-info-item {
+                padding: 14px;
+                min-width: calc(50% - 5px);
+                flex: 1 1 calc(50% - 5px);
+                border-radius: 14px;
+                background: linear-gradient(135deg, rgba(0,217,255,0.12), rgba(0,217,255,0.05));
+            }
+            
+            .quick-info-item.warning {
+                background: linear-gradient(135deg, rgba(255,180,0,0.15), rgba(255,180,0,0.05));
+            }
+            
+            .quick-info-item.tip {
+                background: linear-gradient(135deg, rgba(0,255,136,0.12), rgba(0,255,136,0.05));
+            }
+            
+            .quick-info-icon {
+                font-size: 1.1rem;
+            }
+            
+            .quick-info-label {
+                font-size: 0.7rem;
+                font-weight: 700;
+                letter-spacing: 1px;
+                margin-bottom: 4px;
+            }
+            
+            .quick-info-value {
+                font-size: 0.85rem;
+                line-height: 1.4;
+            }
+            
             /* Voting mobile styles */
             .voting-section {
                 padding: 16px;
@@ -1450,6 +1501,11 @@
                 return;
             }
             
+            // Show loading state on button
+            const btn = document.getElementById('extractBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="btn-loading">⏳</span> Extracting...';
+            
             showLoading(true);
             hideError();
             hideResult();
@@ -1480,6 +1536,9 @@
             } finally {
                 showLoading(false);
                 currentAbortController = null;
+                // Reset button
+                btn.disabled = false;
+                btn.innerHTML = 'Get Steps';
             }
         }
         
