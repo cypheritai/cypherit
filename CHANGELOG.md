@@ -39,6 +39,15 @@
 
 **Result:** "Executes flawlessly and loads instantly" — Carlos ✅
 
+### Mobile UX Polish ✅ (Verified Feb 5, 2026 @ 11:43 AM)
+- [x] **Button loading state** — Shows "⏳ Extracting..." with spinner
+- [x] **Hide demos on results** — Cleaner results page
+- [x] **Quick Info 2-column layout** — Compact square-ish cards
+- [x] **Gradient backgrounds** — Matching desktop aesthetic
+- [x] **Vertical bullet lists** — Items listed one per line, not inline
+
+**Result:** "You got it! Fantastic. Great work!" — Carlos ✅
+
 ### Phase A: Helpful Voting ✅ (Verified Feb 5, 2026 @ 10:45 AM)
 - [x] **Vote buttons** — 👍/👎 at top and bottom of results
 - [x] **Backend API** — `/votes` endpoint for tracking
@@ -161,6 +170,12 @@ Must pass:
 ---
 
 ## 📅 Version History
+
+### v0.8.0 (2026-02-05) — Mobile UX Polish
+- Button loading state with spinner
+- Quick Info compact 2-column cards
+- Vertical bullet lists for readability
+- Hide demo section on results page
 
 ### v0.7.0 (2026-02-05) — Helpful Voting (Phase A)
 - 👍/👎 voting buttons on results page
