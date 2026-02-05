@@ -689,6 +689,68 @@
             margin-top: 20px;
         }
         
+        /* Verify Checklist Section */
+        .verify-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(0,255,136,0.08);
+            border: 1px solid rgba(0,255,136,0.25);
+            border-radius: 16px;
+        }
+        
+        .verify-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .verify-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #00ff88, #00d9ff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #000;
+        }
+        
+        .verify-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #00ff88;
+        }
+        
+        .verify-checklist {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .verify-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: #ccc;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        
+        .verify-item:last-child {
+            border-bottom: none;
+        }
+        
+        .verify-check {
+            color: #00ff88;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        
         .step-timestamp {
             display: inline-block;
             background: rgba(0,217,255,0.15);
@@ -1482,6 +1544,15 @@
             </div>
             
             <ul class="steps" id="steps"></ul>
+            
+            <div class="verify-section" id="verifySection" style="display:none;">
+                <div class="verify-header">
+                    <span class="verify-icon">✓</span>
+                    <span class="verify-title">Verify It Worked</span>
+                </div>
+                <ul class="verify-checklist" id="verifyChecklist"></ul>
+            </div>
+            
             <div class="meta">
                 <span id="readTime"></span>
                 <a href="#" id="sourceLink" target="_blank">Watch Full Video →</a>
@@ -1901,6 +1972,29 @@
                     </div>
                 </li>
             `}).join('');
+            
+            // Display verify checklist if present
+            const verifySection = document.getElementById('verifySection');
+            const verifyChecklist = document.getElementById('verifyChecklist');
+            if (data.verify_steps && data.verify_steps.length > 0) {
+                verifyChecklist.innerHTML = data.verify_steps.map(item => `
+                    <li class="verify-item">
+                        <span class="verify-check">☐</span>
+                        <span>${item}</span>
+                    </li>
+                `).join('');
+                verifySection.style.display = 'block';
+            } else if (data.verify && data.verify.length > 0) {
+                verifyChecklist.innerHTML = data.verify.map(item => `
+                    <li class="verify-item">
+                        <span class="verify-check">☐</span>
+                        <span>${item}</span>
+                    </li>
+                `).join('');
+                verifySection.style.display = 'block';
+            } else {
+                verifySection.style.display = 'none';
+            }
             
             document.getElementById('result').classList.add('visible');
             

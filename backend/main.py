@@ -297,65 +297,17 @@ def get_transcript(url: str) -> str:
 
 def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
     """Use Claude to extract structured fix steps from transcript using category frameworks."""
-    from frameworks import detect_category, build_framework_prompt, get_framework
+    from frameworks import detect_category, get_extraction_prompt
     
     # Detect category from transcript
     category = detect_category("", transcript)
-    framework = get_framework(category)
-    framework_prompt = build_framework_prompt(category)
     
-    prompt = f"""You are CypherIt, an expert at extracting COMPLETE, PRECISE fix steps from video transcripts.
-
-The transcript below has timestamps in [MM:SS] format. Your job is to find the GOLDEN NUGGETS — the exact 8-15 second moments where each key action is shown.
-
-{framework_prompt}
-
-Extract:
-1. A clear, short title (what's being taught/fixed)
-2. The problem being solved (one sentence)
-3. Quick info: tools needed, time estimate, warnings, and helpful tips
-4. Step-by-step instructions following the framework above (max {max_steps} steps)
-5. For each step: the START timestamp AND END timestamp (the precise clip)
-
-CRITICAL RULES:
-- Follow the category framework structure above
-- The LAST STEP must ALWAYS be VERIFICATION (how to confirm it worked)
-- Each clip should be 8-15 seconds (the minimum needed to show the action)
-- NEVER exceed 20 seconds per step — find the tightest, most relevant segment
-- Skip intros, tangents, explanations — just the ACTION moment
-- If a required phase isn't shown in the video, note it in tips/warnings
-
-Quick Info Guidelines:
-- tools_needed: Physical items, software, accounts, or prerequisites
-- time_estimate: Realistic completion time
-- warnings: Important cautions like data loss, safety, or requirements
-- tips: Helpful shortcuts or pro tips mentioned
-- Only include fields that are actually relevant
-
-Transcript:
-{transcript[:12000]}
-
-Respond in this exact JSON format (no markdown, just JSON):
-{{
-    "title": "How to [Do Thing]",
-    "problem": "Brief description of what this teaches/fixes",
-    "category": "{category}",
-    "quick_info": {{
-        "tools_needed": ["Tool 1", "Tool 2"],
-        "time_estimate": "15-20 minutes",
-        "warnings": ["Warning if any"],
-        "tips": ["Helpful tip if any"]
-    }},
-    "steps": [
-        {{"number": 1, "action": "First key action", "detail": "Brief context", "timestamp": "0:45", "end_timestamp": "0:57", "phase": "preparation"}},
-        {{"number": 2, "action": "Second key action", "detail": null, "timestamp": "2:15", "end_timestamp": "2:28", "phase": "main"}},
-        {{"number": 3, "action": "Verify it worked", "detail": "Check for X", "timestamp": "5:30", "end_timestamp": "5:42", "phase": "verification"}}
-    ]
-}}"""
+    # Get the specialized prompt for this category
+    prompt = get_extraction_prompt(category, transcript, max_steps)
 
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
-        max_tokens=1500,  # Increased for richer framework-based responses
+        max_tokens=2000,  # Manual-style format needs more tokens
         messages=[{"role": "user", "content": prompt}]
     )
     
@@ -370,7 +322,44 @@ Respond in this exact JSON format (no markdown, just JSON):
     result = json.loads(response_text)
     result["source_url"] = url
     result["video_id"] = extract_video_id(url)
-    result["time_to_read"] = f"{len(result['steps']) * 12} seconds"
+    
+    # Ensure steps array exists
+    if "steps" not in result:
+        result["steps"] = []
+    
+    # Calculate read time
+    result["time_to_read"] = f"{len(result.get('steps', [])) * 12} seconds"
+    
+    # Build unified quick_info from category-specific fields
+    quick_info = result.get("quick_info", {})
+    
+    # Pull in tools from tools_required if present
+    if "tools_required" in result and not quick_info.get("tools_needed"):
+        quick_info["tools_needed"] = result["tools_required"]
+    
+    # Pull in warnings from top-level warnings
+    if "warnings" in result and isinstance(result["warnings"], list):
+        quick_info["warnings"] = result["warnings"]
+    
+    # Pull in specifications as tips for auto category
+    if "specifications" in result:
+        specs = result["specifications"]
+        spec_tips = []
+        if specs.get("fluid_type"):
+            spec_tips.append(f"Fluid: {specs['fluid_type']}")
+        if specs.get("capacity"):
+            spec_tips.append(f"Capacity: {specs['capacity']}")
+        if specs.get("torque_specs"):
+            for part, val in specs["torque_specs"].items():
+                spec_tips.append(f"{part.replace('_', ' ').title()}: {val}")
+        if spec_tips:
+            quick_info["tips"] = spec_tips + quick_info.get("tips", [])
+    
+    # Pull in verify as a tip if present
+    if "verify" in result and isinstance(result["verify"], list):
+        result["verify_steps"] = result["verify"]  # Keep for frontend
+    
+    result["quick_info"] = quick_info
     
     # Add caption text for each step from the transcript
     result = add_captions_to_steps(result, transcript)
