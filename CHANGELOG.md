@@ -1,6 +1,6 @@
 # CypherIt Changelog & Verified Features
 
-**Last Updated:** 2026-02-04
+**Last Updated:** 2026-02-04 @ 7:11 PM EST
 
 ---
 
@@ -38,6 +38,28 @@
 - [x] **Hidden captions** — Caption box only appears when video activated
 
 **Result:** "Executes flawlessly and loads instantly" — Carlos ✅
+
+### Monetization Prep ✅ (Verified Feb 4, 2026 @ 7:11 PM)
+- [x] **Free Beta badge** — Subtle cyan gradient pill next to tagline
+- [x] **Pro coming soon footer** — "Free during beta · Pro coming soon"
+- [x] **Non-intrusive design** — Plants the seed without being pushy
+
+**Result:** "Great work everything seems to be working properly!" — Carlos ✅
+
+### Quick Info Section ✅ (Verified Feb 4, 2026 @ 6:51 PM)
+- [x] **Tools Needed** — 🛠️ Physical items, software, prerequisites
+- [x] **Time Estimate** — ⏱️ Realistic completion time
+- [x] **Warnings** — ⚠️ Data loss risks, admin requirements
+- [x] **Pro Tips** — 💡 Helpful shortcuts from the video
+- [x] **Auto-hide empty** — Only shows items with content
+- [x] **Backend extraction** — Claude extracts from transcript context
+
+**Result:** "Great work on adding those resources! They look great!" — Carlos ✅
+
+### Tagline Consistency ✅ (Verified Feb 4, 2026 @ 6:56 PM)
+- [x] **Page title** — "Get the Steps in 60sec or Less"
+- [x] **Share text** — "Got the steps in 60sec on CypherIt!"
+- [x] **Demo fix** — "iPhone Fix" → "USB Installer" (accurate label)
 
 ### Mobile UX Improvements ✅ (Verified Feb 4, 2026 @ 6:17 PM)
 - [x] **Clear button** — ✕ button left of input to quickly clear URL
@@ -117,6 +139,12 @@ Must pass:
 ---
 
 ## 📅 Version History
+
+### v0.5.0 (2026-02-04) — Quick Info + Monetization Prep
+- Quick Info section: tools, time, warnings, pro tips
+- "Free Beta" badge with Pro coming soon footer
+- Tagline consistency across all share text
+- Demo label fix: "iPhone Fix" → "USB Installer"
 
 ### v0.4.0 (2026-02-04) — Mobile UX Polish
 - Clear button (✕) for quick URL clearing
