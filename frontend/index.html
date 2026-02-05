@@ -1064,10 +1064,10 @@
                 font-size: 1rem;
             }
             
-            /* Quick Info mobile styles - 2 columns, compact but readable */
+            /* Quick Info mobile styles - 2 columns, COMPACT square cards */
             .quick-info {
-                padding: 10px;
-                gap: 10px;
+                padding: 8px;
+                gap: 8px;
                 background: linear-gradient(135deg, rgba(0,20,40,0.8), rgba(0,30,60,0.6));
                 border: 1px solid rgba(0,217,255,0.15);
                 flex-direction: row;
@@ -1075,15 +1075,17 @@
             }
             
             .quick-info-item {
-                padding: 14px;
-                min-width: calc(50% - 5px);
-                max-width: calc(50% - 5px);
-                flex: 0 0 calc(50% - 5px);
-                border-radius: 12px;
+                padding: 10px;
+                min-width: calc(50% - 4px);
+                max-width: calc(50% - 4px);
+                flex: 0 0 calc(50% - 4px);
+                border-radius: 10px;
                 background: linear-gradient(135deg, rgba(0,217,255,0.12), rgba(0,217,255,0.05));
                 flex-direction: row;
                 align-items: flex-start;
-                gap: 10px;
+                gap: 8px;
+                max-height: 120px;
+                overflow: hidden;
             }
             
             .quick-info-item.warning {
@@ -1095,26 +1097,31 @@
             }
             
             .quick-info-icon {
-                font-size: 1.3rem;
+                font-size: 1.1rem;
                 flex-shrink: 0;
             }
             
             .quick-info-content {
                 flex: 1;
                 min-width: 0;
+                overflow: hidden;
             }
             
             .quick-info-label {
-                font-size: 0.7rem;
+                font-size: 0.6rem;
                 font-weight: 700;
                 letter-spacing: 0.5px;
-                margin-bottom: 4px;
+                margin-bottom: 2px;
             }
             
             .quick-info-value {
-                font-size: 0.85rem;
-                line-height: 1.4;
+                font-size: 0.72rem;
+                line-height: 1.35;
                 word-wrap: break-word;
+                display: -webkit-box;
+                -webkit-line-clamp: 4;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
             }
             
             /* Voting mobile styles */
