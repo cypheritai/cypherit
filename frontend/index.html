@@ -699,6 +699,66 @@
             transform: scale(1.1);
         }
         
+        .step-timer {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+        
+        .timer-icon {
+            font-size: 1rem;
+        }
+        
+        .timer-range {
+            color: #00d9ff;
+            font-weight: 600;
+        }
+        
+        .timer-duration {
+            color: #888;
+            font-size: 0.8rem;
+        }
+        
+        .next-step-btn {
+            display: block;
+            width: 100%;
+            margin-top: 20px;
+            padding: 14px 24px;
+            background: linear-gradient(90deg, rgba(0,217,255,0.2), rgba(0,255,136,0.2));
+            border: 2px solid rgba(0,217,255,0.4);
+            border-radius: 12px;
+            color: #00d9ff;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .next-step-btn:hover {
+            background: linear-gradient(90deg, rgba(0,217,255,0.3), rgba(0,255,136,0.3));
+            border-color: #00d9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,217,255,0.3);
+        }
+        
+        .step-complete {
+            margin-top: 20px;
+            padding: 14px 24px;
+            background: rgba(0,255,136,0.15);
+            border: 2px solid rgba(0,255,136,0.3);
+            border-radius: 12px;
+            color: #00ff88;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+        }
+        
         .step-video {
             margin-top: 12px;
             border-radius: 10px;
@@ -1576,6 +1636,31 @@
             return 0;
         }
         
+        // Convert seconds to timestamp string (M:SS format)
+        function formatSecondsToTimestamp(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Go to next step - scroll + auto-play
+        function goToNextStep(stepIndex) {
+            const step = document.querySelector(`.step[data-step-index="${stepIndex}"]`);
+            if (step) {
+                // Smooth scroll to the step
+                step.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Activate the step after scroll completes
+                setTimeout(() => {
+                    // Trigger thumbnail click to start video
+                    const thumbnail = step.querySelector('.video-thumbnail');
+                    if (thumbnail) {
+                        thumbnail.click();
+                    }
+                }, 500);
+            }
+        }
+        
         // Track which steps have loaded videos
         const loadedSteps = new Set();
         let currentVideoId = null;
@@ -1610,8 +1695,17 @@
             loadedSteps.clear();
             
             const stepsEl = document.getElementById('steps');
-            stepsEl.innerHTML = data.steps.map((step, index) => `
-                <li class="step" data-step-index="${index}" data-timestamp="${step.timestamp || ''}" data-end-time="${stepTimestamps[index + 1] || 9999}">
+            const totalSteps = data.steps.length;
+            stepsEl.innerHTML = data.steps.map((step, index) => {
+                const startTs = step.timestamp || '0:00';
+                const startSec = timestampToSeconds(startTs);
+                const endSec = stepTimestamps[index + 1] || (startSec + 60); // Default 60s if no next step
+                const duration = Math.max(8, endSec - startSec); // Min 8 seconds
+                const endTs = formatSecondsToTimestamp(endSec);
+                const isLastStep = index === totalSteps - 1;
+                
+                return `
+                <li class="step" data-step-index="${index}" data-timestamp="${step.timestamp || ''}" data-end-time="${endSec}">
                     <div class="step-number">${step.number}</div>
                     <div class="step-content">
                         <div class="step-action">${step.action}</div>
@@ -1623,6 +1717,11 @@
                                 </div>
                                 <button class="sound-btn" onclick="toggleSound(${index}, event)" title="Tap for sound">🔇</button>
                             </div>
+                            <div class="step-timer">
+                                <span class="timer-icon">⏱️</span>
+                                <span class="timer-range">${startTs} → ${endTs}</span>
+                                <span class="timer-duration">(${duration}s clip)</span>
+                            </div>
                             <div class="step-video" id="step-video-${index}">
                                 <div class="step-video-placeholder">Loading preview...</div>
                             </div>
@@ -1633,9 +1732,18 @@
                                 </div>
                             ` : ''}
                         ` : ''}
+                        ${!isLastStep ? `
+                            <button class="next-step-btn" onclick="goToNextStep(${index + 1})">
+                                Next Step →
+                            </button>
+                        ` : `
+                            <div class="step-complete">
+                                ✅ Final Step — You're done!
+                            </div>
+                        `}
                     </div>
                 </li>
-            `).join('');
+            `}).join('');
             
             document.getElementById('result').classList.add('visible');
             
