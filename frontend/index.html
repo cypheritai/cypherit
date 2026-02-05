@@ -1064,20 +1064,26 @@
                 font-size: 1rem;
             }
             
-            /* Quick Info mobile styles - make it appealing like desktop */
+            /* Quick Info mobile styles - square cards, less tall */
             .quick-info {
                 padding: 12px;
                 gap: 10px;
                 background: linear-gradient(135deg, rgba(0,20,40,0.8), rgba(0,30,60,0.6));
                 border: 1px solid rgba(0,217,255,0.15);
+                display: grid;
+                grid-template-columns: 1fr 1fr;
             }
             
             .quick-info-item {
-                padding: 14px;
-                min-width: calc(50% - 5px);
-                flex: 1 1 calc(50% - 5px);
-                border-radius: 14px;
+                padding: 12px;
+                min-width: 0;
+                border-radius: 12px;
                 background: linear-gradient(135deg, rgba(0,217,255,0.12), rgba(0,217,255,0.05));
+                flex-direction: column;
+                align-items: flex-start;
+                aspect-ratio: 1 / 1;
+                max-height: 140px;
+                overflow: hidden;
             }
             
             .quick-info-item.warning {
@@ -1089,19 +1095,24 @@
             }
             
             .quick-info-icon {
-                font-size: 1.1rem;
+                font-size: 1rem;
+                margin-bottom: 4px;
             }
             
             .quick-info-label {
-                font-size: 0.7rem;
+                font-size: 0.65rem;
                 font-weight: 700;
-                letter-spacing: 1px;
+                letter-spacing: 0.5px;
                 margin-bottom: 4px;
             }
             
             .quick-info-value {
-                font-size: 0.85rem;
-                line-height: 1.4;
+                font-size: 0.75rem;
+                line-height: 1.35;
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-line-clamp: 5;
+                -webkit-box-orient: vertical;
             }
             
             /* Voting mobile styles */
