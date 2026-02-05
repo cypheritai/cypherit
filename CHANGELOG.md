@@ -39,6 +39,18 @@
 
 **Result:** "Executes flawlessly and loads instantly" — Carlos ✅
 
+### Phase A: Helpful Voting ✅ (Verified Feb 5, 2026 @ 10:45 AM)
+- [x] **Vote buttons** — 👍/👎 at top and bottom of results
+- [x] **Backend API** — `/votes` endpoint for tracking
+- [x] **Vote persistence** — Stored in JSON per video_id
+- [x] **Repeat vote prevention** — LocalStorage tracks voted videos
+- [x] **Vote counts display** — Shows helpful/not helpful counts
+- [x] **Mobile responsive** — Compact buttons on small screens
+
+**API Verified:**
+- GET `/votes/{video_id}` ✅
+- POST `/votes` ✅
+
 ### Featured Fixes Gallery ✅ (Verified Feb 5, 2026 @ 10:22 AM)
 - [x] **Category system** — 6 categories (Home, Tech, Phone, Auto, Gaming, Kitchen)
 - [x] **Gallery grid** — Cards with thumbnails, upvotes, difficulty badges
@@ -149,6 +161,12 @@ Must pass:
 ---
 
 ## 📅 Version History
+
+### v0.7.0 (2026-02-05) — Helpful Voting (Phase A)
+- 👍/👎 voting buttons on results page
+- Vote tracking per video with API
+- LocalStorage prevents repeat votes
+- Foundation for community feedback system
 
 ### v0.6.0 (2026-02-05) — Featured Fixes Gallery
 - Gallery with 6 categories
