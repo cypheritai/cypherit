@@ -1064,23 +1064,26 @@
                 font-size: 1rem;
             }
             
-            /* Quick Info mobile styles - fit content, 2-column grid */
+            /* Quick Info mobile styles - 2 columns, compact but readable */
             .quick-info {
                 padding: 10px;
-                gap: 8px;
+                gap: 10px;
                 background: linear-gradient(135deg, rgba(0,20,40,0.8), rgba(0,30,60,0.6));
                 border: 1px solid rgba(0,217,255,0.15);
-                display: grid;
-                grid-template-columns: 1fr 1fr;
+                flex-direction: row;
+                flex-wrap: wrap;
             }
             
             .quick-info-item {
-                padding: 12px;
-                min-width: 0;
+                padding: 14px;
+                min-width: calc(50% - 5px);
+                max-width: calc(50% - 5px);
+                flex: 0 0 calc(50% - 5px);
                 border-radius: 12px;
                 background: linear-gradient(135deg, rgba(0,217,255,0.12), rgba(0,217,255,0.05));
                 flex-direction: row;
                 align-items: flex-start;
+                gap: 10px;
             }
             
             .quick-info-item.warning {
@@ -1092,18 +1095,26 @@
             }
             
             .quick-info-icon {
-                font-size: 1.1rem;
+                font-size: 1.3rem;
+                flex-shrink: 0;
+            }
+            
+            .quick-info-content {
+                flex: 1;
+                min-width: 0;
             }
             
             .quick-info-label {
-                font-size: 0.65rem;
+                font-size: 0.7rem;
                 font-weight: 700;
                 letter-spacing: 0.5px;
+                margin-bottom: 4px;
             }
             
             .quick-info-value {
-                font-size: 0.8rem;
+                font-size: 0.85rem;
                 line-height: 1.4;
+                word-wrap: break-word;
             }
             
             /* Voting mobile styles */
