@@ -1957,7 +1957,7 @@
                 const startSec = timestampToSeconds(startTs);
                 // Use API-provided end_time if available (tighter clips), fallback to next step
                 const endSec = step.end_time || stepTimestamps[index + 1] || (startSec + 15);
-                const duration = Math.max(8, Math.min(20, endSec - startSec)); // 8-20 seconds
+                const duration = Math.max(3, Math.min(20, endSec - startSec)); // 3-20 seconds
                 const endTs = formatSecondsToTimestamp(endSec);
                 const isLastStep = index === totalSteps - 1;
                 
@@ -2282,7 +2282,7 @@
             let endTime = parseFloat(step.dataset.endTime) || (startTime + 12);
             
             // Clamp duration between 8-20 seconds
-            if (endTime - startTime < 8) endTime = startTime + 8;
+            if (endTime - startTime < 3) endTime = startTime + 3;
             if (endTime - startTime > 20) endTime = startTime + 20;
             
             const segmentDuration = endTime - startTime;
@@ -2319,7 +2319,7 @@
         }
         
         // ============ BOUNDARY CHECKING (LOOP MODE) ============
-        const MIN_SEGMENT_DURATION = 8;  // Minimum 8 seconds per step
+        const MIN_SEGMENT_DURATION = 3;  // Minimum 3 seconds per clip
         const MAX_SEGMENT_DURATION = 20; // Maximum 20 seconds - keep it tight!
         
         function startBoundaryCheck(index) {

@@ -3,17 +3,22 @@ CypherIt - Golden Nugget Extraction
 Total extraction ≤ 60 seconds. Final step = verification.
 """
 
-def get_extraction_prompt(category: str, transcript: str, max_steps: int = 6) -> str:
+def get_extraction_prompt(category: str, transcript: str, max_steps: int = 20) -> str:
     """Extract golden nuggets - total time ≤ 60 seconds."""
     
     return f"""You are CypherIt. Extract the essential moments from this video in 60 SECONDS OR LESS total.
 
-RULES:
-1. Find the KEY MOMENTS that deliver the value (not explanations, the actual demonstrations)
-2. TOTAL clip time must be ≤ 60 seconds combined
-3. Each clip: 8-20 seconds (find the tightest moment)
-4. FINAL step MUST be VERIFICATION (how to confirm it worked)
-5. Quality over quantity — fewer great clips beats more mediocre ones
+TIMING RULES:
+• TOTAL clip time must be ≤ 60 seconds combined (this is critical!)
+• Minimum 3 seconds per clip
+• Maximum 20 seconds per clip
+• Include as many steps as needed to cover the content (no limit on number)
+• FINAL step MUST be VERIFICATION (how to confirm it worked)
+
+QUALITY RULES:
+1. Find the KEY MOMENTS that deliver the value (demonstrations, not explanations)
+2. Each step needs a clear ACTION and a WHY IT MATTERS detail
+3. The "detail" explains the reason/importance of this step
 
 WHAT TO EXTRACT:
 • The moment the technique is SHOWN (not explained)
