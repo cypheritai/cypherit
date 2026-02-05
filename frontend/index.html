@@ -237,6 +237,118 @@
             margin-right: 6px;
         }
         
+        /* Voting Section */
+        .voting-section {
+            background: rgba(0,217,255,0.05);
+            border: 1px solid rgba(0,217,255,0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .voting-top {
+            margin-bottom: 24px;
+        }
+        
+        .voting-bottom {
+            margin-top: 32px;
+            background: linear-gradient(135deg, rgba(0,217,255,0.08), rgba(0,255,136,0.08));
+        }
+        
+        .voting-label {
+            color: #aaa;
+            font-size: 0.95rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+        
+        .voting-prompt {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        
+        .voting-emoji {
+            font-size: 1.5rem;
+        }
+        
+        .voting-question {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        
+        .voting-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .vote-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .vote-helpful {
+            background: rgba(0,255,136,0.1);
+            border-color: rgba(0,255,136,0.3);
+            color: #00ff88;
+        }
+        
+        .vote-helpful:hover {
+            background: rgba(0,255,136,0.2);
+            border-color: #00ff88;
+            transform: translateY(-2px);
+        }
+        
+        .vote-not-helpful {
+            background: rgba(255,100,100,0.1);
+            border-color: rgba(255,100,100,0.3);
+            color: #ff6464;
+        }
+        
+        .vote-not-helpful:hover {
+            background: rgba(255,100,100,0.2);
+            border-color: #ff6464;
+            transform: translateY(-2px);
+        }
+        
+        .vote-btn.voted {
+            opacity: 0.6;
+            cursor: default;
+            transform: none;
+        }
+        
+        .vote-icon {
+            font-size: 1.2rem;
+        }
+        
+        .vote-count {
+            background: rgba(255,255,255,0.1);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+        }
+        
+        .voting-thanks {
+            color: #00ff88;
+            font-size: 1rem;
+            margin-top: 12px;
+            animation: fadeIn 0.3s ease;
+        }
+        
         /* Gallery Section */
         .gallery-section {
             margin: 40px 0;
@@ -941,6 +1053,25 @@
                 font-size: 1rem;
             }
             
+            /* Voting mobile styles */
+            .voting-section {
+                padding: 16px;
+                margin: 16px 0;
+            }
+            
+            .voting-buttons {
+                gap: 8px;
+            }
+            
+            .vote-btn {
+                padding: 10px 16px;
+                font-size: 0.85rem;
+            }
+            
+            .voting-question {
+                font-size: 1rem;
+            }
+            
             /* Gallery mobile styles */
             .gallery-section {
                 padding: 20px 16px;
@@ -1080,6 +1211,23 @@
                 </div>
             </div>
             
+            <!-- Voting Section (Top) -->
+            <div class="voting-section voting-top" id="votingTop">
+                <span class="voting-label">Was this extraction helpful?</span>
+                <div class="voting-buttons">
+                    <button class="vote-btn vote-helpful" onclick="submitVote(true)">
+                        <span class="vote-icon">👍</span>
+                        <span class="vote-text">Helpful</span>
+                        <span class="vote-count" id="helpfulCountTop">0</span>
+                    </button>
+                    <button class="vote-btn vote-not-helpful" onclick="submitVote(false)">
+                        <span class="vote-icon">👎</span>
+                        <span class="vote-text">Not Helpful</span>
+                        <span class="vote-count" id="notHelpfulCountTop">0</span>
+                    </button>
+                </div>
+            </div>
+            
             <ul class="steps" id="steps"></ul>
             <div class="meta">
                 <span id="readTime"></span>
@@ -1097,6 +1245,27 @@
                     <button class="share-btn share-native" onclick="nativeShare()" title="Share">📤</button>
                 </div>
                 <div class="share-toast" id="shareToast">Link copied!</div>
+            </div>
+            
+            <!-- Voting Section (Bottom) -->
+            <div class="voting-section voting-bottom" id="votingBottom">
+                <div class="voting-prompt">
+                    <span class="voting-emoji">🎯</span>
+                    <span class="voting-question">Did this fix your problem?</span>
+                </div>
+                <div class="voting-buttons">
+                    <button class="vote-btn vote-helpful" onclick="submitVote(true)">
+                        <span class="vote-icon">👍</span>
+                        <span class="vote-text">Yes, helpful!</span>
+                        <span class="vote-count" id="helpfulCountBottom">0</span>
+                    </button>
+                    <button class="vote-btn vote-not-helpful" onclick="submitVote(false)">
+                        <span class="vote-icon">👎</span>
+                        <span class="vote-text">Not quite</span>
+                        <span class="vote-count" id="notHelpfulCountBottom">0</span>
+                    </button>
+                </div>
+                <p class="voting-thanks" id="votingThanks" style="display: none;">Thanks for your feedback! 🙏</p>
             </div>
         </div>
         
@@ -1358,6 +1527,10 @@
             // Store video ID, title and timestamps for embeds and sharing
             currentVideoId = data.video_id;
             currentTitle = data.title;
+            
+            // Load and display vote counts
+            loadVotes();
+            checkIfAlreadyVoted();
             stepTimestamps = data.steps
                 .filter(s => s.timestamp)
                 .map(s => timestampToSeconds(s.timestamp));
@@ -1908,6 +2081,83 @@
             }
             document.getElementById('loading').classList.remove('visible');
             document.getElementById('urlInput').focus();
+        }
+        
+        // ============ VOTING FUNCTIONS ============
+        let hasVoted = false;
+        
+        async function loadVotes() {
+            if (!currentVideoId) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/votes/${currentVideoId}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    updateVoteCounts(data.helpful, data.not_helpful);
+                }
+            } catch (err) {
+                console.warn('Failed to load votes:', err);
+            }
+        }
+        
+        function updateVoteCounts(helpful, notHelpful) {
+            // Update both top and bottom vote displays
+            document.getElementById('helpfulCountTop').textContent = helpful;
+            document.getElementById('notHelpfulCountTop').textContent = notHelpful;
+            document.getElementById('helpfulCountBottom').textContent = helpful;
+            document.getElementById('notHelpfulCountBottom').textContent = notHelpful;
+        }
+        
+        async function submitVote(isHelpful) {
+            if (hasVoted || !currentVideoId) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/votes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        video_id: currentVideoId,
+                        helpful: isHelpful
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateVoteCounts(data.helpful, data.not_helpful);
+                    hasVoted = true;
+                    
+                    // Disable buttons and show thanks
+                    document.querySelectorAll('.vote-btn').forEach(btn => {
+                        btn.classList.add('voted');
+                    });
+                    document.getElementById('votingThanks').style.display = 'block';
+                    
+                    // Store in localStorage to prevent repeat votes
+                    const votedVideos = JSON.parse(localStorage.getItem('cypherit_votes') || '{}');
+                    votedVideos[currentVideoId] = isHelpful ? 'helpful' : 'not_helpful';
+                    localStorage.setItem('cypherit_votes', JSON.stringify(votedVideos));
+                }
+            } catch (err) {
+                console.warn('Failed to submit vote:', err);
+            }
+        }
+        
+        function checkIfAlreadyVoted() {
+            if (!currentVideoId) return;
+            
+            const votedVideos = JSON.parse(localStorage.getItem('cypherit_votes') || '{}');
+            if (votedVideos[currentVideoId]) {
+                hasVoted = true;
+                document.querySelectorAll('.vote-btn').forEach(btn => {
+                    btn.classList.add('voted');
+                });
+            } else {
+                hasVoted = false;
+                document.querySelectorAll('.vote-btn').forEach(btn => {
+                    btn.classList.remove('voted');
+                });
+                document.getElementById('votingThanks').style.display = 'none';
+            }
         }
         
         // ============ SHARE FUNCTIONS ============

@@ -585,6 +585,74 @@ async def track_view(fix_id: str):
     raise HTTPException(status_code=404, detail="Fix not found")
 
 
+# ============ HELPFUL VOTING ENDPOINTS ============
+
+def load_votes_data():
+    """Load votes data from JSON file."""
+    votes_path = Path(__file__).parent / "votes_data.json"
+    if votes_path.exists():
+        with open(votes_path, 'r') as f:
+            return json.load(f)
+    return {"votes": {}}
+
+def save_votes_data(data):
+    """Save votes data to JSON file."""
+    votes_path = Path(__file__).parent / "votes_data.json"
+    with open(votes_path, 'w') as f:
+        json.dump(data, f, indent=2)
+
+
+class VoteRequest(BaseModel):
+    video_id: str
+    helpful: bool  # True = helpful, False = not helpful
+
+
+@app.get("/votes/{video_id}")
+async def get_votes(video_id: str):
+    """Get vote counts for a video."""
+    data = load_votes_data()
+    votes = data.get("votes", {}).get(video_id, {"helpful": 0, "not_helpful": 0})
+    total = votes.get("helpful", 0) + votes.get("not_helpful", 0)
+    helpful_pct = round((votes.get("helpful", 0) / total * 100)) if total > 0 else 0
+    return {
+        "video_id": video_id,
+        "helpful": votes.get("helpful", 0),
+        "not_helpful": votes.get("not_helpful", 0),
+        "total": total,
+        "helpful_percent": helpful_pct
+    }
+
+
+@app.post("/votes")
+async def submit_vote(vote: VoteRequest):
+    """Submit a helpful/not helpful vote for a video."""
+    data = load_votes_data()
+    
+    if vote.video_id not in data["votes"]:
+        data["votes"][vote.video_id] = {"helpful": 0, "not_helpful": 0}
+    
+    if vote.helpful:
+        data["votes"][vote.video_id]["helpful"] += 1
+    else:
+        data["votes"][vote.video_id]["not_helpful"] += 1
+    
+    save_votes_data(data)
+    
+    # Return updated counts
+    votes = data["votes"][vote.video_id]
+    total = votes["helpful"] + votes["not_helpful"]
+    helpful_pct = round((votes["helpful"] / total * 100)) if total > 0 else 0
+    
+    return {
+        "success": True,
+        "video_id": vote.video_id,
+        "helpful": votes["helpful"],
+        "not_helpful": votes["not_helpful"],
+        "total": total,
+        "helpful_percent": helpful_pct
+    }
+
+
 # Serve frontend
 frontend_path = Path(__file__).parent.parent / "frontend"
 
