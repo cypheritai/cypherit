@@ -58,6 +58,47 @@
             color: #aaa;
             font-size: 1.3rem;
             font-weight: 500;
+            margin: 0;
+        }
+        
+        .tagline-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+        
+        .beta-badge {
+            background: linear-gradient(135deg, rgba(0,217,255,0.15), rgba(0,255,136,0.15));
+            border: 1px solid rgba(0,217,255,0.3);
+            color: #00d9ff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: default;
+            transition: all 0.2s;
+        }
+        
+        .beta-badge:hover {
+            background: linear-gradient(135deg, rgba(0,217,255,0.25), rgba(0,255,136,0.25));
+            border-color: #00d9ff;
+        }
+        
+        .site-footer {
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .site-footer .pro-hint {
+            color: #00d9ff;
+            cursor: default;
         }
         
         .search-box {
@@ -702,6 +743,15 @@
                 font-size: 1.1rem;
             }
             
+            .tagline-row {
+                gap: 8px;
+            }
+            
+            .beta-badge {
+                font-size: 0.7rem;
+                padding: 5px 10px;
+            }
+            
             .input-group {
                 flex-direction: column;
                 gap: 14px;
@@ -745,7 +795,10 @@
     <div class="container">
         <header>
             <img src="logo.png" alt="CypherIt" class="logo-img" onclick="resetAll()" style="cursor: pointer;" title="Start Fresh">
-            <p class="tagline">Get the steps in 60sec or Less.</p>
+            <div class="tagline-row">
+                <p class="tagline">Get the steps in 60sec or Less.</p>
+                <span class="beta-badge" title="Pro coming soon">✨ Free Beta</span>
+            </div>
             <button class="share-app-btn" onclick="shareApp()">📤 Share CypherIt</button>
         </header>
         
@@ -833,6 +886,10 @@
                 <div class="share-toast" id="shareToast">Link copied!</div>
             </div>
         </div>
+        
+        <footer class="site-footer">
+            <p>Free during beta · <span class="pro-hint">Pro coming soon</span></p>
+        </footer>
     </div>
     
     <script>
