@@ -672,7 +672,6 @@
         
         .step-controls-wrapper {
             margin-top: 20px;
-            padding-bottom: 24px; /* Room for scrub hint */
         }
         
         .step-timestamp {
@@ -769,27 +768,6 @@
             border-color: #00d9ff;
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0,217,255,0.3);
-            cursor: ew-resize; /* Hint that you can drag left/right */
-        }
-        
-        .next-step-btn:active {
-            cursor: grabbing;
-        }
-        
-        .next-step-btn .scrub-hint {
-            position: absolute;
-            bottom: -20px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.7rem;
-            color: #666;
-            opacity: 0;
-            transition: opacity 0.2s;
-            white-space: nowrap;
-        }
-        
-        .next-step-btn:hover .scrub-hint {
-            opacity: 1;
         }
         
         .next-step-btn.completed {
@@ -1868,7 +1846,6 @@
                                 <button class="next-step-btn" id="next-btn-${index}" onclick="goToNextStep(${index + 1})">
                                     <div class="btn-progress" id="btn-progress-${index}"></div>
                                     <span class="btn-text">Next Step →</span>
-                                    <span class="scrub-hint">← drag to scrub →</span>
                                 </button>
                                 <button class="replay-btn" id="replay-btn-${index}" onclick="replayStep(${index})" style="display:none;">
                                     🔄 Replay This Step
@@ -1879,7 +1856,6 @@
                                 <div class="step-complete next-step-btn" id="next-btn-${index}">
                                     <div class="btn-progress" id="btn-progress-${index}"></div>
                                     <span class="btn-text">✅ Final Step — You're done!</span>
-                                    <span class="scrub-hint">← drag to scrub →</span>
                                 </div>
                                 <button class="replay-btn" id="replay-btn-${index}" onclick="replayStep(${index})" style="display:none;">
                                     🔄 Replay This Step
@@ -2193,10 +2169,7 @@
             const segmentDuration = endTime - startTime;
             console.log(`Step ${idx}: loop from ${startTime}s to ${endTime}s (${segmentDuration}s segment)`);
             
-            // Set up scrubbing on the button FIRST (before getting references, since it clones the button)
-            setupButtonScrubbing(idx, startTime, endTime, segmentDuration);
-            
-            // Now get UI elements (after cloning)
+            // Get UI elements
             const getProgressEl = () => document.getElementById(`btn-progress-${idx}`);
             const getNextBtn = () => document.getElementById(`next-btn-${idx}`);
             const getReplayBtn = () => document.getElementById(`replay-btn-${idx}`);
@@ -2238,14 +2211,12 @@
                 try {
                     const currentTime = player.getCurrentTime();
                     
-                    // Calculate and update progress bar (only if not scrubbing)
-                    if (!isScrubbing) {
-                        const elapsed = currentTime - startTime;
-                        const progress = Math.min(100, Math.max(0, (elapsed / segmentDuration) * 100));
-                        const btnProgress = getProgressEl();
-                        if (btnProgress) {
-                            btnProgress.style.width = progress + '%';
-                        }
+                    // Calculate and update progress bar
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(100, Math.max(0, (elapsed / segmentDuration) * 100));
+                    const btnProgress = getProgressEl();
+                    if (btnProgress) {
+                        btnProgress.style.width = progress + '%';
                     }
                     
                     // LOOP: When reaching end of segment, seek back to start
@@ -2267,137 +2238,6 @@
                     }
                 } catch (e) {}
             }, 100); // Check every 100ms for smoother progress
-        }
-        
-        // ============ BUTTON SCRUBBING ============
-        let isScrubbing = false;
-        let scrubLocked = false; // Once we decide scroll vs scrub, lock it
-        let scrubStartX = 0;
-        let scrubStartY = 0;
-        let scrubStepIdx = null;
-        let scrubStartTime = 0;
-        let scrubEndTime = 0;
-        let scrubDuration = 0;
-        
-        function setupButtonScrubbing(idx, startTime, endTime, duration) {
-            const nextBtn = document.getElementById(`next-btn-${idx}`);
-            if (!nextBtn) return;
-            
-            // Remove old listeners by replacing node (simple approach)
-            const newBtn = nextBtn.cloneNode(true);
-            nextBtn.parentNode.replaceChild(newBtn, nextBtn);
-            
-            // Restore onclick for next step navigation
-            const stepIndex = parseInt(idx);
-            const isLastStep = document.querySelector(`.step[data-step-index="${idx}"]`)?.classList.contains('last-step');
-            if (!isLastStep && !newBtn.classList.contains('step-complete')) {
-                newBtn.onclick = (e) => {
-                    // Only navigate if it was a tap, not a drag
-                    if (!isScrubbing) {
-                        goToNextStep(stepIndex + 1);
-                    }
-                };
-            }
-            
-            // Touch events for mobile - detect horizontal vs vertical movement
-            newBtn.addEventListener('touchstart', (e) => {
-                scrubStartX = e.touches[0].clientX;
-                scrubStartY = e.touches[0].clientY;
-                scrubStepIdx = idx;
-                scrubStartTime = startTime;
-                scrubEndTime = endTime;
-                scrubDuration = duration;
-                scrubLocked = false;
-                isScrubbing = false;
-            }, { passive: true });
-            
-            newBtn.addEventListener('touchmove', (e) => {
-                if (scrubStepIdx !== idx) return;
-                
-                const touchX = e.touches[0].clientX;
-                const touchY = e.touches[0].clientY;
-                const deltaX = Math.abs(touchX - scrubStartX);
-                const deltaY = Math.abs(touchY - scrubStartY);
-                
-                // If not locked yet, determine if this is a scroll or scrub
-                if (!scrubLocked && (deltaX > 15 || deltaY > 15)) {
-                    if (deltaX > deltaY * 1.5) {
-                        // Horizontal movement dominant - this is a scrub
-                        scrubLocked = true;
-                        isScrubbing = true;
-                    } else {
-                        // Vertical movement dominant - let scroll happen, disable scrub
-                        scrubLocked = true;
-                        isScrubbing = false;
-                        scrubStepIdx = null;
-                        return;
-                    }
-                }
-                
-                // Only process if we're in scrub mode
-                if (isScrubbing) {
-                    handleScrubMove(touchX, newBtn);
-                }
-            }, { passive: true });
-            
-            newBtn.addEventListener('touchend', () => {
-                isScrubbing = false;
-                scrubLocked = false;
-                scrubStepIdx = null;
-            });
-            
-            // Mouse events for desktop (no scroll conflict on desktop)
-            newBtn.addEventListener('mousedown', (e) => {
-                scrubStartX = e.clientX;
-                scrubStepIdx = idx;
-                scrubStartTime = startTime;
-                scrubEndTime = endTime;
-                scrubDuration = duration;
-            });
-            
-            document.addEventListener('mousemove', (e) => {
-                if (scrubStepIdx !== idx) return;
-                const deltaX = Math.abs(e.clientX - scrubStartX);
-                if (deltaX > 10) {
-                    isScrubbing = true;
-                    handleScrubMove(e.clientX, newBtn);
-                }
-            });
-            
-            document.addEventListener('mouseup', () => {
-                isScrubbing = false;
-                scrubStepIdx = null;
-            });
-        }
-        
-        function handleScrubMove(clientX, btnEl) {
-            if (!isScrubbing) return;
-            
-            const deltaX = clientX - scrubStartX;
-            
-            const btnWidth = btnEl.offsetWidth;
-            const player = videoPlayers[scrubStepIdx];
-            if (!player) return;
-            
-            // Calculate new position based on drag distance
-            // Full button width = full duration
-            const progressDelta = deltaX / btnWidth;
-            const currentTime = player.getCurrentTime();
-            const currentProgress = (currentTime - scrubStartTime) / scrubDuration;
-            let newProgress = Math.min(1, Math.max(0, currentProgress + progressDelta));
-            
-            // Update visual
-            const btnProgress = document.getElementById(`btn-progress-${scrubStepIdx}`);
-            if (btnProgress) {
-                btnProgress.style.width = (newProgress * 100) + '%';
-            }
-            
-            // Seek video
-            const newTime = scrubStartTime + (newProgress * scrubDuration);
-            player.seekTo(newTime, true);
-            
-            // Update scrub reference point for continuous dragging
-            scrubStartX = clientX;
         }
         
         // Replay current step from beginning
