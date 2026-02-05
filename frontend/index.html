@@ -2291,7 +2291,9 @@
         
         // ============ BUTTON SCRUBBING ============
         let isScrubbing = false;
+        let scrubLocked = false; // Once we decide scroll vs scrub, lock it
         let scrubStartX = 0;
+        let scrubStartY = 0;
         let scrubStepIdx = null;
         let scrubStartTime = 0;
         let scrubEndTime = 0;
@@ -2317,26 +2319,54 @@
                 };
             }
             
-            // Touch events for mobile
+            // Touch events for mobile - detect horizontal vs vertical movement
             newBtn.addEventListener('touchstart', (e) => {
                 scrubStartX = e.touches[0].clientX;
+                scrubStartY = e.touches[0].clientY;
                 scrubStepIdx = idx;
                 scrubStartTime = startTime;
                 scrubEndTime = endTime;
                 scrubDuration = duration;
+                scrubLocked = false;
+                isScrubbing = false;
             }, { passive: true });
             
             newBtn.addEventListener('touchmove', (e) => {
                 if (scrubStepIdx !== idx) return;
-                handleScrubMove(e.touches[0].clientX, newBtn);
+                
+                const touchX = e.touches[0].clientX;
+                const touchY = e.touches[0].clientY;
+                const deltaX = Math.abs(touchX - scrubStartX);
+                const deltaY = Math.abs(touchY - scrubStartY);
+                
+                // If not locked yet, determine if this is a scroll or scrub
+                if (!scrubLocked && (deltaX > 15 || deltaY > 15)) {
+                    if (deltaX > deltaY * 1.5) {
+                        // Horizontal movement dominant - this is a scrub
+                        scrubLocked = true;
+                        isScrubbing = true;
+                    } else {
+                        // Vertical movement dominant - let scroll happen, disable scrub
+                        scrubLocked = true;
+                        isScrubbing = false;
+                        scrubStepIdx = null;
+                        return;
+                    }
+                }
+                
+                // Only process if we're in scrub mode
+                if (isScrubbing) {
+                    handleScrubMove(touchX, newBtn);
+                }
             }, { passive: true });
             
             newBtn.addEventListener('touchend', () => {
                 isScrubbing = false;
+                scrubLocked = false;
                 scrubStepIdx = null;
             });
             
-            // Mouse events for desktop
+            // Mouse events for desktop (no scroll conflict on desktop)
             newBtn.addEventListener('mousedown', (e) => {
                 scrubStartX = e.clientX;
                 scrubStepIdx = idx;
@@ -2347,7 +2377,11 @@
             
             document.addEventListener('mousemove', (e) => {
                 if (scrubStepIdx !== idx) return;
-                handleScrubMove(e.clientX, newBtn);
+                const deltaX = Math.abs(e.clientX - scrubStartX);
+                if (deltaX > 10) {
+                    isScrubbing = true;
+                    handleScrubMove(e.clientX, newBtn);
+                }
             });
             
             document.addEventListener('mouseup', () => {
@@ -2357,12 +2391,9 @@
         }
         
         function handleScrubMove(clientX, btnEl) {
+            if (!isScrubbing) return;
+            
             const deltaX = clientX - scrubStartX;
-            
-            // Require minimum movement to start scrubbing (prevent accidental triggers)
-            if (Math.abs(deltaX) < 10 && !isScrubbing) return;
-            
-            isScrubbing = true;
             
             const btnWidth = btnEl.offsetWidth;
             const player = videoPlayers[scrubStepIdx];
