@@ -297,30 +297,30 @@ def get_transcript(url: str) -> str:
 
 def extract_fix_steps(transcript: str, url: str, max_steps: int = 5) -> dict:
     """Use Claude to extract structured fix steps from transcript."""
-    prompt = f"""You are CypherIt, an expert at extracting actionable fix steps from video transcripts.
+    prompt = f"""You are CypherIt, an expert at extracting PRECISE, QUICK fix steps from video transcripts.
 
-The transcript below has timestamps in [MM:SS] format. Extract:
+The transcript below has timestamps in [MM:SS] format. Your job is to find the GOLDEN NUGGETS — the exact 8-15 second moments where each key action is shown.
+
+Extract:
 1. A clear, short title (what's being taught/fixed)
 2. The problem being solved (one sentence)
 3. Quick info: tools needed, time estimate, warnings, and helpful tips
 4. Step-by-step instructions (max {max_steps} key steps)
-5. The EXACT timestamp from the transcript where each step is explained
+5. For each step: the START timestamp AND END timestamp (the precise clip)
 
-Rules:
-- Each step = ONE clear action with an imperative verb
-- ALWAYS include the timestamp where the step is demonstrated/explained
-- Use the timestamp format from the transcript (e.g., "1:23", "10:45")
-- Skip intros/outros - focus on the core how-to steps
-- Match timestamps to where the action is SHOWN, not just mentioned
-- CRITICAL: Each step MUST have a UNIQUE timestamp at least 5 seconds apart from other steps
-- If multiple actions happen at the same time, pick the MOST relevant moment for each step
+CRITICAL RULES FOR TIMESTAMPS:
+- Find the EXACT moment the action is demonstrated, not where it's mentioned
+- Each clip should be 8-15 seconds (the minimum needed to show the action)
+- NEVER exceed 20 seconds per step — find the tightest, most relevant segment
+- Skip intros, tangents, explanations — just the ACTION moment
+- If the video shows something for 2 minutes, find the 10-second essence
 
 Quick Info Guidelines:
-- tools_needed: Physical items, software, accounts, or prerequisites (e.g., "USB drive 8GB+", "Admin password")
-- time_estimate: Realistic completion time (e.g., "5-10 minutes", "About 1 hour")
-- warnings: Important cautions like data loss, irreversible actions, or requirements (e.g., "This will erase your drive")
-- tips: Helpful shortcuts or pro tips mentioned in the video (e.g., "Use USB 3.0 for faster speeds")
-- Only include fields that are actually relevant - empty arrays are fine
+- tools_needed: Physical items, software, accounts, or prerequisites
+- time_estimate: Realistic completion time
+- warnings: Important cautions like data loss or requirements
+- tips: Helpful shortcuts or pro tips
+- Only include fields that are actually relevant
 
 Transcript:
 {transcript[:12000]}
@@ -336,8 +336,8 @@ Respond in this exact JSON format (no markdown, just JSON):
         "tips": ["Helpful tip if any"]
     }},
     "steps": [
-        {{"number": 1, "action": "First key action", "detail": "Optional extra context", "timestamp": "0:45"}},
-        {{"number": 2, "action": "Second key action", "detail": null, "timestamp": "2:15"}}
+        {{"number": 1, "action": "First key action", "detail": "Brief context", "timestamp": "0:45", "end_timestamp": "0:57"}},
+        {{"number": 2, "action": "Second key action", "detail": null, "timestamp": "2:15", "end_timestamp": "2:28"}}
     ]
 }}"""
 
@@ -381,6 +381,9 @@ def add_captions_to_steps(result: dict, transcript: str) -> dict:
     """Extract caption text for each step's time segment from the transcript."""
     import re
     
+    MAX_CLIP_DURATION = 20  # Maximum seconds per clip - keep it tight!
+    DEFAULT_CLIP_DURATION = 12  # Default if no end_timestamp provided
+    
     try:
         # Parse transcript lines with timestamps [M:SS] format
         lines = []
@@ -401,11 +404,26 @@ def add_captions_to_steps(result: dict, transcript: str) -> dict:
                 
             start_time = _ts_to_seconds(step['timestamp'])
             
-            # End time is next step's timestamp or +15 seconds
-            if i + 1 < len(steps) and steps[i + 1].get('timestamp'):
-                end_time = _ts_to_seconds(steps[i + 1]['timestamp'])
+            # Use end_timestamp if Claude provided it, otherwise use default
+            if step.get('end_timestamp'):
+                end_time = _ts_to_seconds(step['end_timestamp'])
             else:
-                end_time = start_time + 15
+                # Fallback: use next step's timestamp or default duration
+                if i + 1 < len(steps) and steps[i + 1].get('timestamp'):
+                    end_time = _ts_to_seconds(steps[i + 1]['timestamp'])
+                else:
+                    end_time = start_time + DEFAULT_CLIP_DURATION
+            
+            # CAP the duration - never exceed MAX_CLIP_DURATION
+            if end_time - start_time > MAX_CLIP_DURATION:
+                end_time = start_time + MAX_CLIP_DURATION
+            
+            # Ensure minimum duration of 8 seconds
+            if end_time - start_time < 8:
+                end_time = start_time + 8
+            
+            # Store the computed end_time for frontend use
+            step['end_time'] = end_time
             
             # Collect caption text for this segment
             caption_parts = []
