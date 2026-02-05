@@ -1064,10 +1064,10 @@
                 font-size: 1rem;
             }
             
-            /* Quick Info mobile styles - square cards, less tall */
+            /* Quick Info mobile styles - fit content, 2-column grid */
             .quick-info {
-                padding: 12px;
-                gap: 10px;
+                padding: 10px;
+                gap: 8px;
                 background: linear-gradient(135deg, rgba(0,20,40,0.8), rgba(0,30,60,0.6));
                 border: 1px solid rgba(0,217,255,0.15);
                 display: grid;
@@ -1079,11 +1079,8 @@
                 min-width: 0;
                 border-radius: 12px;
                 background: linear-gradient(135deg, rgba(0,217,255,0.12), rgba(0,217,255,0.05));
-                flex-direction: column;
+                flex-direction: row;
                 align-items: flex-start;
-                aspect-ratio: 1 / 1;
-                max-height: 140px;
-                overflow: hidden;
             }
             
             .quick-info-item.warning {
@@ -1095,24 +1092,18 @@
             }
             
             .quick-info-icon {
-                font-size: 1rem;
-                margin-bottom: 4px;
+                font-size: 1.1rem;
             }
             
             .quick-info-label {
                 font-size: 0.65rem;
                 font-weight: 700;
                 letter-spacing: 0.5px;
-                margin-bottom: 4px;
             }
             
             .quick-info-value {
-                font-size: 0.75rem;
-                line-height: 1.35;
-                overflow: hidden;
-                display: -webkit-box;
-                -webkit-line-clamp: 5;
-                -webkit-box-orient: vertical;
+                font-size: 0.8rem;
+                line-height: 1.4;
             }
             
             /* Voting mobile styles */
