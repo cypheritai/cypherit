@@ -940,6 +940,49 @@
             .step-action {
                 font-size: 1rem;
             }
+            
+            /* Gallery mobile styles */
+            .gallery-section {
+                padding: 20px 16px;
+                margin: 24px 0;
+            }
+            
+            .gallery-title {
+                font-size: 1.3rem;
+            }
+            
+            .category-tabs {
+                gap: 6px;
+                margin-bottom: 16px;
+            }
+            
+            .category-tab {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 12px;
+            }
+            
+            .fix-card-content {
+                padding: 12px;
+            }
+            
+            .fix-card-title {
+                font-size: 0.9rem;
+            }
+            
+            .fix-card-meta {
+                flex-direction: column;
+                gap: 8px;
+                align-items: flex-start;
+            }
+            
+            .fix-card-stats {
+                font-size: 0.8rem;
+            }
         }
     </style>
 </head>
@@ -1104,6 +1147,9 @@
         let currentCategory = 'all';
         
         async function loadGallery() {
+            const grid = document.getElementById('galleryGrid');
+            grid.innerHTML = '<div class="gallery-loading">Loading popular fixes...</div>';
+            
             try {
                 // Load categories
                 const catResponse = await fetch(`${API_URL}/gallery/categories`);
@@ -1117,13 +1163,15 @@
                 const fixResponse = await fetch(`${API_URL}/gallery`);
                 if (fixResponse.ok) {
                     const fixData = await fixResponse.json();
-                    GALLERY_FIXES = fixData.fixes;
+                    GALLERY_FIXES = fixData.fixes || [];
+                    console.log('Loaded gallery fixes:', GALLERY_FIXES.length);
                     renderGalleryGrid();
+                } else {
+                    grid.innerHTML = '<div class="gallery-loading">Could not load fixes. Try refreshing.</div>';
                 }
             } catch (err) {
                 console.warn('Failed to load gallery:', err);
-                document.getElementById('galleryGrid').innerHTML = 
-                    '<div class="gallery-loading">Gallery coming soon...</div>';
+                grid.innerHTML = '<div class="gallery-loading">Gallery unavailable. Try refreshing.</div>';
             }
         }
         
