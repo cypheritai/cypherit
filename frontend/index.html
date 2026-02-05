@@ -533,6 +533,21 @@
             margin-bottom: 24px;
             padding-bottom: 24px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            background: rgba(0,217,255,0.15);
+            border: 1px solid rgba(0,217,255,0.3);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #00d9ff;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .result-title {
@@ -1413,6 +1428,7 @@
         
         <div class="result" id="result">
             <div class="result-header">
+                <div class="category-badge" id="categoryBadge"></div>
                 <h2 class="result-title" id="resultTitle"></h2>
                 <p class="result-problem" id="resultProblem"></p>
             </div>
@@ -1782,6 +1798,19 @@
         let currentTitle = '';
         
         function displayResult(data) {
+            // Category badge with friendly names
+            const categoryNames = {
+                'auto_maintenance': '🚗 Auto Maintenance',
+                'tech_troubleshooting': '🖥️ Tech Troubleshooting', 
+                'software_setup': '💿 Software Setup',
+                'home_repair': '🔧 Home Repair',
+                'cooking': '🍳 Cooking',
+                'general': '📋 How-To'
+            };
+            const categoryBadge = document.getElementById('categoryBadge');
+            const categoryName = categoryNames[data.category] || categoryNames['general'];
+            categoryBadge.textContent = categoryName;
+            
             document.getElementById('resultTitle').textContent = data.title;
             document.getElementById('resultProblem').textContent = data.problem;
             document.getElementById('readTime').textContent = `⏱️ ${data.time_to_read}`;
