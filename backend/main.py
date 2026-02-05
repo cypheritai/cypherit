@@ -330,36 +330,9 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
     # Calculate read time
     result["time_to_read"] = f"{len(result.get('steps', [])) * 12} seconds"
     
-    # Build unified quick_info from category-specific fields
-    quick_info = result.get("quick_info", {})
-    
-    # Pull in tools from tools_required if present
-    if "tools_required" in result and not quick_info.get("tools_needed"):
-        quick_info["tools_needed"] = result["tools_required"]
-    
-    # Pull in warnings from top-level warnings
-    if "warnings" in result and isinstance(result["warnings"], list):
-        quick_info["warnings"] = result["warnings"]
-    
-    # Pull in specifications as tips for auto category
-    if "specifications" in result:
-        specs = result["specifications"]
-        spec_tips = []
-        if specs.get("fluid_type"):
-            spec_tips.append(f"Fluid: {specs['fluid_type']}")
-        if specs.get("capacity"):
-            spec_tips.append(f"Capacity: {specs['capacity']}")
-        if specs.get("torque_specs"):
-            for part, val in specs["torque_specs"].items():
-                spec_tips.append(f"{part.replace('_', ' ').title()}: {val}")
-        if spec_tips:
-            quick_info["tips"] = spec_tips + quick_info.get("tips", [])
-    
-    # Pull in verify as a tip if present
+    # Keep verify for frontend checklist
     if "verify" in result and isinstance(result["verify"], list):
-        result["verify_steps"] = result["verify"]  # Keep for frontend
-    
-    result["quick_info"] = quick_info
+        result["verify_steps"] = result["verify"]
     
     # Add caption text for each step from the transcript
     result = add_captions_to_steps(result, transcript)
