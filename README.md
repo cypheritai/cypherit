@@ -10,6 +10,31 @@ Paste any YouTube tutorial → Get structured steps with video clips → Fix you
 
 ---
 
+## 🎬 Demo
+
+<p align="center">
+  <a href="https://www.cypherit.ai">
+    <img src="https://www.cypherit.ai/logo.png" alt="CypherIt" width="300">
+  </a>
+</p>
+
+<p align="center">
+  <strong>👆 Click to try it live!</strong>
+</p>
+
+> **Try it now:** [cypherit.ai](https://www.cypherit.ai) — Paste any YouTube tutorial URL!
+
+**Example input:** `https://www.youtube.com/watch?v=0HBA9Nov17Q`
+
+**What you get:**
+- 📋 Step-by-step instructions
+- 🛠️ Tools needed: USB drive, Mac, Admin password
+- ⏱️ Time estimate: 30-45 minutes
+- ⚠️ Warnings: "USB will be erased"
+- 💡 Pro tips from the video
+
+---
+
 ## ✨ What It Does
 
 CypherIt extracts the essential steps from any YouTube tutorial. No 20-minute intros. No fluff. Just the fix.
