@@ -2013,54 +2013,15 @@
                 }
             });
             
-            // Set up scroll observer for active step detection
-            setupActiveStepObserver();
+            // Auto-play on scroll disabled - user must tap thumbnail to play
+            // setupActiveStepObserver();
         }
         
-        // ============ ACTIVE STEP OBSERVER ============
+        // ============ ACTIVE STEP OBSERVER (DISABLED) ============
+        // Steps only activate when user taps the thumbnail
         function setupActiveStepObserver() {
-            const options = {
-                root: null,
-                rootMargin: '-10% 0px -50% 0px', // Top 40% of viewport triggers
-                threshold: 0.1
-            };
-            
-            const observer = new IntersectionObserver((entries) => {
-                // Find the TOPMOST intersecting step
-                let topmostEntry = null;
-                let topmostY = Infinity;
-                
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const rect = entry.boundingClientRect;
-                        if (rect.top < topmostY) {
-                            topmostY = rect.top;
-                            topmostEntry = entry;
-                        }
-                    }
-                });
-                
-                if (topmostEntry) {
-                    const index = topmostEntry.target.dataset.stepIndex;
-                    if (activeStepIndex !== index) {
-                        console.log(`Activating step ${index} (topmost visible)`);
-                        setActiveStep(index);
-                    }
-                }
-            }, options);
-            
-            document.querySelectorAll('.step[data-timestamp]').forEach(step => {
-                if (step.dataset.timestamp) {
-                    observer.observe(step);
-                }
-            });
-            
-            // Force Step 1 active on initial load
-            setTimeout(() => {
-                if (activeStepIndex === null) {
-                    setActiveStep('0');
-                }
-            }, 1500);
+            // Disabled for cleaner UX - no auto-play on scroll
+            return;
         }
         
         // ============ SOUND STATE ============
