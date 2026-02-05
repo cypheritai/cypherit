@@ -1515,8 +1515,9 @@
             document.getElementById('readTime').textContent = `⏱️ ${data.time_to_read}`;
             document.getElementById('sourceLink').href = data.source_url;
             
-            // Hide gallery when showing results
+            // Hide gallery and demos when showing results
             document.getElementById('gallerySection').style.display = 'none';
+            document.getElementById('demoSection').style.display = 'none';
             
             // Display Quick Info section
             displayQuickInfo(data.quick_info);
