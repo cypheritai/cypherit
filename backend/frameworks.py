@@ -1,49 +1,60 @@
 """
-CypherIt - Simple Golden Nugget Extraction
-Universal steps that work broadly, not overly specific.
+CypherIt - Golden Nugget Extraction
+Find the treasure, skip the dirt.
 """
 
-def get_extraction_prompt(category: str, transcript: str, max_steps: int = 6) -> str:
-    """Simple, universal extraction prompt focused on golden nuggets."""
+def get_extraction_prompt(category: str, transcript: str, max_steps: int = 5) -> str:
+    """Extract golden nuggets - the moments that deliver the value."""
     
-    return f"""You are CypherIt. Extract the UNIVERSAL, ESSENTIAL steps from this how-to video.
+    return f"""You are a GOLDEN NUGGET MINER. Your job is to find the treasure buried in this video.
 
-GOAL: Someone watching should be able to follow these steps for ANY similar task, not just one specific case.
+A golden nugget is a 15-45 second moment that:
+• Delivers the "hit" — the viewer goes "wait, that's it!" or "oh, I get it now"
+• Stands ALONE — you don't need the full video to understand it
+• Is the REASON someone would watch this video
+• Contains the core technique, the key insight, or the actionable tip
 
-RULES:
-1. Extract 4-6 KEY STEPS that apply broadly (not vehicle-specific, not software-version-specific)
-2. Each step = ONE clear action, described universally
-3. Find the EXACT 8-20 second clip showing that action
-4. Skip intros, outros, sponsors, tangents
-5. Final step should confirm success (verify it worked)
+The rest of the video is the "dirt" — setup, explanations, tangents, filler. Skip it.
 
-BAD (too specific): "Remove 14mm drain plug on 2015 Honda Civic"
-GOOD (universal): "Remove drain plug and let oil drain completely"
+YOUR MISSION:
+Find 3-5 golden nuggets in this video. Each one should be:
+1. SELF-CONTAINED — Someone watching just this clip "gets it"
+2. VALUABLE — It's the part that actually matters
+3. TIGHT — 15-45 seconds max, no fat
+4. VISUAL — The moment where the action/technique is SHOWN, not explained
 
-BAD: "Install filter part #XYZ123"  
-GOOD: "Install new oil filter (hand-tighten, then 1/4 turn)"
+For how-to content, nuggets are usually:
+• The moment the technique is demonstrated (not explained)
+• The "trick" or hack that makes it easier
+• The before/after or the proof it works
+• The "don't make this mistake" warning shown
 
-The transcript has timestamps in [MM:SS] format. Find the golden nugget moment for each step.
+DON'T extract:
+• Intros, outros, sponsor reads
+• Long explanations (find the demo instead)
+• Filler or repetition
+• Setup without payoff
+
+The transcript has timestamps in [MM:SS] format. Find the nuggets.
 
 Transcript:
 {transcript[:12000]}
 
 Respond with ONLY valid JSON:
 {{
-    "title": "How to [Do Thing]",
-    "problem": "What this accomplishes",
-    "category": "auto_maintenance",
-    "quick_info": {{
-        "tools_needed": ["Basic tools needed"],
-        "time_estimate": "X minutes",
-        "warnings": ["Key safety warnings"],
-        "tips": ["Helpful universal tips"]
-    }},
-    "steps": [
-        {{"number": 1, "action": "Clear universal action", "detail": "Brief helpful context", "timestamp": "2:15", "end_timestamp": "2:30"}},
-        {{"number": 2, "action": "Next key action", "detail": null, "timestamp": "4:10", "end_timestamp": "4:25"}}
+    "title": "What this video teaches",
+    "hook": "The one-sentence reason to watch (the core insight)",
+    "category": "{category}",
+    "nuggets": [
+        {{
+            "number": 1,
+            "moment": "What happens in this nugget",
+            "why_valuable": "Why this moment matters",
+            "timestamp": "2:15",
+            "end_timestamp": "2:45"
+        }}
     ],
-    "verify": ["How to confirm it worked"]
+    "verify": "How you know you did it right"
 }}"""
 
 

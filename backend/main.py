@@ -323,16 +323,43 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
     result["source_url"] = url
     result["video_id"] = extract_video_id(url)
     
+    # Convert nuggets to steps format for frontend compatibility
+    if "nuggets" in result:
+        result["steps"] = []
+        for nugget in result["nuggets"]:
+            step = {
+                "number": nugget.get("number", 1),
+                "action": nugget.get("moment", ""),
+                "detail": nugget.get("why_valuable"),
+                "timestamp": nugget.get("timestamp"),
+                "end_timestamp": nugget.get("end_timestamp")
+            }
+            result["steps"].append(step)
+        # Use hook as the problem statement
+        if result.get("hook"):
+            result["problem"] = result["hook"]
+    
     # Ensure steps array exists
     if "steps" not in result:
         result["steps"] = []
     
-    # Calculate read time
-    result["time_to_read"] = f"{len(result.get('steps', [])) * 12} seconds"
+    # Calculate read time based on actual clip durations
+    total_seconds = 0
+    for step in result.get("steps", []):
+        if step.get("timestamp") and step.get("end_timestamp"):
+            start = _ts_to_seconds(step["timestamp"])
+            end = _ts_to_seconds(step["end_timestamp"])
+            total_seconds += max(0, end - start)
+        else:
+            total_seconds += 20  # Default estimate
+    result["time_to_read"] = f"{int(total_seconds)} seconds"
     
-    # Keep verify for frontend checklist
-    if "verify" in result and isinstance(result["verify"], list):
-        result["verify_steps"] = result["verify"]
+    # Keep verify for frontend
+    if "verify" in result:
+        if isinstance(result["verify"], list):
+            result["verify_steps"] = result["verify"]
+        elif isinstance(result["verify"], str):
+            result["verify_steps"] = [result["verify"]]
     
     # Add caption text for each step from the transcript
     result = add_captions_to_steps(result, transcript)
