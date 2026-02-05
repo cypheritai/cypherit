@@ -730,7 +730,7 @@
             width: 100%;
             margin-top: 20px;
             padding: 14px 24px;
-            background: linear-gradient(90deg, rgba(0,217,255,0.2), rgba(0,255,136,0.2));
+            background: rgba(30,35,45,0.8);
             border: 2px solid rgba(0,217,255,0.4);
             border-radius: 12px;
             color: #00d9ff;
@@ -738,25 +738,91 @@
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .next-step-btn .btn-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, rgba(0,217,255,0.3), rgba(0,255,136,0.3));
+            transition: width 0.15s linear;
+            z-index: 0;
+        }
+        
+        .next-step-btn .btn-text {
+            position: relative;
+            z-index: 1;
         }
         
         .next-step-btn:hover {
-            background: linear-gradient(90deg, rgba(0,217,255,0.3), rgba(0,255,136,0.3));
             border-color: #00d9ff;
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0,217,255,0.3);
         }
         
+        .next-step-btn.completed {
+            border-color: #00ff88;
+        }
+        
+        .next-step-btn.completed .btn-progress {
+            background: linear-gradient(90deg, rgba(0,255,136,0.25), rgba(0,217,255,0.25));
+        }
+        
+        .replay-btn {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid rgba(0,217,255,0.3);
+            border-radius: 10px;
+            color: #888;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .replay-btn:hover {
+            border-color: #00d9ff;
+            color: #00d9ff;
+        }
+        
         .step-complete {
             margin-top: 20px;
             padding: 14px 24px;
-            background: rgba(0,255,136,0.15);
+            background: rgba(30,35,45,0.8);
             border: 2px solid rgba(0,255,136,0.3);
             border-radius: 12px;
             color: #00ff88;
             font-size: 1rem;
             font-weight: 600;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .step-complete .btn-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, rgba(0,255,136,0.2), rgba(0,217,255,0.2));
+            transition: width 0.15s linear;
+            z-index: 0;
+        }
+        
+        .step-complete .btn-text {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .step-controls {
+            margin-top: 20px;
         }
         
         .step-video {
@@ -1775,12 +1841,24 @@
                             ` : ''}
                         ` : ''}
                         ${!isLastStep ? `
-                            <button class="next-step-btn" onclick="goToNextStep(${index + 1})">
-                                Next Step →
-                            </button>
+                            <div class="step-controls" id="step-controls-${index}">
+                                <button class="next-step-btn" id="next-btn-${index}" onclick="goToNextStep(${index + 1})">
+                                    <div class="btn-progress" id="btn-progress-${index}"></div>
+                                    <span class="btn-text">Next Step →</span>
+                                </button>
+                                <button class="replay-btn" id="replay-btn-${index}" onclick="replayStep(${index})" style="display:none;">
+                                    🔄 Replay This Step
+                                </button>
+                            </div>
                         ` : `
-                            <div class="step-complete">
-                                ✅ Final Step — You're done!
+                            <div class="step-controls" id="step-controls-${index}">
+                                <div class="step-complete" id="next-btn-${index}">
+                                    <div class="btn-progress" id="btn-progress-${index}"></div>
+                                    <span class="btn-text">✅ Final Step — You're done!</span>
+                                </div>
+                                <button class="replay-btn" id="replay-btn-${index}" onclick="replayStep(${index})" style="display:none;">
+                                    🔄 Replay This Step
+                                </button>
                             </div>
                         `}
                     </div>
@@ -2109,7 +2187,18 @@
                 endTime = startTime + MIN_SEGMENT_DURATION;
             }
             
-            console.log(`Step ${idx}: loop from ${startTime}s to ${endTime}s (${endTime - startTime}s segment)`);
+            const segmentDuration = endTime - startTime;
+            console.log(`Step ${idx}: loop from ${startTime}s to ${endTime}s (${segmentDuration}s segment)`);
+            
+            // Reset button progress
+            const btnProgress = document.getElementById(`btn-progress-${idx}`);
+            const nextBtn = document.getElementById(`next-btn-${idx}`);
+            const replayBtn = document.getElementById(`replay-btn-${idx}`);
+            if (btnProgress) btnProgress.style.width = '0%';
+            if (nextBtn) nextBtn.classList.remove('completed');
+            if (replayBtn) replayBtn.style.display = 'none';
+            
+            let loopCount = 0;
             
             boundaryCheckInterval = setInterval(() => {
                 if (activeStepIndex !== idx) {
@@ -2127,13 +2216,61 @@
                 try {
                     const currentTime = player.getCurrentTime();
                     
+                    // Calculate and update progress bar
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(100, Math.max(0, (elapsed / segmentDuration) * 100));
+                    if (btnProgress) {
+                        btnProgress.style.width = progress + '%';
+                    }
+                    
                     // LOOP: When reaching end of segment, seek back to start
                     if (currentTime >= endTime - 0.5) {
+                        loopCount++;
+                        console.log(`Step ${idx}: completed loop ${loopCount}`);
+                        
+                        // Show replay button after first complete loop
+                        if (loopCount === 1) {
+                            if (nextBtn) nextBtn.classList.add('completed');
+                            if (replayBtn) replayBtn.style.display = 'block';
+                        }
+                        
                         player.seekTo(startTime, true);
                         player.playVideo();
                     }
                 } catch (e) {}
-            }, 250); // Check every 250ms
+            }, 100); // Check every 100ms for smoother progress
+        }
+        
+        // Replay current step from beginning
+        function replayStep(index) {
+            const idx = String(index);
+            const player = videoPlayers[idx];
+            if (!player) return;
+            
+            const step = document.querySelector(`.step[data-step-index="${idx}"]`);
+            if (!step || !step.dataset.timestamp) return;
+            
+            const startTime = timestampToSeconds(step.dataset.timestamp);
+            
+            // Reset progress visuals
+            const btnProgress = document.getElementById(`btn-progress-${idx}`);
+            const nextBtn = document.getElementById(`next-btn-${idx}`);
+            const replayBtn = document.getElementById(`replay-btn-${idx}`);
+            if (btnProgress) btnProgress.style.width = '0%';
+            if (nextBtn) nextBtn.classList.remove('completed');
+            if (replayBtn) replayBtn.style.display = 'none';
+            
+            // Seek to start and play
+            player.seekTo(startTime, true);
+            player.playVideo();
+            
+            // Restart caption animation
+            const captionEl = document.getElementById(`step-caption-${idx}`);
+            if (captionEl) {
+                captionEl.classList.remove('complete');
+                const textEl = captionEl.querySelector('.caption-text');
+                if (textEl) textEl.textContent = '';
+            }
         }
         
         // ============ THUMBNAIL + TAP-TO-PLAY ============
