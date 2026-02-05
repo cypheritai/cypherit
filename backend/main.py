@@ -295,31 +295,41 @@ def get_transcript(url: str) -> str:
     raise HTTPException(status_code=400, detail=f"Failed to get transcript. YouTube may be busy — try again in a moment.")
 
 
-def extract_fix_steps(transcript: str, url: str, max_steps: int = 5) -> dict:
-    """Use Claude to extract structured fix steps from transcript."""
-    prompt = f"""You are CypherIt, an expert at extracting PRECISE, QUICK fix steps from video transcripts.
+def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
+    """Use Claude to extract structured fix steps from transcript using category frameworks."""
+    from frameworks import detect_category, build_framework_prompt, get_framework
+    
+    # Detect category from transcript
+    category = detect_category("", transcript)
+    framework = get_framework(category)
+    framework_prompt = build_framework_prompt(category)
+    
+    prompt = f"""You are CypherIt, an expert at extracting COMPLETE, PRECISE fix steps from video transcripts.
 
 The transcript below has timestamps in [MM:SS] format. Your job is to find the GOLDEN NUGGETS — the exact 8-15 second moments where each key action is shown.
+
+{framework_prompt}
 
 Extract:
 1. A clear, short title (what's being taught/fixed)
 2. The problem being solved (one sentence)
 3. Quick info: tools needed, time estimate, warnings, and helpful tips
-4. Step-by-step instructions (max {max_steps} key steps)
+4. Step-by-step instructions following the framework above (max {max_steps} steps)
 5. For each step: the START timestamp AND END timestamp (the precise clip)
 
-CRITICAL RULES FOR TIMESTAMPS:
-- Find the EXACT moment the action is demonstrated, not where it's mentioned
+CRITICAL RULES:
+- Follow the category framework structure above
+- The LAST STEP must ALWAYS be VERIFICATION (how to confirm it worked)
 - Each clip should be 8-15 seconds (the minimum needed to show the action)
 - NEVER exceed 20 seconds per step — find the tightest, most relevant segment
 - Skip intros, tangents, explanations — just the ACTION moment
-- If the video shows something for 2 minutes, find the 10-second essence
+- If a required phase isn't shown in the video, note it in tips/warnings
 
 Quick Info Guidelines:
 - tools_needed: Physical items, software, accounts, or prerequisites
 - time_estimate: Realistic completion time
-- warnings: Important cautions like data loss or requirements
-- tips: Helpful shortcuts or pro tips
+- warnings: Important cautions like data loss, safety, or requirements
+- tips: Helpful shortcuts or pro tips mentioned
 - Only include fields that are actually relevant
 
 Transcript:
@@ -329,6 +339,7 @@ Respond in this exact JSON format (no markdown, just JSON):
 {{
     "title": "How to [Do Thing]",
     "problem": "Brief description of what this teaches/fixes",
+    "category": "{category}",
     "quick_info": {{
         "tools_needed": ["Tool 1", "Tool 2"],
         "time_estimate": "15-20 minutes",
@@ -336,14 +347,15 @@ Respond in this exact JSON format (no markdown, just JSON):
         "tips": ["Helpful tip if any"]
     }},
     "steps": [
-        {{"number": 1, "action": "First key action", "detail": "Brief context", "timestamp": "0:45", "end_timestamp": "0:57"}},
-        {{"number": 2, "action": "Second key action", "detail": null, "timestamp": "2:15", "end_timestamp": "2:28"}}
+        {{"number": 1, "action": "First key action", "detail": "Brief context", "timestamp": "0:45", "end_timestamp": "0:57", "phase": "preparation"}},
+        {{"number": 2, "action": "Second key action", "detail": null, "timestamp": "2:15", "end_timestamp": "2:28", "phase": "main"}},
+        {{"number": 3, "action": "Verify it worked", "detail": "Check for X", "timestamp": "5:30", "end_timestamp": "5:42", "phase": "verification"}}
     ]
 }}"""
 
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
-        max_tokens=1024,
+        max_tokens=1500,  # Increased for richer framework-based responses
         messages=[{"role": "user", "content": prompt}]
     )
     
