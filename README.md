@@ -14,12 +14,12 @@ Paste any YouTube tutorial → Get structured steps with video clips → Fix you
 
 <p align="center">
   <a href="https://www.cypherit.ai">
-    <img src="https://www.cypherit.ai/logo.png" alt="CypherIt" width="300">
+    <img src="docs/screenshots/demo.gif" alt="CypherIt Demo" width="280">
   </a>
 </p>
 
 <p align="center">
-  <strong>👆 Click to try it live!</strong>
+  <strong>👆 Click to try it live at <a href="https://www.cypherit.ai">cypherit.ai</a></strong>
 </p>
 
 > **Try it now:** [cypherit.ai](https://www.cypherit.ai) — Paste any YouTube tutorial URL!
