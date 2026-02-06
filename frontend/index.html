@@ -2195,6 +2195,7 @@
                 
                 const script = document.createElement('script');
                 script.src = 'supabase.min.js';
+                script.async = false; // Ensure synchronous execution
                 script.onload = () => {
                     clearTimeout(timeout);
                     console.log('Script loaded, polling for supabase...');
@@ -2204,7 +2205,15 @@
                     const checkInterval = setInterval(() => {
                         attempts++;
                         // Check multiple ways the library might be exposed
-                        const sbLib = window.supabase || self.supabase;
+                        let sbLib = null;
+                        try {
+                            sbLib = window.supabase || window['supabase'] || self.supabase || globalThis.supabase;
+                        } catch(e) {}
+                        
+                        // Log every 10 attempts
+                        if (attempts % 10 === 0) {
+                            console.log('Polling attempt', attempts, 'window.supabase:', typeof window.supabase);
+                        }
                         
                         if (sbLib && sbLib.createClient) {
                             clearInterval(checkInterval);
@@ -2239,7 +2248,8 @@
                     supabaseLoadCallbacks.forEach(cb => cb.reject(error));
                     supabaseLoadCallbacks = [];
                 };
-                document.body.appendChild(script);
+                // Append to head for better scope handling
+                document.head.appendChild(script);
             });
         }
         
