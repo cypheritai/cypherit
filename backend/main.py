@@ -772,6 +772,10 @@ async def serve_apple_icon():
 async def serve_loading_icon():
     return FileResponse(frontend_path / "loading-icon.png")
 
+@app.get("/supabase.min.js", include_in_schema=False)
+async def serve_supabase():
+    return FileResponse(frontend_path / "supabase.min.js", media_type="application/javascript")
+
 @app.get("/app")
 async def serve_frontend():
     """Serve the frontend app"""
