@@ -1514,6 +1514,213 @@
             color: #ff6464;
         }
         
+        /* Profile Dropdown */
+        .user-menu {
+            position: relative;
+        }
+        
+        .profile-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: linear-gradient(135deg, #1e2433, #16213e);
+            border: 1px solid rgba(0,217,255,0.3);
+            border-radius: 16px;
+            padding: 8px;
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s;
+            z-index: 100;
+        }
+        
+        .user-menu:hover .profile-dropdown,
+        .profile-dropdown:hover {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .profile-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            color: #aaa;
+            font-size: 0.9rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+        
+        .profile-dropdown-item:hover {
+            background: rgba(0,217,255,0.1);
+            color: #fff;
+        }
+        
+        .profile-dropdown-item.danger:hover {
+            background: rgba(255,100,100,0.1);
+            color: #ff6464;
+        }
+        
+        .profile-dropdown-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 8px 0;
+        }
+        
+        .profile-stats {
+            display: flex;
+            gap: 16px;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 8px;
+        }
+        
+        .profile-stat {
+            text-align: center;
+        }
+        
+        .profile-stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #00d9ff;
+        }
+        
+        .profile-stat-label {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        
+        /* Save/Favorite Button */
+        .save-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255,100,150,0.1);
+            border: 1px solid rgba(255,100,150,0.3);
+            border-radius: 25px;
+            color: #ff6496;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .save-btn:hover {
+            background: rgba(255,100,150,0.2);
+            border-color: #ff6496;
+            transform: translateY(-2px);
+        }
+        
+        .save-btn.saved {
+            background: rgba(255,100,150,0.25);
+            border-color: #ff6496;
+            color: #ff6496;
+        }
+        
+        .save-btn.saved .save-icon::before {
+            content: "❤️";
+        }
+        
+        .save-btn .save-icon::before {
+            content: "🤍";
+        }
+        
+        .result-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        /* My Fixes Section (Profile Page) */
+        .my-fixes-section {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .my-fixes-section.visible {
+            display: block;
+        }
+        
+        .my-fixes-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        
+        .my-fixes-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        .my-fixes-tabs {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .my-fixes-tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            background: transparent;
+            color: #888;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .my-fixes-tab:hover {
+            border-color: #00d9ff;
+            color: #fff;
+        }
+        
+        .my-fixes-tab.active {
+            background: rgba(0,217,255,0.15);
+            border-color: #00d9ff;
+            color: #00d9ff;
+        }
+        
+        .my-fixes-empty {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .my-fixes-empty-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+        
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            color: #888;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .back-btn:hover {
+            border-color: #00d9ff;
+            color: #00d9ff;
+        }
+        
         /* Mobile responsiveness */
         @media (max-width: 600px) {
             .logo-img {
@@ -1703,7 +1910,29 @@
                 <div class="user-menu" id="userMenu" style="display: none;">
                     <div class="user-avatar" id="userAvatar">?</div>
                     <span class="user-email" id="userEmail">user@email.com</span>
-                    <button class="logout-btn" onclick="signOut()">Sign out</button>
+                    
+                    <div class="profile-dropdown">
+                        <div class="profile-stats">
+                            <div class="profile-stat">
+                                <div class="profile-stat-value" id="favCount">0</div>
+                                <div class="profile-stat-label">Saved</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value" id="historyCount">0</div>
+                                <div class="profile-stat-label">History</div>
+                            </div>
+                        </div>
+                        <button class="profile-dropdown-item" onclick="showMyFixes('favorites')">
+                            ❤️ My Saved Fixes
+                        </button>
+                        <button class="profile-dropdown-item" onclick="showMyFixes('history')">
+                            📜 Extraction History
+                        </button>
+                        <div class="profile-dropdown-divider"></div>
+                        <button class="profile-dropdown-item danger" onclick="signOut()">
+                            🚪 Sign Out
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>
@@ -1750,6 +1979,25 @@
             <div class="error" id="error"></div>
         </div>
         
+        <!-- My Fixes Section (for logged-in users) -->
+        <div class="my-fixes-section" id="myFixesSection">
+            <div class="my-fixes-header">
+                <button class="back-btn" onclick="hideMyFixes()">← Back</button>
+                <h2 class="my-fixes-title" id="myFixesTitle">My Saved Fixes</h2>
+                <div class="my-fixes-tabs">
+                    <button class="my-fixes-tab active" id="tabFavorites" onclick="showMyFixes('favorites')">❤️ Saved</button>
+                    <button class="my-fixes-tab" id="tabHistory" onclick="showMyFixes('history')">📜 History</button>
+                </div>
+            </div>
+            <div class="gallery-grid" id="myFixesGrid">
+                <div class="my-fixes-empty">
+                    <div class="my-fixes-empty-icon">❤️</div>
+                    <p>No saved fixes yet</p>
+                    <p style="font-size: 0.85rem; margin-top: 8px;">Save extractions to find them quickly later!</p>
+                </div>
+            </div>
+        </div>
+        
         <!-- Popular Fixes Gallery -->
         <div class="gallery-section" id="gallerySection">
             <div class="gallery-header">
@@ -1785,6 +2033,12 @@
                 <div class="category-badge" id="categoryBadge"></div>
                 <h2 class="result-title" id="resultTitle"></h2>
                 <p class="result-problem" id="resultProblem"></p>
+                <div class="result-actions">
+                    <button class="save-btn" id="saveBtn" onclick="toggleFavorite()">
+                        <span class="save-icon"></span>
+                        <span class="save-text">Save Fix</span>
+                    </button>
+                </div>
             </div>
             
             <div class="quick-info" id="quickInfo">
@@ -1938,9 +2192,13 @@
                 userMenu.style.display = 'flex';
                 document.getElementById('userEmail').textContent = user.email;
                 document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
+                // Load user's favorites and history
+                loadUserData();
             } else {
                 loginBtn.style.display = 'block';
                 userMenu.style.display = 'none';
+                userFavorites = [];
+                userHistory = [];
             }
         }
         
@@ -2005,6 +2263,182 @@
                 hideAuthModal();
             }
         });
+        
+        // ============ FAVORITES & HISTORY ============
+        let userFavorites = [];
+        let userHistory = [];
+        
+        async function loadUserData() {
+            if (!currentUser) return;
+            
+            try {
+                // Load favorites
+                const { data: favs, error: favError } = await supabase
+                    .from('favorites')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('created_at', { ascending: false });
+                
+                if (!favError && favs) {
+                    userFavorites = favs;
+                    document.getElementById('favCount').textContent = favs.length;
+                }
+                
+                // Load history
+                const { data: hist, error: histError } = await supabase
+                    .from('history')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('extracted_at', { ascending: false })
+                    .limit(50);
+                
+                if (!histError && hist) {
+                    userHistory = hist;
+                    document.getElementById('historyCount').textContent = hist.length;
+                }
+            } catch (err) {
+                console.warn('Failed to load user data:', err);
+            }
+        }
+        
+        async function toggleFavorite() {
+            if (!currentUser) {
+                showAuthModal();
+                return;
+            }
+            
+            if (!currentVideoId || !currentTitle) return;
+            
+            const btn = document.getElementById('saveBtn');
+            const isSaved = btn.classList.contains('saved');
+            
+            if (isSaved) {
+                // Remove from favorites
+                const { error } = await supabase
+                    .from('favorites')
+                    .delete()
+                    .eq('user_id', currentUser.id)
+                    .eq('video_id', currentVideoId);
+                
+                if (!error) {
+                    btn.classList.remove('saved');
+                    btn.querySelector('.save-text').textContent = 'Save Fix';
+                    userFavorites = userFavorites.filter(f => f.video_id !== currentVideoId);
+                    document.getElementById('favCount').textContent = userFavorites.length;
+                    plausible('Favorite', {props: {action: 'remove'}});
+                }
+            } else {
+                // Add to favorites
+                const thumbnail = `https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg`;
+                const { error } = await supabase
+                    .from('favorites')
+                    .insert({
+                        user_id: currentUser.id,
+                        video_id: currentVideoId,
+                        title: currentTitle,
+                        thumbnail: thumbnail
+                    });
+                
+                if (!error) {
+                    btn.classList.add('saved');
+                    btn.querySelector('.save-text').textContent = 'Saved!';
+                    userFavorites.unshift({ video_id: currentVideoId, title: currentTitle, thumbnail });
+                    document.getElementById('favCount').textContent = userFavorites.length;
+                    plausible('Favorite', {props: {action: 'add'}});
+                }
+            }
+        }
+        
+        async function addToHistory(videoId, title) {
+            if (!currentUser) return;
+            
+            try {
+                const thumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+                await supabase
+                    .from('history')
+                    .insert({
+                        user_id: currentUser.id,
+                        video_id: videoId,
+                        title: title,
+                        thumbnail: thumbnail
+                    });
+                
+                userHistory.unshift({ video_id: videoId, title, thumbnail });
+                document.getElementById('historyCount').textContent = Math.min(userHistory.length, 50);
+            } catch (err) {
+                console.warn('Failed to add to history:', err);
+            }
+        }
+        
+        function checkIfFavorited() {
+            if (!currentUser || !currentVideoId) return;
+            
+            const btn = document.getElementById('saveBtn');
+            const isFavorited = userFavorites.some(f => f.video_id === currentVideoId);
+            
+            if (isFavorited) {
+                btn.classList.add('saved');
+                btn.querySelector('.save-text').textContent = 'Saved!';
+            } else {
+                btn.classList.remove('saved');
+                btn.querySelector('.save-text').textContent = 'Save Fix';
+            }
+        }
+        
+        function showMyFixes(tab = 'favorites') {
+            // Hide other sections
+            document.getElementById('gallerySection').style.display = 'none';
+            document.getElementById('demoSection').style.display = 'none';
+            document.getElementById('result').classList.remove('visible');
+            
+            // Show my fixes
+            const section = document.getElementById('myFixesSection');
+            section.classList.add('visible');
+            
+            // Update tabs
+            document.getElementById('tabFavorites').classList.toggle('active', tab === 'favorites');
+            document.getElementById('tabHistory').classList.toggle('active', tab === 'history');
+            
+            // Update title
+            document.getElementById('myFixesTitle').textContent = 
+                tab === 'favorites' ? 'My Saved Fixes' : 'Extraction History';
+            
+            // Render items
+            const grid = document.getElementById('myFixesGrid');
+            const items = tab === 'favorites' ? userFavorites : userHistory;
+            
+            if (!items.length) {
+                grid.innerHTML = `
+                    <div class="my-fixes-empty">
+                        <div class="my-fixes-empty-icon">${tab === 'favorites' ? '❤️' : '📜'}</div>
+                        <p>${tab === 'favorites' ? 'No saved fixes yet' : 'No extraction history'}</p>
+                        <p style="font-size: 0.85rem; margin-top: 8px; color: #666;">
+                            ${tab === 'favorites' 
+                                ? 'Save extractions to find them quickly later!' 
+                                : 'Your extractions will appear here'}
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = items.map(item => `
+                <div class="fix-card" onclick="loadFix('${item.video_id}')">
+                    <img class="fix-card-thumbnail" src="${item.thumbnail}" alt="${item.title}" loading="lazy">
+                    <div class="fix-card-content">
+                        <div class="fix-card-title">${item.title}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            plausible('MyFixes', {props: {tab: tab}});
+        }
+        
+        function hideMyFixes() {
+            document.getElementById('myFixesSection').classList.remove('visible');
+            document.getElementById('gallerySection').style.display = 'block';
+            document.getElementById('demoSection').style.display = 'block';
+        }
         
         // Demo examples - loaded from API
         let DEMO_EXAMPLES = [];
@@ -2216,6 +2650,12 @@
                 plausible('Extraction Complete', {props: {steps: data.steps?.length || 0}});
                 
                 displayResult(data);
+                
+                // Track in user history and check favorites
+                if (data.video_id && data.title) {
+                    addToHistory(data.video_id, data.title);
+                    checkIfFavorited();
+                }
             } catch (err) {
                 // Don't show error if user cancelled
                 if (err.name !== 'AbortError') {
