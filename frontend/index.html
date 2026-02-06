@@ -2166,10 +2166,11 @@
         
         function loadSupabaseSDK() {
             return new Promise((resolve, reject) => {
-                // Already loaded
-                if (window.supabase && window.supabase.createClient) {
+                // Check both window.supabase and global supabase (UMD compatibility)
+                const sbLib = window.supabase || (typeof supabaseLib !== 'undefined' ? supabaseLib : null);
+                if (sbLib && sbLib.createClient) {
                     if (!supabase) {
-                        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                        supabase = sbLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     }
                     resolve(supabase);
                     return;
@@ -2196,26 +2197,37 @@
                 script.src = 'supabase.min.js';
                 script.onload = () => {
                     clearTimeout(timeout);
-                    console.log('Script loaded, checking window.supabase...');
+                    console.log('Script loaded, polling for supabase...');
                     
-                    // Small delay to ensure script executes
-                    setTimeout(() => {
-                        try {
-                            if (window.supabase && window.supabase.createClient) {
-                                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    // Poll for supabase to be available (UMD might need a moment)
+                    let attempts = 0;
+                    const checkInterval = setInterval(() => {
+                        attempts++;
+                        // Check multiple ways the library might be exposed
+                        const sbLib = window.supabase || self.supabase;
+                        
+                        if (sbLib && sbLib.createClient) {
+                            clearInterval(checkInterval);
+                            try {
+                                supabase = sbLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                                 console.log('Supabase initialized!');
                                 resolve(supabase);
                                 supabaseLoadCallbacks.forEach(cb => cb.resolve(supabase));
-                            } else {
-                                throw new Error('window.supabase not found after script load');
+                            } catch (err) {
+                                console.error('Supabase init error:', err);
+                                reject(err);
+                                supabaseLoadCallbacks.forEach(cb => cb.reject(err));
                             }
-                        } catch (err) {
-                            console.error('Supabase init error:', err);
+                            supabaseLoadCallbacks = [];
+                            supabaseLoading = false;
+                        } else if (attempts > 50) { // 5 seconds of polling
+                            clearInterval(checkInterval);
+                            const err = new Error('supabase not found after 5s polling');
                             reject(err);
                             supabaseLoadCallbacks.forEach(cb => cb.reject(err));
+                            supabaseLoadCallbacks = [];
+                            supabaseLoading = false;
                         }
-                        supabaseLoadCallbacks = [];
-                        supabaseLoading = false;
                     }, 100);
                 };
                 script.onerror = (err) => {
