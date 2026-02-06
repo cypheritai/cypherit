@@ -2776,13 +2776,35 @@
             
             if (videoId && videoId.length === 11) {
                 const ytUrl = `https://youtube.com/watch?v=${videoId}`;
-                console.log('Auto-loading shared video:', ytUrl);
+                console.log('Loading shared video:', ytUrl);
                 document.getElementById('urlInput').value = ytUrl;
-                // Auto-extract after demos load
+                
+                // Try to load from cache first (instant!)
+                try {
+                    const cacheResponse = await fetch(`${API_URL}/extraction/${videoId}`);
+                    const cacheData = await cacheResponse.json();
+                    
+                    if (cacheData.success && cacheData.cached) {
+                        console.log('Loaded from cache - instant!');
+                        displayResult(cacheData);
+                        showToast('⚡ Loaded instantly from cache');
+                        
+                        // Track in user history
+                        if (cacheData.video_id && cacheData.title) {
+                            addToHistory(cacheData.video_id, cacheData.title);
+                            checkIfFavorited();
+                        }
+                        return;
+                    }
+                } catch (err) {
+                    console.log('Cache miss, will extract fresh');
+                }
+                
+                // Cache miss - extract fresh
                 setTimeout(() => {
-                    console.log('Starting auto-extract...');
+                    console.log('Starting fresh extraction...');
                     extract();
-                }, 1000);
+                }, 500);
             }
         });
         

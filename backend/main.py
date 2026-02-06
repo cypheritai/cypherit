@@ -517,14 +517,24 @@ async def extract(request: Request, body: ExtractRequest):
     
     result = extract_fix_steps(transcript, body.url, body.max_steps)
     
-    # Track extraction for auto-promote
+    # Track extraction for auto-promote + cache for sharing
     save_extraction(
         video_id=video_id,
         title=result.get("title", "Untitled"),
-        category=result.get("category", "general")
+        category=result.get("category", "general"),
+        full_result=result  # Cache full result for share links
     )
     
     return ExtractResponse(**result)
+
+
+@app.get("/extraction/{video_id}")
+async def get_extraction_by_id(video_id: str):
+    """Get cached extraction by video ID (for share links)."""
+    cached = get_cached_extraction(video_id)
+    if cached:
+        return {"success": True, "cached": True, **cached}
+    return {"success": False, "cached": False, "message": "Extraction not found"}
 
 
 @app.post("/demo")
@@ -562,8 +572,8 @@ def save_extractions_data(data):
     with open(extractions_path, 'w') as f:
         json.dump(data, f, indent=2)
 
-def save_extraction(video_id: str, title: str, category: str = "general"):
-    """Save extraction metadata for potential auto-promotion."""
+def save_extraction(video_id: str, title: str, category: str = "general", full_result: dict = None):
+    """Save extraction with full result for caching/sharing."""
     data = load_extractions_data()
     
     if video_id not in data["extractions"]:
@@ -579,12 +589,23 @@ def save_extraction(video_id: str, title: str, category: str = "general"):
     data["extractions"][video_id]["extraction_count"] += 1
     data["extractions"][video_id]["last_extracted"] = int(time.time())
     
+    # Store full extraction result for sharing/caching
+    if full_result:
+        data["extractions"][video_id]["cached_result"] = full_result
+    
     save_extractions_data(data)
 
 def get_extraction(video_id: str) -> dict:
     """Get extraction metadata for a video."""
     data = load_extractions_data()
     return data.get("extractions", {}).get(video_id)
+
+def get_cached_extraction(video_id: str) -> dict:
+    """Get cached extraction result for sharing."""
+    extraction = get_extraction(video_id)
+    if extraction and "cached_result" in extraction:
+        return extraction["cached_result"]
+    return None
 
 
 # ============ AUTO-PROMOTE LOGIC ============
