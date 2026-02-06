@@ -1890,8 +1890,8 @@
         function goToNextStep(stepIndex) {
             const step = document.querySelector(`.step[data-step-index="${stepIndex}"]`);
             if (step) {
-                // Smooth scroll to the step
-                step.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Smooth scroll to CENTER the step on screen
+                step.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 
                 // Activate the step after scroll completes
                 setTimeout(() => {
@@ -2050,8 +2050,13 @@
             
             document.getElementById('result').classList.add('visible');
             
-            // Smooth scroll to result
-            document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Smooth scroll to TOP of results (the header, not a step)
+            setTimeout(() => {
+                const resultHeader = document.querySelector('.result-header');
+                if (resultHeader) {
+                    resultHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
             
             // Load videos sequentially (Step 1 first, then 2, etc.)
             loadVideosSequentially();
