@@ -6,6 +6,10 @@
     <title>CypherIt - Get the Steps in 60sec or Less</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    
+    <!-- Plausible Analytics -->
+    <script defer data-domain="cypherit.ai" src="https://plausible.io/js/script.js"></script>
+    <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
     <style>
         * {
             margin: 0;
@@ -1815,6 +1819,9 @@
                 return;
             }
             
+            // Track extraction start
+            plausible('Extraction Started');
+            
             // Show loading state on button
             const btn = document.getElementById('extractBtn');
             btn.disabled = true;
@@ -1843,6 +1850,10 @@
                 const data = await response.json();
                 completeProgress(); // Fill progress to 100%
                 await new Promise(r => setTimeout(r, 300)); // Brief pause to show completion
+                
+                // Track successful extraction
+                plausible('Extraction Complete', {props: {steps: data.steps?.length || 0}});
+                
                 displayResult(data);
             } catch (err) {
                 // Don't show error if user cancelled
@@ -2718,6 +2729,9 @@
         async function submitVote(isHelpful) {
             if (hasVoted || !currentVideoId) return;
             
+            // Track vote
+            plausible('Vote', {props: {helpful: isHelpful ? 'yes' : 'no'}});
+            
             try {
                 const response = await fetch(`${API_URL}/votes`, {
                     method: 'POST',
@@ -2797,28 +2811,33 @@
         }
         
         function shareToX() {
+            plausible('Share', {props: {platform: 'twitter'}});
             const text = encodeURIComponent(getShareText());
             const url = encodeURIComponent(getShareUrl());
             window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
         }
         
         function shareToWhatsApp() {
+            plausible('Share', {props: {platform: 'whatsapp'}});
             const text = encodeURIComponent(getShareText() + getShareUrl());
             window.open(`https://wa.me/?text=${text}`, '_blank');
         }
         
         function shareToReddit() {
+            plausible('Share', {props: {platform: 'reddit'}});
             const title = encodeURIComponent(`${currentTitle} - Steps in 60sec via CypherIt`);
             const url = encodeURIComponent(getShareUrl());
             window.open(`https://reddit.com/submit?url=${url}&title=${title}`, '_blank');
         }
         
         function shareToFacebook() {
+            plausible('Share', {props: {platform: 'facebook'}});
             const url = encodeURIComponent(getShareUrl());
             window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
         }
         
         function copyShareLink() {
+            plausible('Share', {props: {platform: 'copy_link'}});
             const url = getShareUrl();
             navigator.clipboard.writeText(url).then(() => {
                 showToast('Link copied!');
@@ -2835,6 +2854,7 @@
         }
         
         function nativeShare() {
+            plausible('Share', {props: {platform: 'native'}});
             if (navigator.share) {
                 navigator.share({
                     title: currentTitle,
