@@ -11,17 +11,25 @@ def get_extraction_prompt(category: str, transcript: str, max_steps: int = 10) -
 Your job: Turn a long video into clear, actionable steps someone can follow.
 
 FOR EACH STEP:
-• "action" = What to do (clear, actionable)
+• "action" = What to do (clear, actionable)  
 • "detail" = Why it matters or helpful context
+• "timestamp" = When this specific point is discussed in the video
+• "end_timestamp" = When to stop (MUST be AFTER timestamp)
+
+CRITICAL TIMESTAMP RULES:
+• The clip MUST show the speaker discussing THIS SPECIFIC step
+• Find where the topic is ACTUALLY EXPLAINED, not random footage
+• timestamp = start time, end_timestamp = end time
+• end_timestamp MUST be greater than timestamp (e.g., "2:15" → "2:45", not backwards)
+• Match the clip to the content — don't just pick arbitrary times
 
 GUIDELINES:
-• Find the moments that SHOW the action, not just explain it
-• Each step should be self-contained and valuable
+• Each step's clip should show that exact topic being discussed
 • Skip intros, outros, sponsors, and filler
-• End with a verification step (how to confirm it worked)
+• End with a verification step or key takeaway
 • Be concise — only include what's truly needed
 
-The transcript has timestamps in [MM:SS] format. Find the best clip for each step.
+The transcript has timestamps in [MM:SS] format. Find the EXACT moment each topic is discussed.
 
 Transcript:
 {transcript[:12000]}

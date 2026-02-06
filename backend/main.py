@@ -343,6 +343,24 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
     if "steps" not in result:
         result["steps"] = []
     
+    # Validate and fix timestamps for each step
+    for step in result.get("steps", []):
+        if step.get("timestamp") and step.get("end_timestamp"):
+            start = _ts_to_seconds(step["timestamp"])
+            end = _ts_to_seconds(step["end_timestamp"])
+            
+            # Fix backwards timestamps (end before start)
+            if end <= start:
+                # Swap them if backwards, or add 15 seconds if same
+                if end < start:
+                    step["timestamp"], step["end_timestamp"] = step["end_timestamp"], step["timestamp"]
+                else:
+                    step["end_timestamp"] = _seconds_to_ts(start + 15)
+        elif step.get("timestamp") and not step.get("end_timestamp"):
+            # Add default end_timestamp if missing
+            start = _ts_to_seconds(step["timestamp"])
+            step["end_timestamp"] = _seconds_to_ts(start + 15)
+    
     # Calculate read time based on actual clip durations
     total_seconds = 0
     for step in result.get("steps", []):
@@ -351,7 +369,7 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
             end = _ts_to_seconds(step["end_timestamp"])
             total_seconds += max(0, end - start)
         else:
-            total_seconds += 20  # Default estimate
+            total_seconds += 15  # Default estimate
     result["time_to_read"] = f"{int(total_seconds)} seconds"
     
     # Keep verify for frontend
@@ -376,6 +394,13 @@ def _ts_to_seconds(ts: str) -> float:
     except:
         pass
     return 0
+
+
+def _seconds_to_ts(seconds: float) -> str:
+    """Convert seconds to M:SS timestamp."""
+    mins = int(seconds // 60)
+    secs = int(seconds % 60)
+    return f"{mins}:{secs:02d}"
 
 
 def add_captions_to_steps(result: dict, transcript: str) -> dict:
