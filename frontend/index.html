@@ -1912,15 +1912,16 @@
         function displayResult(data) {
             // Category badge with friendly names
             const categoryNames = {
-                'auto_maintenance': '🚗 Auto Maintenance',
-                'tech_troubleshooting': '🖥️ Tech Troubleshooting', 
-                'software_setup': '💿 Software Setup',
+                'auto_maintenance': '🚗 Auto',
+                'tech_troubleshooting': '🖥️ Tech', 
+                'software_setup': '💿 Software',
                 'home_repair': '🔧 Home Repair',
                 'cooking': '🍳 Cooking',
+                'how_to': '📋 How-To',
                 'general': '📋 How-To'
             };
             const categoryBadge = document.getElementById('categoryBadge');
-            const categoryName = categoryNames[data.category] || categoryNames['general'];
+            const categoryName = categoryNames[data.category] || '📋 How-To';
             categoryBadge.textContent = categoryName;
             
             document.getElementById('resultTitle').textContent = data.title;
@@ -1957,7 +1958,7 @@
                 const startSec = timestampToSeconds(startTs);
                 // Use API-provided end_time if available (tighter clips), fallback to next step
                 const endSec = step.end_time || stepTimestamps[index + 1] || (startSec + 15);
-                const duration = Math.max(3, Math.min(20, endSec - startSec)); // 3-20 seconds
+                const duration = endSec - startSec;
                 const endTs = formatSecondsToTimestamp(endSec);
                 const isLastStep = index === totalSteps - 1;
                 

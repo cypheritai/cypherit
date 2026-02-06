@@ -1,37 +1,27 @@
 """
-CypherIt - Golden Nugget Extraction
-Total extraction ≤ 60 seconds. Final step = verification.
+CypherIt - Simple, Clean Extraction
+Core value: Deliver execution with simplicity and action.
 """
 
-def get_extraction_prompt(category: str, transcript: str, max_steps: int = 20) -> str:
-    """Extract golden nuggets - total time ≤ 60 seconds."""
+def get_extraction_prompt(category: str, transcript: str, max_steps: int = 10) -> str:
+    """Simple extraction - let it execute naturally."""
     
-    return f"""You are CypherIt. Extract the essential moments from this video in 60 SECONDS OR LESS total.
+    return f"""You are CypherIt. Extract the essential steps from this video.
 
-TIMING RULES:
-• TOTAL clip time must be ≤ 60 seconds combined (this is critical!)
-• Minimum 3 seconds per clip
-• Maximum 20 seconds per clip
-• Include as many steps as needed to cover the content (no limit on number)
-• FINAL step MUST be VERIFICATION (how to confirm it worked)
+Your job: Turn a long video into clear, actionable steps someone can follow.
 
-QUALITY RULES:
-1. Find the KEY MOMENTS that deliver the value (demonstrations, not explanations)
-2. Each step needs a clear ACTION and a WHY IT MATTERS detail
-3. The "detail" explains the reason/importance of this step
+FOR EACH STEP:
+• "action" = What to do (clear, actionable)
+• "detail" = Why it matters or helpful context
 
-WHAT TO EXTRACT:
-• The moment the technique is SHOWN (not explained)
-• The "trick" or insight that makes it work
-• Any "don't do this" warnings shown
-• The verification/proof it worked (ALWAYS include this last)
+GUIDELINES:
+• Find the moments that SHOW the action, not just explain it
+• Each step should be self-contained and valuable
+• Skip intros, outros, sponsors, and filler
+• End with a verification step (how to confirm it worked)
+• Be concise — only include what's truly needed
 
-SKIP:
-• Intros, outros, sponsors
-• Long explanations (find the demo instead)
-• Repetition or filler
-
-The transcript has timestamps in [MM:SS] format.
+The transcript has timestamps in [MM:SS] format. Find the best clip for each step.
 
 Transcript:
 {transcript[:12000]}
@@ -39,50 +29,40 @@ Transcript:
 Respond with ONLY valid JSON:
 {{
     "title": "Clear title of what this teaches",
-    "problem": "One sentence: what you'll be able to do after watching",
+    "problem": "What you'll be able to do after watching",
     "category": "{category}",
     "quick_info": {{
         "tools_needed": ["What you need"],
-        "time_estimate": "How long the actual task takes",
-        "warnings": ["Key safety/important warnings"],
-        "tips": ["Helpful tips mentioned"]
+        "time_estimate": "How long the task takes",
+        "warnings": ["Important warnings if any"],
+        "tips": ["Helpful tips if any"]
     }},
     "steps": [
         {{
             "number": 1,
-            "action": "What happens in this moment",
-            "detail": "Why this moment matters (optional)",
+            "action": "Clear action to take",
+            "detail": "Why this matters",
             "timestamp": "2:15",
-            "end_timestamp": "2:28"
-        }},
-        {{
-            "number": 2,
-            "action": "Verify: How to confirm it worked",
-            "detail": "What to check",
-            "timestamp": "5:30",
-            "end_timestamp": "5:42"
+            "end_timestamp": "2:30"
         }}
     ],
-    "summary": "2-3 sentence summary: what was covered and the key takeaway"
-}}
-
-CRITICAL: Total of all clips (end_timestamp - timestamp) must be ≤ 60 seconds!
-CRITICAL: Last step must be verification/confirmation!"""
+    "summary": "Brief summary of what was covered and the key takeaway"
+}}"""
 
 
 def detect_category(title: str, transcript: str) -> str:
-    """Simple category detection."""
+    """Simple category detection for display."""
     text = (title + " " + transcript[:2000]).lower()
     
-    if any(kw in text for kw in ["oil change", "brake", "tire", "car", "engine", "vehicle", "automotive"]):
+    if any(kw in text for kw in ["oil", "brake", "tire", "car", "engine", "vehicle"]):
         return "auto_maintenance"
-    elif any(kw in text for kw in ["wifi", "computer", "error", "troubleshoot", "fix", "not working"]):
+    elif any(kw in text for kw in ["wifi", "computer", "error", "fix", "not working"]):
         return "tech_troubleshooting"
-    elif any(kw in text for kw in ["install", "setup", "download", "software", "app"]):
+    elif any(kw in text for kw in ["install", "setup", "download", "software"]):
         return "software_setup"
-    elif any(kw in text for kw in ["plumbing", "electrical", "repair", "leak", "wall", "pipe"]):
+    elif any(kw in text for kw in ["plumbing", "electrical", "repair", "leak"]):
         return "home_repair"
     elif any(kw in text for kw in ["recipe", "cook", "bake", "food"]):
         return "cooking"
     
-    return "general"
+    return "how_to"
