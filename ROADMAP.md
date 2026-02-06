@@ -12,15 +12,21 @@ This roadmap is a living document. We ship fast and iterate based on what users 
 - [x] **Video Embeds** — Tap-to-play with segment looping
 - [x] **Live Captions** — Synced to video playback
 - [x] **Quick Info** — Tools needed, time estimate, warnings, pro tips
-- [x] **Share Links** — Deep link directly to any step
+- [x] **Share Links** — Deep link directly to any step (with dynamic OG tags!)
 - [x] **Mobile-First UX** — Scroll-snap, responsive, fast
+- [x] **Analytics** — Plausible integration (privacy-first)
+- [x] **User Accounts** — Magic link auth (no passwords)
+- [x] **Favorites & History** — Save fixes, track what you've extracted
+- [x] **Popular Fixes Gallery** — Curated categories (Home, Tech, Phone, Auto)
+- [x] **Community Voting** — Helpful/Not Helpful with counts
+- [x] **Auto-Promote** — 3+ net helpful votes → auto-added to gallery
+- [x] **Guest Limits** — 3 extractions/day (server-side IP tracking)
+- [x] **Cached Extractions** — Shared links load instantly from cache
 
 ---
 
 ## 🔨 Building Now
 
-- [ ] **Popular Fixes Gallery** — Curated categories (Home, Tech, Phone, Auto)
-- [ ] **Community Upvotes** — Surface the most helpful fixes
 - [ ] **Multi-LLM Support** — Gemini, Groq, Ollama options
 
 ---
