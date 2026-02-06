@@ -11,8 +11,8 @@
     <script defer data-domain="cypherit.ai" src="https://plausible.io/js/script.js"></script>
     <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
     
-    <!-- Supabase Auth -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase Auth (defer = loads after HTML, before DOMContentLoaded) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -2161,22 +2161,29 @@
         
         let supabase = null;
         
-        // Initialize Supabase client immediately (SDK loaded synchronously)
-        if (window.supabase && window.supabase.createClient) {
-            try {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('Supabase initialized successfully');
-            } catch (err) {
-                console.error('Supabase init error:', err);
+        // Initialize Supabase when ready (SDK loaded with defer)
+        function tryInitSupabase() {
+            if (window.supabase && window.supabase.createClient && !supabase) {
+                try {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('Supabase initialized');
+                    return true;
+                } catch (err) {
+                    console.warn('Supabase init error:', err);
+                }
             }
-        } else {
-            console.error('Supabase SDK not available - auth will not work');
+            return false;
         }
         
         let currentUser = null;
         
         // Check auth state on load
         async function initAuth() {
+            // Try to init Supabase if not ready
+            if (!supabase) {
+                tryInitSupabase();
+            }
+            
             if (!supabase) {
                 console.warn('Supabase not available, skipping auth init');
                 return;
@@ -2236,8 +2243,13 @@
         }
         
         async function sendMagicLink() {
+            // Try to init Supabase if not ready
             if (!supabase) {
-                alert('Auth not available. Please refresh the page.');
+                tryInitSupabase();
+            }
+            
+            if (!supabase) {
+                alert('Auth is loading. Please wait a moment and try again.');
                 return;
             }
             
