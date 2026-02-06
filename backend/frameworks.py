@@ -17,22 +17,29 @@ FOR EACH STEP:
 • "end_timestamp" = When to stop (MUST be AFTER timestamp)
 
 CRITICAL TIMESTAMP RULES:
-• The clip MUST show the speaker discussing THIS SPECIFIC step
-• Find where the topic is ACTUALLY EXPLAINED, not random footage
-• timestamp = start time, end_timestamp = end time
-• end_timestamp MUST be greater than timestamp (e.g., "2:15" → "2:45", not backwards)
-• Match the clip to the content — don't just pick arbitrary times
+• Look at the transcript timestamps [MM:SS] — find where THIS EXACT topic is discussed
+• The timestamp you return MUST be from the transcript where the speaker says this
+• If the step is about "synthesis abilities", find where they SAY "synthesis" in the transcript
+• Don't guess timestamps — only use timestamps that appear in the transcript
+• end_timestamp should be 10-30 seconds after timestamp
+
+HOW TO FIND THE RIGHT TIMESTAMP:
+1. Read your extracted step (e.g., "Develop synthesis abilities...")
+2. Search the transcript for where this is actually discussed
+3. Use THAT timestamp from the transcript
+4. The clip will loop this section, so it MUST match the content
 
 GUIDELINES:
-• Each step's clip should show that exact topic being discussed
 • Skip intros, outros, sponsors, and filler
-• End with a verification step or key takeaway
+• End with a key takeaway or action item
 • Be concise — only include what's truly needed
 
-The transcript has timestamps in [MM:SS] format. Find the EXACT moment each topic is discussed.
+The transcript has timestamps in [MM:SS] format. USE THESE TIMESTAMPS — they mark where each part of the video occurs.
 
 Transcript:
 {transcript[:12000]}
+
+IMPORTANT: For each step, include "transcript_quote" — a short phrase from the transcript that proves you found the right timestamp.
 
 Respond with ONLY valid JSON:
 {{
@@ -51,7 +58,8 @@ Respond with ONLY valid JSON:
             "action": "Clear action to take",
             "detail": "Why this matters",
             "timestamp": "2:15",
-            "end_timestamp": "2:30"
+            "end_timestamp": "2:45",
+            "transcript_quote": "the exact words from transcript at this timestamp"
         }}
     ],
     "summary": "Brief summary of what was covered and the key takeaway"
