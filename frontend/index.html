@@ -442,6 +442,7 @@
             border: 1px solid rgba(255,255,255,0.08);
             cursor: pointer;
             transition: all 0.2s;
+            position: relative;
         }
         
         .fix-card:hover {
@@ -455,6 +456,19 @@
             aspect-ratio: 16/9;
             object-fit: cover;
             background: #111;
+        }
+        
+        .community-pick-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: linear-gradient(135deg, rgba(255,200,50,0.9), rgba(255,150,0,0.9));
+            color: #1a1a2e;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         
         .fix-card-content {
@@ -2668,6 +2682,7 @@
             container.innerHTML = fixes.map(fix => `
                 <div class="fix-card" onclick="loadFix('${fix.video_id}')">
                     <img class="fix-card-thumbnail" src="${fix.thumbnail}" alt="${fix.title}" loading="lazy">
+                    ${fix.auto_promoted ? '<div class="community-pick-badge">🌟 Community Pick</div>' : ''}
                     <div class="fix-card-content">
                         <div class="fix-card-title">${fix.title}</div>
                         <div class="fix-card-meta">
@@ -3724,6 +3739,13 @@
                         btn.classList.add('voted');
                     });
                     document.getElementById('votingThanks').style.display = 'block';
+                    
+                    // Check if this vote triggered auto-promotion
+                    if (data.promoted) {
+                        showToast('🎉 This fix was promoted to the Gallery!');
+                        // Refresh gallery data
+                        loadGallery();
+                    }
                     
                     // Store in localStorage to prevent repeat votes
                     const votedVideos = JSON.parse(localStorage.getItem('cypherit_votes') || '{}');
