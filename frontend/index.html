@@ -2151,9 +2151,6 @@
         </footer>
     </div>
     
-    <!-- Supabase SDK (loaded here at end of body, before our code) -->
-    <script src="supabase.min.js"></script>
-    
     <script>
         const API_URL = '';
         
@@ -2163,42 +2160,59 @@
         
         let supabase = null;
         
-        // Initialize Supabase immediately (SDK loaded synchronously before this)
-        try {
-            if (window.supabase && window.supabase.createClient) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('Supabase initialized successfully');
-            } else {
-                console.error('Supabase SDK not found on window object');
-            }
-        } catch (err) {
-            console.error('Supabase init error:', err);
-        }
+        // Lazy-load Supabase SDK only when needed
+        let supabaseLoading = false;
+        let supabaseLoadCallbacks = [];
         
-        function tryInitSupabase() {
-            if (window.supabase && window.supabase.createClient && !supabase) {
-                try {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    console.log('Supabase initialized');
-                    return true;
-                } catch (err) {
-                    console.warn('Supabase init error:', err);
+        function loadSupabaseSDK() {
+            return new Promise((resolve, reject) => {
+                // Already loaded
+                if (window.supabase && window.supabase.createClient) {
+                    if (!supabase) {
+                        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    }
+                    resolve(supabase);
+                    return;
                 }
-            }
-            return !!supabase;
+                
+                // Already loading, queue callback
+                if (supabaseLoading) {
+                    supabaseLoadCallbacks.push({ resolve, reject });
+                    return;
+                }
+                
+                supabaseLoading = true;
+                
+                const script = document.createElement('script');
+                script.src = 'supabase.min.js';
+                script.onload = () => {
+                    try {
+                        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                        console.log('Supabase loaded and initialized');
+                        resolve(supabase);
+                        supabaseLoadCallbacks.forEach(cb => cb.resolve(supabase));
+                    } catch (err) {
+                        reject(err);
+                        supabaseLoadCallbacks.forEach(cb => cb.reject(err));
+                    }
+                    supabaseLoadCallbacks = [];
+                };
+                script.onerror = (err) => {
+                    reject(new Error('Failed to load Supabase SDK'));
+                    supabaseLoadCallbacks.forEach(cb => cb.reject(err));
+                    supabaseLoadCallbacks = [];
+                };
+                document.body.appendChild(script);
+            });
         }
         
         let currentUser = null;
         
-        // Check auth state on load
+        // Check auth state on load (only if Supabase already loaded)
         async function initAuth() {
-            // Try to init Supabase if not ready
             if (!supabase) {
-                tryInitSupabase();
-            }
-            
-            if (!supabase) {
-                console.warn('Supabase not available, skipping auth init');
+                // Don't block page load - auth will init when user interacts
+                console.log('Supabase not loaded yet, skipping auto-auth check');
                 return;
             }
             
@@ -2248,6 +2262,8 @@
             document.getElementById('authModal').classList.add('visible');
             document.getElementById('authEmail').focus();
             plausible('Auth', {props: {event: 'modal_open'}});
+            // Pre-load Supabase in background while user types email
+            loadSupabaseSDK().catch(() => {});
         }
         
         function hideAuthModal() {
@@ -2256,16 +2272,6 @@
         }
         
         async function sendMagicLink() {
-            // Try to init Supabase if not ready
-            if (!supabase) {
-                tryInitSupabase();
-            }
-            
-            if (!supabase) {
-                alert('Auth is loading. Please wait a moment and try again.');
-                return;
-            }
-            
             const email = document.getElementById('authEmail').value.trim();
             const btn = document.getElementById('authBtn');
             const message = document.getElementById('authMessage');
@@ -2278,9 +2284,14 @@
             }
             
             btn.disabled = true;
-            btn.textContent = 'Sending...';
+            btn.textContent = 'Loading...';
             
             try {
+                // Load Supabase SDK if not loaded
+                await loadSupabaseSDK();
+                
+                btn.textContent = 'Sending...';
+                
                 const { error } = await supabase.auth.signInWithOtp({
                     email: email,
                     options: {
@@ -2323,7 +2334,10 @@
         let userHistory = [];
         
         async function loadUserData() {
-            if (!currentUser || !supabase) return;
+            if (!currentUser) return;
+            if (!supabase) {
+                try { await loadSupabaseSDK(); } catch (e) { return; }
+            }
             
             try {
                 // Load favorites
@@ -2356,9 +2370,12 @@
         }
         
         async function toggleFavorite() {
-            if (!currentUser || !supabase) {
+            if (!currentUser) {
                 showAuthModal();
                 return;
+            }
+            if (!supabase) {
+                try { await loadSupabaseSDK(); } catch (e) { return; }
             }
             
             if (!currentVideoId || !currentTitle) return;
