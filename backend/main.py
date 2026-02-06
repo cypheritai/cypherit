@@ -649,6 +649,7 @@ def save_votes_data(data):
 class VoteRequest(BaseModel):
     video_id: str
     helpful: bool  # True = helpful, False = not helpful
+    user_id: Optional[str] = None  # Supabase user ID (if logged in)
 
 
 @app.get("/votes/{video_id}")
@@ -668,13 +669,64 @@ async def get_votes(video_id: str):
 
 
 @app.post("/votes")
-async def submit_vote(vote: VoteRequest):
-    """Submit a helpful/not helpful vote for a video."""
+async def submit_vote(request: Request, vote: VoteRequest):
+    """Submit a helpful/not helpful vote for a video.
+    
+    If user_id is provided, ensures one vote per user per video.
+    Anonymous users can vote but are tracked by IP to reduce spam.
+    """
     data = load_votes_data()
+    
+    # Initialize votes structure
+    if "votes" not in data:
+        data["votes"] = {}
+    if "user_votes" not in data:
+        data["user_votes"] = {}  # Track which users voted on which videos
     
     if vote.video_id not in data["votes"]:
         data["votes"][vote.video_id] = {"helpful": 0, "not_helpful": 0}
     
+    # Check for duplicate votes
+    if vote.user_id:
+        # Logged-in user: check by user_id
+        vote_key = f"{vote.user_id}:{vote.video_id}"
+        if vote_key in data.get("user_votes", {}):
+            # Already voted - return current counts without adding
+            votes = data["votes"][vote.video_id]
+            total = votes["helpful"] + votes["not_helpful"]
+            helpful_pct = round((votes["helpful"] / total * 100)) if total > 0 else 0
+            return {
+                "success": False,
+                "message": "Already voted",
+                "video_id": vote.video_id,
+                "helpful": votes["helpful"],
+                "not_helpful": votes["not_helpful"],
+                "total": total,
+                "helpful_percent": helpful_pct
+            }
+        
+        # Record the vote
+        data["user_votes"][vote_key] = {"helpful": vote.helpful, "timestamp": int(time.time())}
+    else:
+        # Anonymous: track by IP (basic spam prevention)
+        client_ip = get_remote_address(request)
+        vote_key = f"anon:{client_ip}:{vote.video_id}"
+        if vote_key in data.get("user_votes", {}):
+            votes = data["votes"][vote.video_id]
+            total = votes["helpful"] + votes["not_helpful"]
+            helpful_pct = round((votes["helpful"] / total * 100)) if total > 0 else 0
+            return {
+                "success": False,
+                "message": "Already voted",
+                "video_id": vote.video_id,
+                "helpful": votes["helpful"],
+                "not_helpful": votes["not_helpful"],
+                "total": total,
+                "helpful_percent": helpful_pct
+            }
+        data["user_votes"][vote_key] = {"helpful": vote.helpful, "timestamp": int(time.time())}
+    
+    # Count the vote
     if vote.helpful:
         data["votes"][vote.video_id]["helpful"] += 1
     else:

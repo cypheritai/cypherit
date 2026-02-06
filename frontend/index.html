@@ -10,6 +10,9 @@
     <!-- Plausible Analytics -->
     <script defer data-domain="cypherit.ai" src="https://plausible.io/js/script.js"></script>
     <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+    
+    <!-- Supabase Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -1290,6 +1293,227 @@
             display: block;
         }
         
+        /* Auth Modal */
+        .auth-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        
+        .auth-modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .auth-modal {
+            background: linear-gradient(135deg, #1e2433, #16213e);
+            border: 1px solid rgba(0,217,255,0.3);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            transform: translateY(20px);
+            transition: transform 0.3s;
+        }
+        
+        .auth-modal-overlay.visible .auth-modal {
+            transform: translateY(0);
+        }
+        
+        .auth-modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 8px;
+        }
+        
+        .auth-modal-close:hover {
+            color: #fff;
+        }
+        
+        .auth-modal h2 {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .auth-modal p {
+            color: #888;
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+        }
+        
+        .auth-input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 1rem;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            outline: none;
+            transition: border-color 0.3s;
+            margin-bottom: 16px;
+        }
+        
+        .auth-input:focus {
+            border-color: #00d9ff;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 16px 24px;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            color: #000;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0,217,255,0.3);
+        }
+        
+        .auth-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .auth-message {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .auth-message.success {
+            background: rgba(0,255,136,0.1);
+            border: 1px solid rgba(0,255,136,0.3);
+            color: #00ff88;
+        }
+        
+        .auth-message.error {
+            background: rgba(255,100,100,0.1);
+            border: 1px solid rgba(255,100,100,0.3);
+            color: #ff6464;
+        }
+        
+        .auth-benefits {
+            text-align: left;
+            margin: 20px 0;
+            padding: 16px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+        }
+        
+        .auth-benefits li {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .auth-benefits li::before {
+            content: "✓";
+            color: #00ff88;
+            font-weight: bold;
+        }
+        
+        /* Header Auth */
+        .header-auth {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .login-btn {
+            background: rgba(0,217,255,0.1);
+            border: 1px solid rgba(0,217,255,0.4);
+            color: #00d9ff;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .login-btn:hover {
+            background: rgba(0,217,255,0.2);
+            border-color: #00d9ff;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 16px;
+            background: rgba(0,255,136,0.1);
+            border: 1px solid rgba(0,255,136,0.3);
+            border-radius: 25px;
+        }
+        
+        .user-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .user-email {
+            color: #aaa;
+            font-size: 0.85rem;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 0.85rem;
+            cursor: pointer;
+            padding: 4px 8px;
+        }
+        
+        .logout-btn:hover {
+            color: #ff6464;
+        }
+        
         /* Mobile responsiveness */
         @media (max-width: 600px) {
             .logo-img {
@@ -1473,7 +1697,38 @@
                 <span class="beta-badge" title="Pro coming soon">✨ Free Beta</span>
             </div>
             <button class="share-app-btn" onclick="shareApp()">📤 Share CypherIt</button>
+            
+            <div class="header-auth">
+                <button class="login-btn" id="loginBtn" onclick="showAuthModal()">🔐 Sign In</button>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <div class="user-avatar" id="userAvatar">?</div>
+                    <span class="user-email" id="userEmail">user@email.com</span>
+                    <button class="logout-btn" onclick="signOut()">Sign out</button>
+                </div>
+            </div>
         </header>
+        
+        <!-- Auth Modal -->
+        <div class="auth-modal-overlay" id="authModal">
+            <div class="auth-modal">
+                <h2>✨ Sign in to CypherIt</h2>
+                <p>Get the full experience — no password needed</p>
+                
+                <ul class="auth-benefits">
+                    <li>Save your favorite fixes</li>
+                    <li>Track your extraction history</li>
+                    <li>Vote on helpful tutorials</li>
+                    <li>Early access to new features</li>
+                </ul>
+                
+                <input type="email" class="auth-input" id="authEmail" placeholder="Enter your email" onkeypress="if(event.key==='Enter')sendMagicLink()">
+                <button class="auth-btn" id="authBtn" onclick="sendMagicLink()">Send Magic Link ✨</button>
+                
+                <div class="auth-message" id="authMessage" style="display: none;"></div>
+                
+                <button class="auth-modal-close" onclick="hideAuthModal()">✕</button>
+            </div>
+        </div>
         
         <div class="search-box">
             <div class="input-group">
@@ -1646,6 +1901,111 @@
     <script>
         const API_URL = '';
         
+        // ============ SUPABASE AUTH ============
+        const SUPABASE_URL = 'https://fbankzoubprfpgsxqajg.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_DQPFrjALhM7_T-6wLMtiuQ_zXux-CEx';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentUser = null;
+        
+        // Check auth state on load
+        async function initAuth() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                setUser(session.user);
+            }
+            
+            // Listen for auth changes
+            supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' && session) {
+                    setUser(session.user);
+                    hideAuthModal();
+                    plausible('Auth', {props: {event: 'sign_in'}});
+                } else if (event === 'SIGNED_OUT') {
+                    setUser(null);
+                    plausible('Auth', {props: {event: 'sign_out'}});
+                }
+            });
+        }
+        
+        function setUser(user) {
+            currentUser = user;
+            const loginBtn = document.getElementById('loginBtn');
+            const userMenu = document.getElementById('userMenu');
+            
+            if (user) {
+                loginBtn.style.display = 'none';
+                userMenu.style.display = 'flex';
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userAvatar').textContent = user.email.charAt(0).toUpperCase();
+            } else {
+                loginBtn.style.display = 'block';
+                userMenu.style.display = 'none';
+            }
+        }
+        
+        function showAuthModal() {
+            document.getElementById('authModal').classList.add('visible');
+            document.getElementById('authEmail').focus();
+            plausible('Auth', {props: {event: 'modal_open'}});
+        }
+        
+        function hideAuthModal() {
+            document.getElementById('authModal').classList.remove('visible');
+            document.getElementById('authMessage').style.display = 'none';
+        }
+        
+        async function sendMagicLink() {
+            const email = document.getElementById('authEmail').value.trim();
+            const btn = document.getElementById('authBtn');
+            const message = document.getElementById('authMessage');
+            
+            if (!email || !email.includes('@')) {
+                message.textContent = 'Please enter a valid email';
+                message.className = 'auth-message error';
+                message.style.display = 'block';
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            
+            try {
+                const { error } = await supabase.auth.signInWithOtp({
+                    email: email,
+                    options: {
+                        emailRedirectTo: window.location.origin
+                    }
+                });
+                
+                if (error) throw error;
+                
+                message.textContent = '✨ Magic link sent! Check your email';
+                message.className = 'auth-message success';
+                message.style.display = 'block';
+                plausible('Auth', {props: {event: 'magic_link_sent'}});
+                
+            } catch (err) {
+                message.textContent = err.message || 'Failed to send magic link';
+                message.className = 'auth-message error';
+                message.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Send Magic Link ✨';
+            }
+        }
+        
+        async function signOut() {
+            await supabase.auth.signOut();
+        }
+        
+        // Close modal on outside click
+        document.getElementById('authModal').addEventListener('click', (e) => {
+            if (e.target.classList.contains('auth-modal-overlay')) {
+                hideAuthModal();
+            }
+        });
+        
         // Demo examples - loaded from API
         let DEMO_EXAMPLES = [];
         
@@ -1792,6 +2152,7 @@
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
+            initAuth();
             loadDemos();
             loadGallery();
             
@@ -2730,16 +3091,23 @@
             if (hasVoted || !currentVideoId) return;
             
             // Track vote
-            plausible('Vote', {props: {helpful: isHelpful ? 'yes' : 'no'}});
+            plausible('Vote', {props: {helpful: isHelpful ? 'yes' : 'no', logged_in: !!currentUser}});
             
             try {
+                // Build vote payload with user_id if logged in
+                const votePayload = {
+                    video_id: currentVideoId,
+                    helpful: isHelpful
+                };
+                
+                if (currentUser) {
+                    votePayload.user_id = currentUser.id;
+                }
+                
                 const response = await fetch(`${API_URL}/votes`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        video_id: currentVideoId,
-                        helpful: isHelpful
-                    })
+                    body: JSON.stringify(votePayload)
                 });
                 
                 if (response.ok) {
