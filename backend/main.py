@@ -161,6 +161,7 @@ def get_validated_demos() -> List[dict]:
 class ExtractRequest(BaseModel):
     url: str
     max_steps: int = 5
+    user_id: Optional[str] = None  # Supabase user ID (bypasses IP limit if provided)
     
     @field_validator('url')
     @classmethod
@@ -504,6 +505,17 @@ async def get_demos():
 @limiter.limit("10/minute")
 async def extract(request: Request, body: ExtractRequest):
     """Extract fix steps from a YouTube video URL. Rate limited to 10 requests/minute."""
+    
+    # Check IP-based daily limit (server-side)
+    client_ip = get_remote_address(request)
+    allowed, remaining = check_ip_limit(client_ip, body.user_id)
+    
+    if not allowed:
+        raise HTTPException(
+            status_code=429, 
+            detail=f"Daily limit reached ({GUEST_DAILY_LIMIT} extractions/day). Sign in for unlimited access!"
+        )
+    
     # Validate it looks like a YouTube URL
     try:
         video_id = extract_video_id(body.url)
@@ -524,6 +536,10 @@ async def extract(request: Request, body: ExtractRequest):
         category=result.get("category", "general"),
         full_result=result  # Cache full result for share links
     )
+    
+    # Increment IP count (only for guests)
+    if not body.user_id:
+        increment_ip_count(client_ip)
     
     return ExtractResponse(**result)
 
@@ -606,6 +622,59 @@ def get_cached_extraction(video_id: str) -> dict:
     if extraction and "cached_result" in extraction:
         return extraction["cached_result"]
     return None
+
+
+# ============ IP-BASED RATE LIMITING ============
+
+GUEST_DAILY_LIMIT = 3
+
+def load_ip_limits():
+    """Load IP extraction limits from JSON file."""
+    limits_path = Path(__file__).parent / "ip_limits.json"
+    if limits_path.exists():
+        with open(limits_path, 'r') as f:
+            return json.load(f)
+    return {"date": "", "ips": {}}
+
+def save_ip_limits(data):
+    """Save IP extraction limits to JSON file."""
+    limits_path = Path(__file__).parent / "ip_limits.json"
+    with open(limits_path, 'w') as f:
+        json.dump(data, f, indent=2)
+
+def check_ip_limit(ip: str, user_id: str = None) -> tuple[bool, int]:
+    """Check if IP has exceeded daily limit. Returns (allowed, remaining)."""
+    # Signed-in users bypass IP limit
+    if user_id:
+        return True, 999
+    
+    from datetime import date
+    today = date.today().isoformat()
+    
+    data = load_ip_limits()
+    
+    # Reset if new day
+    if data.get("date") != today:
+        data = {"date": today, "ips": {}}
+    
+    count = data["ips"].get(ip, 0)
+    remaining = max(0, GUEST_DAILY_LIMIT - count)
+    
+    return count < GUEST_DAILY_LIMIT, remaining
+
+def increment_ip_count(ip: str):
+    """Increment extraction count for IP."""
+    from datetime import date
+    today = date.today().isoformat()
+    
+    data = load_ip_limits()
+    
+    # Reset if new day
+    if data.get("date") != today:
+        data = {"date": today, "ips": {}}
+    
+    data["ips"][ip] = data["ips"].get(ip, 0) + 1
+    save_ip_limits(data)
 
 
 # ============ AUTO-PROMOTE LOGIC ============
@@ -908,11 +977,50 @@ async def serve_frontend():
     """Serve the frontend app"""
     return FileResponse(frontend_path / "index.html")
 
-# Serve index.html at root for the frontend
+# Serve index.html at root for the frontend (with dynamic OG tags for shared links)
 @app.get("/", include_in_schema=False)
-async def root_frontend():
-    """Serve frontend at root"""
-    return FileResponse(frontend_path / "index.html")
+async def root_frontend(request: Request, v: Optional[str] = None):
+    """Serve frontend at root with dynamic OG meta tags for shared videos."""
+    from fastapi.responses import HTMLResponse
+    
+    # If no video ID, serve static file
+    if not v or len(v) != 11:
+        return FileResponse(frontend_path / "index.html")
+    
+    # Look up cached extraction for dynamic OG tags
+    extraction = get_extraction(v)
+    cached = extraction.get("cached_result") if extraction else None
+    
+    if cached:
+        title = cached.get("title", "CypherIt Fix")
+        description = cached.get("problem", "Get the steps in 60 seconds or less")
+        thumbnail = f"https://img.youtube.com/vi/{v}/hqdefault.jpg"
+    else:
+        title = "CypherIt - Get the Steps in 60sec or Less"
+        description = "Extract step-by-step instructions from any YouTube tutorial"
+        thumbnail = "https://www.cypherit.ai/logo.png"
+    
+    # Read the HTML file
+    with open(frontend_path / "index.html", 'r') as f:
+        html = f.read()
+    
+    # Inject dynamic OG tags (replace existing static ones)
+    og_tags = f'''
+    <meta property="og:title" content="{title}">
+    <meta property="og:description" content="{description}">
+    <meta property="og:image" content="{thumbnail}">
+    <meta property="og:url" content="https://www.cypherit.ai/?v={v}">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{title}">
+    <meta name="twitter:description" content="{description}">
+    <meta name="twitter:image" content="{thumbnail}">
+    '''
+    
+    # Insert after <head> tag
+    html = html.replace('<head>', f'<head>{og_tags}', 1)
+    
+    return HTMLResponse(content=html)
 
 
 if __name__ == "__main__":

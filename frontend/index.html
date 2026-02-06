@@ -3024,10 +3024,16 @@
             currentAbortController = new AbortController();
             
             try {
+                // Include user_id to bypass server-side IP limit for signed-in users
+                const extractPayload = { url, max_steps: 6 };
+                if (currentUser) {
+                    extractPayload.user_id = currentUser.id;
+                }
+                
                 const response = await fetch(`${API_URL}/extract`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url, max_steps: 6 }),
+                    body: JSON.stringify(extractPayload),
                     signal: currentAbortController.signal
                 });
                 
