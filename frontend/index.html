@@ -2158,7 +2158,7 @@
         const SUPABASE_URL = 'https://fbankzoubprfpgsxqajg.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZiYW5rem91YnByZnBnc3hxYWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODYzMTUsImV4cCI6MjA4NTk2MjMxNX0.9NibIDtQn6xI0xNoo_sA2wG-BUbw5lvsplRx_DHbY4c';
         
-        let supabase = null;
+        let supabaseClient = null;
         
         // Lazy-load Supabase SDK only when needed
         let supabaseLoading = false;
@@ -2169,10 +2169,10 @@
                 // Check both window.supabase and global supabase (UMD compatibility)
                 const sbLib = window.supabase || (typeof supabaseLib !== 'undefined' ? supabaseLib : null);
                 if (sbLib && sbLib.createClient) {
-                    if (!supabase) {
-                        supabase = sbLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    if (!supabaseClient) {
+                        supabaseClient = sbLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                     }
-                    resolve(supabase);
+                    resolve(supabaseClient);
                     return;
                 }
                 
@@ -2198,7 +2198,7 @@
                 script.async = false; // Ensure synchronous execution
                 script.onload = () => {
                     clearTimeout(timeout);
-                    console.log('Script loaded, polling for supabase...');
+                    console.log('Script loaded, polling for supabaseClient...');
                     
                     // Poll for supabase to be available (UMD might need a moment)
                     let attempts = 0;
@@ -2218,10 +2218,10 @@
                         if (sbLib && sbLib.createClient) {
                             clearInterval(checkInterval);
                             try {
-                                supabase = sbLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                                supabaseClient = sbLib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
                                 console.log('Supabase initialized!');
-                                resolve(supabase);
-                                supabaseLoadCallbacks.forEach(cb => cb.resolve(supabase));
+                                resolve(supabaseClient);
+                                supabaseLoadCallbacks.forEach(cb => cb.resolve(supabaseClient));
                             } catch (err) {
                                 console.error('Supabase init error:', err);
                                 reject(err);
@@ -2257,20 +2257,20 @@
         
         // Check auth state on load (only if Supabase already loaded)
         async function initAuth() {
-            if (!supabase) {
+            if (!supabaseClient) {
                 // Don't block page load - auth will init when user interacts
                 console.log('Supabase not loaded yet, skipping auto-auth check');
                 return;
             }
             
             try {
-                const { data: { session } } = await supabase.auth.getSession();
+                const { data: { session } } = await supabaseClient.auth.getSession();
                 if (session) {
                     setUser(session.user);
                 }
                 
                 // Listen for auth changes
-                supabase.auth.onAuthStateChange((event, session) => {
+                supabaseClient.auth.onAuthStateChange((event, session) => {
                     if (event === 'SIGNED_IN' && session) {
                         setUser(session.user);
                         hideAuthModal();
@@ -2339,7 +2339,7 @@
                 
                 btn.textContent = 'Sending...';
                 
-                const { error } = await supabase.auth.signInWithOtp({
+                const { error } = await supabaseClient.auth.signInWithOtp({
                     email: email,
                     options: {
                         emailRedirectTo: window.location.origin
@@ -2365,7 +2365,7 @@
         
         async function signOut() {
             if (supabase) {
-                await supabase.auth.signOut();
+                await supabaseClient.auth.signOut();
             }
         }
         
@@ -2382,7 +2382,7 @@
         
         async function loadUserData() {
             if (!currentUser) return;
-            if (!supabase) {
+            if (!supabaseClient) {
                 try { await loadSupabaseSDK(); } catch (e) { return; }
             }
             
@@ -2421,7 +2421,7 @@
                 showAuthModal();
                 return;
             }
-            if (!supabase) {
+            if (!supabaseClient) {
                 try { await loadSupabaseSDK(); } catch (e) { return; }
             }
             
