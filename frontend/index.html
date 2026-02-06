@@ -2314,17 +2314,8 @@
             try {
                 // Load Supabase SDK if not loaded
                 await loadSupabaseSDK();
-            } catch (sdkErr) {
-                console.error('SDK load failed:', sdkErr);
-                message.textContent = 'Auth service unavailable. Please try again later.';
-                message.className = 'auth-message error';
-                message.style.display = 'block';
-                btn.disabled = false;
-                btn.textContent = 'Send Magic Link ✨';
-                return;
-            }
-            
-            btn.textContent = 'Sending...';
+                
+                btn.textContent = 'Sending...';
                 
                 const { error } = await supabase.auth.signInWithOtp({
                     email: email,
