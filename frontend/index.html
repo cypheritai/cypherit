@@ -11,8 +11,8 @@
     <script defer data-domain="cypherit.ai" src="https://plausible.io/js/script.js"></script>
     <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
     
-    <!-- Supabase Auth (loaded async to not block page) -->
-    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -2161,25 +2161,17 @@
         
         let supabase = null;
         
-        function initSupabase() {
-            if (window.supabase && window.supabase.createClient) {
-                try {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    console.log('Supabase initialized');
-                    // Now that Supabase is ready, try to init auth
-                    initAuth();
-                } catch (err) {
-                    console.warn('Supabase init failed:', err);
-                }
-            } else {
-                console.warn('Supabase SDK not loaded yet, retrying...');
-                // Retry in 100ms
-                setTimeout(initSupabase, 100);
+        // Initialize Supabase client immediately (SDK loaded synchronously)
+        if (window.supabase && window.supabase.createClient) {
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('Supabase initialized successfully');
+            } catch (err) {
+                console.error('Supabase init error:', err);
             }
+        } else {
+            console.error('Supabase SDK not available - auth will not work');
         }
-        
-        // Start trying to init Supabase (will retry until SDK loads)
-        setTimeout(initSupabase, 50);
         
         let currentUser = null;
         
@@ -2625,7 +2617,7 @@
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
-            // Auth init is called by initSupabase() when SDK loads
+            initAuth();
             loadDemos();
             loadGallery();
             
