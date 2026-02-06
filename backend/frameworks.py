@@ -28,6 +28,7 @@ HOW TO FIND THE RIGHT TIMESTAMP:
 2. Search the transcript for where this is actually discussed
 3. Use THAT timestamp from the transcript
 4. The clip will loop this section, so it MUST match the content
+5. Keep clips SHORT — 15-30 seconds ideal, 45 seconds maximum
 
 GUIDELINES:
 • Skip intros, outros, sponsors, and filler

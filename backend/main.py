@@ -344,6 +344,8 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
         result["steps"] = []
     
     # Validate and fix timestamps for each step
+    MAX_CLIP_DURATION = 45  # Cap clips at 45 seconds max
+    
     for step in result.get("steps", []):
         if step.get("timestamp") and step.get("end_timestamp"):
             start = _ts_to_seconds(step["timestamp"])
@@ -351,15 +353,21 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
             
             # Fix backwards timestamps (end before start)
             if end <= start:
-                # Swap them if backwards, or add 15 seconds if same
                 if end < start:
                     step["timestamp"], step["end_timestamp"] = step["end_timestamp"], step["timestamp"]
+                    start, end = end, start
                 else:
-                    step["end_timestamp"] = _seconds_to_ts(start + 15)
+                    end = start + 20
+                    step["end_timestamp"] = _seconds_to_ts(end)
+            
+            # Cap clip duration at MAX_CLIP_DURATION
+            if end - start > MAX_CLIP_DURATION:
+                step["end_timestamp"] = _seconds_to_ts(start + MAX_CLIP_DURATION)
+                
         elif step.get("timestamp") and not step.get("end_timestamp"):
             # Add default end_timestamp if missing
             start = _ts_to_seconds(step["timestamp"])
-            step["end_timestamp"] = _seconds_to_ts(start + 15)
+            step["end_timestamp"] = _seconds_to_ts(start + 20)
     
     # Calculate read time based on actual clip durations
     total_seconds = 0
