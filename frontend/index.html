@@ -11,8 +11,7 @@
     <script defer data-domain="cypherit.ai" src="https://plausible.io/js/script.js"></script>
     <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
     
-    <!-- Supabase Auth (self-hosted) -->
-    <script src="supabase.min.js"></script>
+    <!-- Supabase Auth (self-hosted, loaded at end of body instead) -->
     <style>
         * {
             margin: 0;
@@ -2151,6 +2150,9 @@
             <p>Free during beta · <span class="pro-hint">Pro coming soon</span></p>
         </footer>
     </div>
+    
+    <!-- Supabase SDK (loaded here at end of body, before our code) -->
+    <script src="supabase.min.js"></script>
     
     <script>
         const API_URL = '';
