@@ -50,3 +50,33 @@ CREATE POLICY "Users can delete own history" ON history
 CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);
 CREATE INDEX IF NOT EXISTS idx_history_user ON history(user_id);
 CREATE INDEX IF NOT EXISTS idx_history_extracted ON history(extracted_at DESC);
+
+-- ============ COMMENTS ============
+-- Comments table (anyone can read, signed-in users can write)
+CREATE TABLE IF NOT EXISTS comments (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    video_id TEXT NOT NULL,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_email TEXT NOT NULL,
+    text TEXT NOT NULL CHECK (char_length(text) <= 500),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- RLS for comments
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+
+-- Anyone can read comments
+CREATE POLICY "Anyone can view comments" ON comments
+    FOR SELECT USING (true);
+
+-- Signed-in users can insert their own comments
+CREATE POLICY "Users can insert own comments" ON comments
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Users can delete their own comments
+CREATE POLICY "Users can delete own comments" ON comments
+    FOR DELETE USING (auth.uid() = user_id);
+
+-- Index for faster queries
+CREATE INDEX IF NOT EXISTS idx_comments_video ON comments(video_id);
+CREATE INDEX IF NOT EXISTS idx_comments_created ON comments(created_at DESC);

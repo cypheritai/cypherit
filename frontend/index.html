@@ -366,6 +366,167 @@
             animation: fadeIn 0.3s ease;
         }
         
+        /* Comments Section */
+        .comments-section {
+            margin-top: 32px;
+            padding: 24px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .comments-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .comments-icon {
+            font-size: 1.3rem;
+        }
+        
+        .comments-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .comments-count {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .comment-signin-prompt {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+        }
+        
+        .comment-signin-prompt p {
+            color: #888;
+            margin-bottom: 12px;
+        }
+        
+        .comment-signin-btn {
+            padding: 10px 24px;
+            background: rgba(0,217,255,0.1);
+            border: 1px solid rgba(0,217,255,0.3);
+            border-radius: 25px;
+            color: #00d9ff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .comment-signin-btn:hover {
+            background: rgba(0,217,255,0.2);
+        }
+        
+        .comment-form {
+            margin-bottom: 20px;
+        }
+        
+        .comment-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: vertical;
+        }
+        
+        .comment-textarea:focus {
+            outline: none;
+            border-color: rgba(0,217,255,0.4);
+        }
+        
+        .comment-form-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .comment-char-count {
+            color: #666;
+            font-size: 0.8rem;
+        }
+        
+        .comment-submit-btn {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            border: none;
+            border-radius: 20px;
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .comment-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,217,255,0.3);
+        }
+        
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .comment {
+            padding: 16px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .comment-author {
+            font-weight: 600;
+            color: #00d9ff;
+        }
+        
+        .comment-time {
+            color: #666;
+            font-size: 0.8rem;
+        }
+        
+        .comment-text {
+            color: #ccc;
+            line-height: 1.5;
+        }
+        
+        .comment-delete {
+            background: none;
+            border: none;
+            color: #666;
+            cursor: pointer;
+            font-size: 0.8rem;
+            margin-left: 12px;
+        }
+        
+        .comment-delete:hover {
+            color: #ff6464;
+        }
+        
+        .no-comments {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
         /* Gallery Section */
         .gallery-section {
             margin: 40px 0;
@@ -420,6 +581,47 @@
             background: linear-gradient(90deg, rgba(0,217,255,0.2), rgba(0,255,136,0.2));
             border-color: #00d9ff;
             color: #00d9ff;
+        }
+        
+        .subcategory-tabs {
+            display: none;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+        }
+        
+        .subcategory-tab {
+            padding: 6px 14px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .subcategory-tab:hover {
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+        }
+        
+        .subcategory-tab.active {
+            background: rgba(0,217,255,0.15);
+            border-color: rgba(0,217,255,0.4);
+            color: #00d9ff;
+        }
+        
+        .fix-card-subcategory {
+            display: inline-block;
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 4px;
         }
         
         .gallery-grid {
@@ -2268,6 +2470,33 @@
                 </div>
                 <p class="voting-thanks" id="votingThanks" style="display: none;">Thanks for your feedback! 🙏</p>
             </div>
+            
+            <!-- Comments Section -->
+            <div class="comments-section" id="commentsSection">
+                <div class="comments-header">
+                    <span class="comments-icon">💬</span>
+                    <span class="comments-title">Comments</span>
+                    <span class="comments-count" id="commentsCount">(0)</span>
+                </div>
+                
+                <div class="comment-input-section" id="commentInputSection">
+                    <div class="comment-signin-prompt" id="commentSigninPrompt">
+                        <p>Sign in to leave a comment</p>
+                        <button class="comment-signin-btn" onclick="showAuthModal()">🔐 Sign In</button>
+                    </div>
+                    <div class="comment-form" id="commentForm" style="display: none;">
+                        <textarea class="comment-textarea" id="commentText" placeholder="Share a tip or what worked for you..." maxlength="500"></textarea>
+                        <div class="comment-form-footer">
+                            <span class="comment-char-count"><span id="charCount">0</span>/500</span>
+                            <button class="comment-submit-btn" onclick="submitComment()">Post Comment</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comments-list" id="commentsList">
+                    <!-- Comments loaded dynamically -->
+                </div>
+            </div>
         </div>
         
         <footer class="site-footer">
@@ -2801,6 +3030,7 @@
         let GALLERY_CATEGORIES = [];
         let GALLERY_FIXES = [];
         let currentCategory = 'all';
+        let currentSubcategory = null;
         
         async function loadGallery() {
             const grid = document.getElementById('galleryGrid');
@@ -2845,11 +3075,59 @@
                     ${cat.emoji} ${cat.name}
                 </button>
             `).join('');
+            
+            // Render subcategory tabs if a category is selected
+            renderSubcategoryTabs();
+        }
+        
+        function renderSubcategoryTabs() {
+            let container = document.getElementById('subcategoryTabs');
+            
+            // Create container if it doesn't exist
+            if (!container) {
+                const tabsContainer = document.getElementById('categoryTabs');
+                container = document.createElement('div');
+                container.id = 'subcategoryTabs';
+                container.className = 'subcategory-tabs';
+                tabsContainer.parentNode.insertBefore(container, tabsContainer.nextSibling);
+            }
+            
+            if (currentCategory === 'all') {
+                container.style.display = 'none';
+                return;
+            }
+            
+            const category = GALLERY_CATEGORIES.find(c => c.id === currentCategory);
+            if (!category || !category.subcategories || category.subcategories.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'flex';
+            container.innerHTML = `
+                <button class="subcategory-tab ${!currentSubcategory ? 'active' : ''}" 
+                        onclick="filterSubcategory(null)">
+                    All ${category.name}
+                </button>
+                ${category.subcategories.map(sub => `
+                    <button class="subcategory-tab ${currentSubcategory === sub.id ? 'active' : ''}" 
+                            onclick="filterSubcategory('${sub.id}')">
+                        ${sub.emoji} ${sub.name}
+                    </button>
+                `).join('')}
+            `;
         }
         
         function filterCategory(categoryId) {
             currentCategory = categoryId;
+            currentSubcategory = null; // Reset subcategory when changing category
             renderCategoryTabs();
+            renderGalleryGrid();
+        }
+        
+        function filterSubcategory(subcategoryId) {
+            currentSubcategory = subcategoryId;
+            renderSubcategoryTabs();
             renderGalleryGrid();
         }
         
@@ -2857,8 +3135,15 @@
             const container = document.getElementById('galleryGrid');
             
             let fixes = GALLERY_FIXES;
+            
+            // Filter by category
             if (currentCategory !== 'all') {
                 fixes = fixes.filter(f => f.category === currentCategory);
+            }
+            
+            // Filter by subcategory
+            if (currentSubcategory) {
+                fixes = fixes.filter(f => f.subcategory === currentSubcategory);
             }
             
             if (!fixes.length) {
@@ -2866,11 +3151,23 @@
                 return;
             }
             
-            container.innerHTML = fixes.map(fix => `
+            container.innerHTML = fixes.map(fix => {
+                // Get subcategory display name
+                let subcatDisplay = '';
+                if (fix.subcategory && currentCategory !== 'all' && !currentSubcategory) {
+                    const cat = GALLERY_CATEGORIES.find(c => c.id === fix.category);
+                    const sub = cat?.subcategories?.find(s => s.id === fix.subcategory);
+                    if (sub) {
+                        subcatDisplay = `<span class="fix-card-subcategory">${sub.emoji} ${sub.name}</span>`;
+                    }
+                }
+                
+                return `
                 <div class="fix-card" onclick="loadFix('${fix.video_id}')">
                     <img class="fix-card-thumbnail" src="${fix.thumbnail}" alt="${fix.title}" loading="lazy">
                     ${fix.auto_promoted ? '<div class="community-pick-badge">🌟 Community Pick</div>' : ''}
                     <div class="fix-card-content">
+                        ${subcatDisplay}
                         <div class="fix-card-title">${fix.title}</div>
                         <div class="fix-card-meta">
                             <div class="fix-card-stats">
@@ -3163,6 +3460,9 @@
             // Load and display vote counts
             loadVotes();
             checkIfAlreadyVoted();
+            
+            // Load comments
+            loadComments();
             stepTimestamps = data.steps
                 .filter(s => s.timestamp)
                 .map(s => timestampToSeconds(s.timestamp));
@@ -4000,6 +4300,147 @@
                 document.getElementById('votingThanks').style.display = 'none';
             }
         }
+        
+        // ============ COMMENTS ============
+        let videoComments = [];
+        
+        async function loadComments() {
+            if (!currentVideoId) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/comments/${currentVideoId}`);
+                const data = await response.json();
+                videoComments = data.comments || [];
+                renderComments();
+            } catch (err) {
+                console.warn('Failed to load comments:', err);
+            }
+        }
+        
+        function renderComments() {
+            const list = document.getElementById('commentsList');
+            const countEl = document.getElementById('commentsCount');
+            
+            countEl.textContent = `(${videoComments.length})`;
+            
+            // Update form visibility based on auth state
+            if (currentUser) {
+                document.getElementById('commentSigninPrompt').style.display = 'none';
+                document.getElementById('commentForm').style.display = 'block';
+            } else {
+                document.getElementById('commentSigninPrompt').style.display = 'block';
+                document.getElementById('commentForm').style.display = 'none';
+            }
+            
+            if (videoComments.length === 0) {
+                list.innerHTML = '<div class="no-comments">No comments yet. Be the first to share!</div>';
+                return;
+            }
+            
+            list.innerHTML = videoComments.map(comment => {
+                const timeAgo = formatTimeAgo(comment.created_at);
+                const isOwn = currentUser && currentUser.id === comment.user_id;
+                
+                return `
+                    <div class="comment" data-id="${comment.id}">
+                        <div class="comment-header">
+                            <span class="comment-author">${escapeHtml(comment.display_name)}</span>
+                            <span>
+                                <span class="comment-time">${timeAgo}</span>
+                                ${isOwn ? `<button class="comment-delete" onclick="deleteComment('${comment.id}')">Delete</button>` : ''}
+                            </span>
+                        </div>
+                        <p class="comment-text">${escapeHtml(comment.text)}</p>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function formatTimeAgo(timestamp) {
+            const seconds = Math.floor(Date.now() / 1000) - timestamp;
+            if (seconds < 60) return 'just now';
+            if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+            if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+            return `${Math.floor(seconds / 86400)}d ago`;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        async function submitComment() {
+            if (!currentUser) {
+                showAuthModal();
+                return;
+            }
+            
+            const textarea = document.getElementById('commentText');
+            const text = textarea.value.trim();
+            
+            if (!text) {
+                showToast('Please enter a comment');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_URL}/comments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        video_id: currentVideoId,
+                        user_id: currentUser.id,
+                        user_email: currentUser.email,
+                        text: text
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    videoComments.push(data.comment);
+                    renderComments();
+                    textarea.value = '';
+                    document.getElementById('charCount').textContent = '0';
+                    showToast('Comment posted!');
+                    plausible('Comment', {props: {action: 'add'}});
+                } else {
+                    const err = await response.json();
+                    showToast(err.detail || 'Failed to post comment');
+                }
+            } catch (err) {
+                showToast('Failed to post comment');
+            }
+        }
+        
+        async function deleteComment(commentId) {
+            if (!currentUser) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/comments/${commentId}?user_id=${currentUser.id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    videoComments = videoComments.filter(c => c.id !== commentId);
+                    renderComments();
+                    showToast('Comment deleted');
+                    plausible('Comment', {props: {action: 'delete'}});
+                }
+            } catch (err) {
+                showToast('Failed to delete comment');
+            }
+        }
+        
+        // Character count for comment textarea
+        document.addEventListener('DOMContentLoaded', () => {
+            const textarea = document.getElementById('commentText');
+            if (textarea) {
+                textarea.addEventListener('input', () => {
+                    document.getElementById('charCount').textContent = textarea.value.length;
+                });
+            }
+        });
         
         // ============ SHARE FUNCTIONS ============
         function shareApp() {

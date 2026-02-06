@@ -1,16 +1,98 @@
 {
   "categories": [
-    {"id": "home", "name": "Home Fixes", "emoji": "🏠", "description": "DIY repairs around the house"},
-    {"id": "tech", "name": "Tech Setup", "emoji": "💻", "description": "Software, coding, and dev tools"},
-    {"id": "phone", "name": "Phone & Tablet", "emoji": "📱", "description": "Mobile device fixes and tips"},
-    {"id": "auto", "name": "Auto & Motor", "emoji": "🚗", "description": "Car and vehicle maintenance"},
-    {"id": "gaming", "name": "Gaming", "emoji": "🎮", "description": "Gaming setup and optimization"},
-    {"id": "kitchen", "name": "Kitchen & Appliances", "emoji": "🍳", "description": "Appliance fixes and cooking tips"}
+    {
+      "id": "home",
+      "name": "Home Fixes",
+      "emoji": "🏠",
+      "description": "DIY repairs around the house",
+      "subcategories": [
+        {"id": "toilet", "name": "Toilet", "emoji": "🚽"},
+        {"id": "faucet", "name": "Faucet & Sink", "emoji": "🚰"},
+        {"id": "door", "name": "Door & Window", "emoji": "🚪"},
+        {"id": "electrical", "name": "Electrical", "emoji": "💡"},
+        {"id": "plumbing", "name": "Plumbing", "emoji": "🔧"},
+        {"id": "hvac", "name": "HVAC & Heating", "emoji": "❄️"},
+        {"id": "flooring", "name": "Flooring", "emoji": "🪵"},
+        {"id": "wall", "name": "Wall & Drywall", "emoji": "🧱"}
+      ]
+    },
+    {
+      "id": "tech",
+      "name": "Tech Setup",
+      "emoji": "💻",
+      "description": "Software, coding, and dev tools",
+      "subcategories": [
+        {"id": "python", "name": "Python", "emoji": "🐍"},
+        {"id": "javascript", "name": "JavaScript", "emoji": "📜"},
+        {"id": "git", "name": "Git & GitHub", "emoji": "🔀"},
+        {"id": "devops", "name": "DevOps & Cloud", "emoji": "☁️"},
+        {"id": "ide", "name": "IDE & Tools", "emoji": "🛠️"},
+        {"id": "database", "name": "Database", "emoji": "🗄️"},
+        {"id": "os", "name": "OS & System", "emoji": "🖥️"}
+      ]
+    },
+    {
+      "id": "phone",
+      "name": "Phone & Tablet",
+      "emoji": "📱",
+      "description": "Mobile device fixes and tips",
+      "subcategories": [
+        {"id": "iphone", "name": "iPhone", "emoji": "🍎"},
+        {"id": "android", "name": "Android", "emoji": "🤖"},
+        {"id": "ipad", "name": "iPad & Tablet", "emoji": "📲"},
+        {"id": "battery", "name": "Battery", "emoji": "🔋"},
+        {"id": "screen", "name": "Screen", "emoji": "📺"},
+        {"id": "apps", "name": "Apps & Settings", "emoji": "⚙️"}
+      ]
+    },
+    {
+      "id": "auto",
+      "name": "Auto & Motor",
+      "emoji": "🚗",
+      "description": "Car and vehicle maintenance",
+      "subcategories": [
+        {"id": "brakes", "name": "Brakes", "emoji": "🛑"},
+        {"id": "engine", "name": "Engine", "emoji": "⚙️"},
+        {"id": "tires", "name": "Tires & Wheels", "emoji": "🛞"},
+        {"id": "electrical", "name": "Electrical", "emoji": "🔌"},
+        {"id": "interior", "name": "Interior", "emoji": "💺"},
+        {"id": "exterior", "name": "Exterior & Body", "emoji": "🚙"},
+        {"id": "fluids", "name": "Fluids & Oil", "emoji": "🛢️"}
+      ]
+    },
+    {
+      "id": "gaming",
+      "name": "Gaming",
+      "emoji": "🎮",
+      "description": "Gaming setup and optimization",
+      "subcategories": [
+        {"id": "pc", "name": "PC Gaming", "emoji": "🖥️"},
+        {"id": "console", "name": "Console", "emoji": "🕹️"},
+        {"id": "performance", "name": "Performance", "emoji": "⚡"},
+        {"id": "streaming", "name": "Streaming", "emoji": "📺"},
+        {"id": "peripherals", "name": "Peripherals", "emoji": "🎧"}
+      ]
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen & Appliances",
+      "emoji": "🍳",
+      "description": "Appliance fixes and cooking tips",
+      "subcategories": [
+        {"id": "fridge", "name": "Refrigerator", "emoji": "🧊"},
+        {"id": "oven", "name": "Oven & Stove", "emoji": "🔥"},
+        {"id": "dishwasher", "name": "Dishwasher", "emoji": "🍽️"},
+        {"id": "microwave", "name": "Microwave", "emoji": "📡"},
+        {"id": "washer", "name": "Washer & Dryer", "emoji": "🧺"},
+        {"id": "small", "name": "Small Appliances", "emoji": "☕"}
+      ]
+    }
   ],
   "fixes": [
     {
       "id": "usb-macos-bootable",
       "category": "tech",
+      "subcategory": "os",
       "video_id": "0HBA9Nov17Q",
       "title": "Create Bootable macOS USB Drive",
       "description": "Make a bootable USB installer for macOS El Capitan",
@@ -25,6 +107,7 @@
     {
       "id": "python-beginner-setup",
       "category": "tech",
+      "subcategory": "python",
       "video_id": "kqtD5dpn9C8",
       "title": "Python Programming Setup",
       "description": "Install Python and set up your development environment",
@@ -39,6 +122,7 @@
     {
       "id": "tech-tutorial-demo",
       "category": "tech",
+      "subcategory": "ide",
       "video_id": "Hc79sDi3f0U",
       "title": "Tech Tutorial",
       "description": "General tech tutorial and tips",

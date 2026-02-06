@@ -300,8 +300,8 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
     """Use Claude to extract structured fix steps from transcript using category frameworks."""
     from frameworks import detect_category, get_extraction_prompt
     
-    # Detect category from transcript
-    category = detect_category("", transcript)
+    # Detect category and subcategory from transcript
+    category, subcategory = detect_category("", transcript)
     
     # Get the specialized prompt for this category
     prompt = get_extraction_prompt(category, transcript, max_steps)
@@ -534,6 +534,7 @@ async def extract(request: Request, body: ExtractRequest):
         video_id=video_id,
         title=result.get("title", "Untitled"),
         category=result.get("category", "general"),
+        subcategory=result.get("subcategory"),
         full_result=result  # Cache full result for share links
     )
     
@@ -588,7 +589,7 @@ def save_extractions_data(data):
     with open(extractions_path, 'w') as f:
         json.dump(data, f, indent=2)
 
-def save_extraction(video_id: str, title: str, category: str = "general", full_result: dict = None):
+def save_extraction(video_id: str, title: str, category: str = "general", subcategory: str = None, full_result: dict = None):
     """Save extraction with full result for caching/sharing."""
     data = load_extractions_data()
     
@@ -598,12 +599,19 @@ def save_extraction(video_id: str, title: str, category: str = "general", full_r
             "title": title,
             "thumbnail": f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg",
             "category": category,
+            "subcategory": subcategory,
             "created_at": int(time.time()),
             "extraction_count": 0
         }
     
     data["extractions"][video_id]["extraction_count"] += 1
     data["extractions"][video_id]["last_extracted"] = int(time.time())
+    
+    # Update category/subcategory if provided (might improve over time)
+    if category:
+        data["extractions"][video_id]["category"] = category
+    if subcategory:
+        data["extractions"][video_id]["subcategory"] = subcategory
     
     # Store full extraction result for sharing/caching
     if full_result:
@@ -702,6 +710,7 @@ def check_auto_promote(video_id: str):
                 new_fix = {
                     "id": f"auto-{video_id}",
                     "category": extraction.get("category", "general"),
+                    "subcategory": extraction.get("subcategory"),
                     "video_id": video_id,
                     "title": extraction.get("title", "Community Fix"),
                     "description": f"Auto-promoted by community ({votes.get('helpful', 0)} helpful votes)",
@@ -813,6 +822,94 @@ async def track_view(fix_id: str):
             return {"success": True, "views": fix["views"]}
     
     raise HTTPException(status_code=404, detail="Fix not found")
+
+
+# ============ COMMENTS ENDPOINTS ============
+# Comments are stored in Supabase, but we provide API endpoints for easy access
+
+def load_comments_data():
+    """Load comments data from JSON file (backup/fallback storage)."""
+    comments_path = Path(__file__).parent / "comments_data.json"
+    if comments_path.exists():
+        with open(comments_path, 'r') as f:
+            return json.load(f)
+    return {"comments": {}}
+
+def save_comments_data(data):
+    """Save comments data to JSON file."""
+    comments_path = Path(__file__).parent / "comments_data.json"
+    with open(comments_path, 'w') as f:
+        json.dump(data, f, indent=2)
+
+
+class CommentRequest(BaseModel):
+    video_id: str
+    user_id: str
+    user_email: str
+    text: str
+
+
+@app.get("/comments/{video_id}")
+async def get_comments(video_id: str):
+    """Get comments for a video."""
+    data = load_comments_data()
+    comments = data.get("comments", {}).get(video_id, [])
+    return {"video_id": video_id, "comments": comments, "count": len(comments)}
+
+
+@app.post("/comments")
+async def add_comment(comment: CommentRequest):
+    """Add a comment to a video (signed-in users only)."""
+    if not comment.user_id or not comment.user_email:
+        raise HTTPException(status_code=401, detail="Sign in to comment")
+    
+    if not comment.text or len(comment.text.strip()) == 0:
+        raise HTTPException(status_code=400, detail="Comment cannot be empty")
+    
+    if len(comment.text) > 500:
+        raise HTTPException(status_code=400, detail="Comment too long (max 500 characters)")
+    
+    data = load_comments_data()
+    
+    if "comments" not in data:
+        data["comments"] = {}
+    
+    if comment.video_id not in data["comments"]:
+        data["comments"][comment.video_id] = []
+    
+    # Create display name from email (first part before @)
+    display_name = comment.user_email.split("@")[0]
+    
+    new_comment = {
+        "id": f"{comment.video_id}-{int(time.time())}",
+        "user_id": comment.user_id,
+        "display_name": display_name,
+        "text": comment.text.strip(),
+        "created_at": int(time.time())
+    }
+    
+    data["comments"][comment.video_id].append(new_comment)
+    save_comments_data(data)
+    
+    return {"success": True, "comment": new_comment}
+
+
+@app.delete("/comments/{comment_id}")
+async def delete_comment(comment_id: str, user_id: str):
+    """Delete a comment (only the author can delete)."""
+    data = load_comments_data()
+    
+    for video_id, comments in data.get("comments", {}).items():
+        for i, comment in enumerate(comments):
+            if comment.get("id") == comment_id:
+                if comment.get("user_id") != user_id:
+                    raise HTTPException(status_code=403, detail="You can only delete your own comments")
+                
+                comments.pop(i)
+                save_comments_data(data)
+                return {"success": True}
+    
+    raise HTTPException(status_code=404, detail="Comment not found")
 
 
 # ============ HELPFUL VOTING ENDPOINTS ============
