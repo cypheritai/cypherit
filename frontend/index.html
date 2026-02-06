@@ -2551,6 +2551,12 @@
             // Disable demo buttons while loading
             document.querySelectorAll('.demo-btn').forEach(btn => btn.disabled = show);
             
+            // Hide gallery and demo sections during extraction for cleaner UX
+            if (show) {
+                document.getElementById('gallerySection').style.display = 'none';
+                document.getElementById('demoSection').style.display = 'none';
+            }
+            
             // Control progress bar
             const progressBar = document.getElementById('progressBar');
             const progressText = document.getElementById('progressText');
@@ -2569,6 +2575,13 @@
                 progressBar.style.width = '0%';
                 progressBar.classList.remove('animating');
                 progressText.textContent = 'Analyzing video...';
+                
+                // Show gallery/demo sections if no result is visible (error case)
+                const resultVisible = document.getElementById('result').classList.contains('visible');
+                if (!resultVisible) {
+                    document.getElementById('gallerySection').style.display = 'block';
+                    document.getElementById('demoSection').style.display = 'block';
+                }
             }
         }
         
