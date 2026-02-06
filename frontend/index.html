@@ -2391,7 +2391,7 @@
             
             try {
                 // Load favorites
-                const { data: favs, error: favError } = await supabase
+                const { data: favs, error: favError } = await supabaseClient
                     .from('favorites')
                     .select('*')
                     .eq('user_id', currentUser.id)
@@ -2403,7 +2403,7 @@
                 }
                 
                 // Load history
-                const { data: hist, error: histError } = await supabase
+                const { data: hist, error: histError } = await supabaseClient
                     .from('history')
                     .select('*')
                     .eq('user_id', currentUser.id)
@@ -2435,7 +2435,7 @@
             
             if (isSaved) {
                 // Remove from favorites
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('favorites')
                     .delete()
                     .eq('user_id', currentUser.id)
@@ -2451,7 +2451,7 @@
             } else {
                 // Add to favorites
                 const thumbnail = `https://img.youtube.com/vi/${currentVideoId}/hqdefault.jpg`;
-                const { error } = await supabase
+                const { error } = await supabaseClient
                     .from('favorites')
                     .insert({
                         user_id: currentUser.id,
@@ -2475,7 +2475,7 @@
             
             try {
                 const thumbnail = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-                await supabase
+                await supabaseClient
                     .from('history')
                     .insert({
                         user_id: currentUser.id,
