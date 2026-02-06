@@ -2158,28 +2158,43 @@
         // ============ SUPABASE AUTH ============
         const SUPABASE_URL = 'https://fbankzoubprfpgsxqajg.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZiYW5rem91YnByZnBnc3hxYWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODYzMTUsImV4cCI6MjA4NTk2MjMxNX0.9NibIDtQn6xI0xNoo_sA2wG-BUbw5lvsplRx_DHbY4c';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let supabase = null;
+        try {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (err) {
+            console.warn('Supabase init failed:', err);
+        }
         
         let currentUser = null;
         
         // Check auth state on load
         async function initAuth() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                setUser(session.user);
+            if (!supabase) {
+                console.warn('Supabase not available, skipping auth init');
+                return;
             }
             
-            // Listen for auth changes
-            supabase.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_IN' && session) {
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
                     setUser(session.user);
-                    hideAuthModal();
-                    plausible('Auth', {props: {event: 'sign_in'}});
-                } else if (event === 'SIGNED_OUT') {
-                    setUser(null);
-                    plausible('Auth', {props: {event: 'sign_out'}});
                 }
-            });
+                
+                // Listen for auth changes
+                supabase.auth.onAuthStateChange((event, session) => {
+                    if (event === 'SIGNED_IN' && session) {
+                        setUser(session.user);
+                        hideAuthModal();
+                        plausible('Auth', {props: {event: 'sign_in'}});
+                    } else if (event === 'SIGNED_OUT') {
+                        setUser(null);
+                        plausible('Auth', {props: {event: 'sign_out'}});
+                    }
+                });
+            } catch (err) {
+                console.warn('Auth init error:', err);
+            }
         }
         
         function setUser(user) {
@@ -2214,6 +2229,11 @@
         }
         
         async function sendMagicLink() {
+            if (!supabase) {
+                alert('Auth not available. Please refresh the page.');
+                return;
+            }
+            
             const email = document.getElementById('authEmail').value.trim();
             const btn = document.getElementById('authBtn');
             const message = document.getElementById('authMessage');
@@ -2254,7 +2274,9 @@
         }
         
         async function signOut() {
-            await supabase.auth.signOut();
+            if (supabase) {
+                await supabase.auth.signOut();
+            }
         }
         
         // Close modal on outside click
@@ -2269,7 +2291,7 @@
         let userHistory = [];
         
         async function loadUserData() {
-            if (!currentUser) return;
+            if (!currentUser || !supabase) return;
             
             try {
                 // Load favorites
@@ -2302,7 +2324,7 @@
         }
         
         async function toggleFavorite() {
-            if (!currentUser) {
+            if (!currentUser || !supabase) {
                 showAuthModal();
                 return;
             }
