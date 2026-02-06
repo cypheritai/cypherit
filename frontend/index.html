@@ -2183,23 +2183,48 @@
                 
                 supabaseLoading = true;
                 
+                // Timeout after 10 seconds
+                const timeout = setTimeout(() => {
+                    supabaseLoading = false;
+                    const err = new Error('Supabase SDK load timeout');
+                    reject(err);
+                    supabaseLoadCallbacks.forEach(cb => cb.reject(err));
+                    supabaseLoadCallbacks = [];
+                }, 10000);
+                
                 const script = document.createElement('script');
                 script.src = 'supabase.min.js';
                 script.onload = () => {
-                    try {
-                        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                        console.log('Supabase loaded and initialized');
-                        resolve(supabase);
-                        supabaseLoadCallbacks.forEach(cb => cb.resolve(supabase));
-                    } catch (err) {
-                        reject(err);
-                        supabaseLoadCallbacks.forEach(cb => cb.reject(err));
-                    }
-                    supabaseLoadCallbacks = [];
+                    clearTimeout(timeout);
+                    console.log('Script loaded, checking window.supabase...');
+                    
+                    // Small delay to ensure script executes
+                    setTimeout(() => {
+                        try {
+                            if (window.supabase && window.supabase.createClient) {
+                                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                                console.log('Supabase initialized!');
+                                resolve(supabase);
+                                supabaseLoadCallbacks.forEach(cb => cb.resolve(supabase));
+                            } else {
+                                throw new Error('window.supabase not found after script load');
+                            }
+                        } catch (err) {
+                            console.error('Supabase init error:', err);
+                            reject(err);
+                            supabaseLoadCallbacks.forEach(cb => cb.reject(err));
+                        }
+                        supabaseLoadCallbacks = [];
+                        supabaseLoading = false;
+                    }, 100);
                 };
                 script.onerror = (err) => {
-                    reject(new Error('Failed to load Supabase SDK'));
-                    supabaseLoadCallbacks.forEach(cb => cb.reject(err));
+                    clearTimeout(timeout);
+                    console.error('Script load error:', err);
+                    supabaseLoading = false;
+                    const error = new Error('Failed to load Supabase SDK');
+                    reject(error);
+                    supabaseLoadCallbacks.forEach(cb => cb.reject(error));
                     supabaseLoadCallbacks = [];
                 };
                 document.body.appendChild(script);
@@ -2289,8 +2314,17 @@
             try {
                 // Load Supabase SDK if not loaded
                 await loadSupabaseSDK();
-                
-                btn.textContent = 'Sending...';
+            } catch (sdkErr) {
+                console.error('SDK load failed:', sdkErr);
+                message.textContent = 'Auth service unavailable. Please try again later.';
+                message.className = 'auth-message error';
+                message.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Send Magic Link ✨';
+                return;
+            }
+            
+            btn.textContent = 'Sending...';
                 
                 const { error } = await supabase.auth.signInWithOtp({
                     email: email,
