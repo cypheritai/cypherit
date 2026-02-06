@@ -2705,8 +2705,22 @@
         }
         
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            initAuth();
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if this is a magic link callback (has auth tokens in URL)
+            const hasAuthCallback = window.location.hash.includes('access_token') || 
+                                   window.location.hash.includes('refresh_token') ||
+                                   window.location.search.includes('code=');
+            
+            if (hasAuthCallback) {
+                console.log('Auth callback detected, loading Supabase...');
+                try {
+                    await loadSupabaseSDK();
+                    await initAuth();
+                } catch (err) {
+                    console.error('Auth callback handling failed:', err);
+                }
+            }
+            
             loadDemos();
             loadGallery();
             
