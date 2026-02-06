@@ -343,9 +343,7 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
     if "steps" not in result:
         result["steps"] = []
     
-    # Validate and fix timestamps for each step
-    MAX_CLIP_DURATION = 45  # Cap clips at 45 seconds max
-    
+    # Validate and fix timestamps for each step (no max cap - trust extraction)
     for step in result.get("steps", []):
         if step.get("timestamp") and step.get("end_timestamp"):
             start = _ts_to_seconds(step["timestamp"])
@@ -355,14 +353,8 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
             if end <= start:
                 if end < start:
                     step["timestamp"], step["end_timestamp"] = step["end_timestamp"], step["timestamp"]
-                    start, end = end, start
                 else:
-                    end = start + 20
-                    step["end_timestamp"] = _seconds_to_ts(end)
-            
-            # Cap clip duration at MAX_CLIP_DURATION
-            if end - start > MAX_CLIP_DURATION:
-                step["end_timestamp"] = _seconds_to_ts(start + MAX_CLIP_DURATION)
+                    step["end_timestamp"] = _seconds_to_ts(start + 20)
                 
         elif step.get("timestamp") and not step.get("end_timestamp"):
             # Add default end_timestamp if missing
