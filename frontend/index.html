@@ -2734,16 +2734,20 @@
                                    hashParams.includes('type=magiclink') ||
                                    searchParams.includes('code=');
             
+            // Check if there's a stored session in localStorage
+            const hasStoredSession = localStorage.getItem('sb-fbankzoubprfpgsxqajg-auth-token') !== null;
+            
             console.log('URL hash:', hashParams ? hashParams.substring(0, 50) + '...' : 'none');
             console.log('Auth callback detected:', hasAuthCallback);
+            console.log('Stored session found:', hasStoredSession);
             
-            if (hasAuthCallback) {
-                console.log('Auth callback detected, loading Supabase...');
+            if (hasAuthCallback || hasStoredSession) {
+                console.log('Loading Supabase for auth...');
                 try {
                     await loadSupabaseSDK();
                     await initAuth();
                 } catch (err) {
-                    console.error('Auth callback handling failed:', err);
+                    console.error('Auth handling failed:', err);
                 }
             }
             
