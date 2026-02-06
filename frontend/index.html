@@ -1432,6 +1432,51 @@
             color: #ff6464;
         }
         
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            margin: 16px 0;
+            color: #666;
+            font-size: 0.85rem;
+        }
+        
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .auth-divider span {
+            padding: 0 12px;
+        }
+        
+        .auth-guest-btn {
+            width: 100%;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            background: transparent;
+            color: #aaa;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .auth-guest-btn:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.3);
+            color: #fff;
+        }
+        
+        .auth-guest-note {
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
         .auth-benefits {
             text-align: left;
             margin: 20px 0;
@@ -1653,6 +1698,45 @@
             justify-content: center;
             gap: 12px;
             margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .share-buttons-inline {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .share-btn-small {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .share-btn-small:hover {
+            background: rgba(0,217,255,0.15);
+            border-color: rgba(0,217,255,0.4);
+            transform: translateY(-2px);
+        }
+        
+        .bottom-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin: 24px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.06);
         }
         
         /* My Fixes Section (Profile Page) */
@@ -1966,6 +2050,12 @@
                 <input type="email" class="auth-input" id="authEmail" placeholder="Enter your email" onkeypress="if(event.key==='Enter')sendMagicLink()">
                 <button class="auth-btn" id="authBtn" onclick="sendMagicLink()">Send Magic Link ✨</button>
                 
+                <div class="auth-divider">
+                    <span>or</span>
+                </div>
+                <button class="auth-guest-btn" id="authGuestBtn" onclick="continueAsGuest()">Continue as Guest</button>
+                <p class="auth-guest-note" id="authGuestNote">3 free extractions per day</p>
+                
                 <div class="auth-message" id="authMessage" style="display: none;"></div>
                 
                 <button class="auth-modal-close" onclick="hideAuthModal()">✕</button>
@@ -2049,8 +2139,14 @@
                 <div class="result-actions">
                     <button class="save-btn" id="saveBtn" onclick="toggleFavorite()">
                         <span class="save-icon"></span>
-                        <span class="save-text">Save Fix</span>
+                        <span class="save-text">Save</span>
                     </button>
+                    <div class="share-buttons-inline">
+                        <button class="share-btn-small" onclick="shareToX()" title="Share on X">𝕏</button>
+                        <button class="share-btn-small" onclick="shareToWhatsApp()" title="WhatsApp">💬</button>
+                        <button class="share-btn-small" onclick="copyShareLink()" title="Copy Link">🔗</button>
+                        <button class="share-btn-small" onclick="nativeShare()" title="Share">📤</button>
+                    </div>
                 </div>
             </div>
             
@@ -2118,6 +2214,20 @@
                     <span class="summary-title">Summary</span>
                 </div>
                 <p class="summary-text" id="summaryText"></p>
+            </div>
+            
+            <!-- Save & Share (Bottom) -->
+            <div class="bottom-actions">
+                <button class="save-btn" id="saveBtnBottom" onclick="toggleFavorite()">
+                    <span class="save-icon"></span>
+                    <span class="save-text">Save</span>
+                </button>
+                <div class="share-buttons-inline">
+                    <button class="share-btn-small" onclick="shareToX()" title="Share on X">𝕏</button>
+                    <button class="share-btn-small" onclick="shareToWhatsApp()" title="WhatsApp">💬</button>
+                    <button class="share-btn-small" onclick="copyShareLink()" title="Copy Link">🔗</button>
+                    <button class="share-btn-small" onclick="nativeShare()" title="Share">📤</button>
+                </div>
             </div>
             
             <div class="meta">
@@ -2335,6 +2445,54 @@
             document.getElementById('authMessage').style.display = 'none';
         }
         
+        // Guest extraction limit
+        const GUEST_DAILY_LIMIT = 3;
+        let pendingGuestExtract = false;
+        
+        function getGuestExtractions() {
+            const today = new Date().toISOString().split('T')[0];
+            const data = JSON.parse(localStorage.getItem('cypherit_guest_extractions') || '{}');
+            if (data.date !== today) {
+                return { date: today, count: 0 };
+            }
+            return data;
+        }
+        
+        function incrementGuestExtraction() {
+            const data = getGuestExtractions();
+            data.count++;
+            localStorage.setItem('cypherit_guest_extractions', JSON.stringify(data));
+        }
+        
+        function canGuestExtract() {
+            if (currentUser) return true; // Signed in = unlimited
+            const data = getGuestExtractions();
+            return data.count < GUEST_DAILY_LIMIT;
+        }
+        
+        function getRemainingExtractions() {
+            if (currentUser) return '∞';
+            const data = getGuestExtractions();
+            return Math.max(0, GUEST_DAILY_LIMIT - data.count);
+        }
+        
+        function showLimitReachedModal() {
+            // Update modal to show limit message
+            document.getElementById('authGuestBtn').style.display = 'none';
+            document.getElementById('authGuestNote').textContent = '⚠️ Daily limit reached. Sign in for unlimited extractions!';
+            document.getElementById('authGuestNote').style.color = '#ff6464';
+            showAuthModal();
+        }
+        
+        function continueAsGuest() {
+            plausible('Auth', {props: {event: 'continue_guest'}});
+            hideAuthModal();
+            if (pendingGuestExtract) {
+                pendingGuestExtract = false;
+                extract();
+            }
+        }
+        
         async function sendMagicLink() {
             const email = document.getElementById('authEmail').value.trim();
             const btn = document.getElementById('authBtn');
@@ -2447,6 +2605,21 @@
             const btn = document.getElementById('saveBtn');
             const isSaved = btn.classList.contains('saved');
             
+            // Helper to update both buttons
+            function updateBothButtons(saved) {
+                ['saveBtn', 'saveBtnBottom'].forEach(id => {
+                    const b = document.getElementById(id);
+                    if (!b) return;
+                    if (saved) {
+                        b.classList.add('saved');
+                        b.querySelector('.save-text').textContent = 'Saved';
+                    } else {
+                        b.classList.remove('saved');
+                        b.querySelector('.save-text').textContent = 'Save';
+                    }
+                });
+            }
+            
             if (isSaved) {
                 // Remove from favorites
                 const { error } = await supabaseClient
@@ -2456,8 +2629,7 @@
                     .eq('video_id', currentVideoId);
                 
                 if (!error) {
-                    btn.classList.remove('saved');
-                    btn.querySelector('.save-text').textContent = 'Save Fix';
+                    updateBothButtons(false);
                     userFavorites = userFavorites.filter(f => f.video_id !== currentVideoId);
                     document.getElementById('favCount').textContent = userFavorites.length;
                     plausible('Favorite', {props: {action: 'remove'}});
@@ -2475,8 +2647,7 @@
                     });
                 
                 if (!error) {
-                    btn.classList.add('saved');
-                    btn.querySelector('.save-text').textContent = 'Saved!';
+                    updateBothButtons(true);
                     userFavorites.unshift({ video_id: currentVideoId, title: currentTitle, thumbnail });
                     document.getElementById('favCount').textContent = userFavorites.length;
                     plausible('Favorite', {props: {action: 'add'}});
@@ -2508,16 +2679,21 @@
         function checkIfFavorited() {
             if (!currentUser || !currentVideoId) return;
             
-            const btn = document.getElementById('saveBtn');
             const isFavorited = userFavorites.some(f => f.video_id === currentVideoId);
             
-            if (isFavorited) {
-                btn.classList.add('saved');
-                btn.querySelector('.save-text').textContent = 'Saved!';
-            } else {
-                btn.classList.remove('saved');
-                btn.querySelector('.save-text').textContent = 'Save Fix';
-            }
+            // Update both top and bottom save buttons
+            ['saveBtn', 'saveBtnBottom'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (!btn) return;
+                
+                if (isFavorited) {
+                    btn.classList.add('saved');
+                    btn.querySelector('.save-text').textContent = 'Saved';
+                } else {
+                    btn.classList.remove('saved');
+                    btn.querySelector('.save-text').textContent = 'Save';
+                }
+            });
         }
         
         function showMyFixes(tab = 'favorites') {
@@ -2815,6 +2991,12 @@
                 return;
             }
             
+            // Check guest extraction limit
+            if (!canGuestExtract()) {
+                showLimitReachedModal();
+                return;
+            }
+            
             // Track extraction start
             plausible('Extraction Started');
             
@@ -2849,6 +3031,11 @@
                 
                 // Track successful extraction
                 plausible('Extraction Complete', {props: {steps: data.steps?.length || 0}});
+                
+                // Count guest extraction
+                if (!currentUser) {
+                    incrementGuestExtraction();
+                }
                 
                 displayResult(data);
                 
