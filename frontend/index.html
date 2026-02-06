@@ -2433,6 +2433,11 @@
         }
         
         function showAuthModal() {
+            // Reset modal to normal state
+            document.getElementById('authGuestBtn').style.display = 'block';
+            document.getElementById('authGuestNote').textContent = '3 free extractions per day';
+            document.getElementById('authGuestNote').style.color = '#666';
+            
             document.getElementById('authModal').classList.add('visible');
             document.getElementById('authEmail').focus();
             plausible('Auth', {props: {event: 'modal_open'}});
@@ -2477,11 +2482,17 @@
         }
         
         function showLimitReachedModal() {
-            // Update modal to show limit message
+            // Show modal first with normal state
+            document.getElementById('authModal').classList.add('visible');
+            document.getElementById('authEmail').focus();
+            
+            // Then update to show limit message
             document.getElementById('authGuestBtn').style.display = 'none';
             document.getElementById('authGuestNote').textContent = '⚠️ Daily limit reached. Sign in for unlimited extractions!';
             document.getElementById('authGuestNote').style.color = '#ff6464';
-            showAuthModal();
+            
+            plausible('Auth', {props: {event: 'limit_reached'}});
+            loadSupabaseSDK().catch(() => {});
         }
         
         function continueAsGuest() {
