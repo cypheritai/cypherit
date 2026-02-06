@@ -11,8 +11,8 @@
     <script defer data-domain="cypherit.ai" src="https://plausible.io/js/script.js"></script>
     <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
     
-    <!-- Supabase Auth -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase Auth (loaded async to not block page) -->
+    <script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" onload="initSupabase()"></script>
     <style>
         * {
             margin: 0;
@@ -2160,10 +2160,20 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZiYW5rem91YnByZnBnc3hxYWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODYzMTUsImV4cCI6MjA4NTk2MjMxNX0.9NibIDtQn6xI0xNoo_sA2wG-BUbw5lvsplRx_DHbY4c';
         
         let supabase = null;
-        try {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (err) {
-            console.warn('Supabase init failed:', err);
+        
+        function initSupabase() {
+            if (window.supabase && window.supabase.createClient) {
+                try {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('Supabase initialized');
+                    // Now that Supabase is ready, try to init auth
+                    initAuth();
+                } catch (err) {
+                    console.warn('Supabase init failed:', err);
+                }
+            } else {
+                console.warn('Supabase SDK not loaded yet');
+            }
         }
         
         let currentUser = null;
@@ -2467,17 +2477,19 @@
         
         // Load validated demos on page load
         async function loadDemos() {
+            const container = document.getElementById('demoButtons');
             try {
                 const response = await fetch(`${API_URL}/demos`);
                 if (response.ok) {
                     const data = await response.json();
                     DEMO_EXAMPLES = data.demos;
                     renderDemoButtons();
+                } else {
+                    container.innerHTML = '<span style="color: #888;">Examples unavailable</span>';
                 }
             } catch (err) {
                 console.warn('Failed to load demos:', err);
-                // Hide demo section if we can't load demos
-                document.getElementById('demoSection').style.display = 'none';
+                container.innerHTML = '<span style="color: #888;">Examples unavailable</span>';
             }
         }
         
@@ -2521,11 +2533,11 @@
                     console.log('Loaded gallery fixes:', GALLERY_FIXES.length);
                     renderGalleryGrid();
                 } else {
-                    grid.innerHTML = '<div class="gallery-loading">Could not load fixes. Try refreshing.</div>';
+                    grid.innerHTML = '<div class="gallery-loading" style="color: #ff6b6b;">Could not load fixes (status: ' + fixResponse.status + ')</div>';
                 }
             } catch (err) {
                 console.warn('Failed to load gallery:', err);
-                grid.innerHTML = '<div class="gallery-loading">Gallery unavailable. Try refreshing.</div>';
+                grid.innerHTML = '<div class="gallery-loading" style="color: #ff6b6b;">Network error: ' + (err.message || 'unknown') + '</div>';
             }
         }
         
@@ -2608,7 +2620,7 @@
         
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', () => {
-            initAuth();
+            // Auth init is called by initSupabase() when SDK loads
             loadDemos();
             loadGallery();
             
