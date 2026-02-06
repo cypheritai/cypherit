@@ -506,7 +506,7 @@ async def extract(request: Request, body: ExtractRequest):
     """Extract fix steps from a YouTube video URL. Rate limited to 10 requests/minute."""
     # Validate it looks like a YouTube URL
     try:
-        extract_video_id(body.url)
+        video_id = extract_video_id(body.url)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     
@@ -516,6 +516,14 @@ async def extract(request: Request, body: ExtractRequest):
         raise HTTPException(status_code=400, detail="Transcript too short to extract meaningful steps")
     
     result = extract_fix_steps(transcript, body.url, body.max_steps)
+    
+    # Track extraction for auto-promote
+    save_extraction(
+        video_id=video_id,
+        title=result.get("title", "Untitled"),
+        category=result.get("category", "general")
+    )
+    
     return ExtractResponse(**result)
 
 
@@ -536,6 +544,94 @@ async def demo_extract(request: Request):
         "time_to_read": "60 seconds",
         "source_url": "https://youtube.com/watch?v=demo123"
     }
+
+
+# ============ EXTRACTIONS TRACKING ============
+
+def load_extractions_data():
+    """Load extractions data from JSON file."""
+    extractions_path = Path(__file__).parent / "extractions_data.json"
+    if extractions_path.exists():
+        with open(extractions_path, 'r') as f:
+            return json.load(f)
+    return {"extractions": {}}
+
+def save_extractions_data(data):
+    """Save extractions data to JSON file."""
+    extractions_path = Path(__file__).parent / "extractions_data.json"
+    with open(extractions_path, 'w') as f:
+        json.dump(data, f, indent=2)
+
+def save_extraction(video_id: str, title: str, category: str = "general"):
+    """Save extraction metadata for potential auto-promotion."""
+    data = load_extractions_data()
+    
+    if video_id not in data["extractions"]:
+        data["extractions"][video_id] = {
+            "video_id": video_id,
+            "title": title,
+            "thumbnail": f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg",
+            "category": category,
+            "created_at": int(time.time()),
+            "extraction_count": 0
+        }
+    
+    data["extractions"][video_id]["extraction_count"] += 1
+    data["extractions"][video_id]["last_extracted"] = int(time.time())
+    
+    save_extractions_data(data)
+
+def get_extraction(video_id: str) -> dict:
+    """Get extraction metadata for a video."""
+    data = load_extractions_data()
+    return data.get("extractions", {}).get(video_id)
+
+
+# ============ AUTO-PROMOTE LOGIC ============
+
+PROMOTION_THRESHOLD = 3  # Net helpful votes needed for promotion
+
+def check_auto_promote(video_id: str):
+    """Check if video should be auto-promoted to gallery."""
+    votes_data = load_votes_data()
+    votes = votes_data.get("votes", {}).get(video_id, {"helpful": 0, "not_helpful": 0})
+    
+    net_helpful = votes.get("helpful", 0) - votes.get("not_helpful", 0)
+    
+    if net_helpful >= PROMOTION_THRESHOLD:
+        # Check if already in gallery
+        gallery_data = load_gallery_data()
+        existing = next((f for f in gallery_data.get("fixes", []) if f.get("video_id") == video_id), None)
+        
+        if not existing:
+            # Get extraction metadata
+            extraction = get_extraction(video_id)
+            
+            if extraction:
+                # Auto-add to gallery
+                new_fix = {
+                    "id": f"auto-{video_id}",
+                    "category": extraction.get("category", "general"),
+                    "video_id": video_id,
+                    "title": extraction.get("title", "Community Fix"),
+                    "description": f"Auto-promoted by community ({votes.get('helpful', 0)} helpful votes)",
+                    "thumbnail": extraction.get("thumbnail"),
+                    "time_estimate": "5-15 minutes",
+                    "difficulty": "varies",
+                    "upvotes": votes.get("helpful", 0),
+                    "views": extraction.get("extraction_count", 1),
+                    "featured": False,  # Not featured, but in gallery
+                    "verified": False,
+                    "auto_promoted": True,
+                    "promoted_at": int(time.time())
+                }
+                
+                gallery_data["fixes"].append(new_fix)
+                save_gallery_data(gallery_data)
+                
+                return {"promoted": True, "fix": new_fix}
+    
+    return {"promoted": False}
 
 
 # ============ GALLERY ENDPOINTS ============
@@ -734,12 +830,15 @@ async def submit_vote(request: Request, vote: VoteRequest):
     
     save_votes_data(data)
     
+    # Check if this vote triggers auto-promotion
+    promotion_result = check_auto_promote(vote.video_id)
+    
     # Return updated counts
     votes = data["votes"][vote.video_id]
     total = votes["helpful"] + votes["not_helpful"]
     helpful_pct = round((votes["helpful"] / total * 100)) if total > 0 else 0
     
-    return {
+    response = {
         "success": True,
         "video_id": vote.video_id,
         "helpful": votes["helpful"],
@@ -747,6 +846,13 @@ async def submit_vote(request: Request, vote: VoteRequest):
         "total": total,
         "helpful_percent": helpful_pct
     }
+    
+    # Add promotion info if promoted
+    if promotion_result.get("promoted"):
+        response["promoted"] = True
+        response["promoted_fix"] = promotion_result.get("fix")
+    
+    return response
 
 
 # Serve frontend

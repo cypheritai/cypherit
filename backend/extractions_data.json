@@ -1,0 +1,4 @@
+{
+  "extractions": {},
+  "_note": "Tracks all extractions for auto-promote. Format: video_id: {title, thumbnail, category, created_at, extraction_count}"
+}
