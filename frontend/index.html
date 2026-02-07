@@ -254,6 +254,135 @@
             margin-right: 6px;
         }
         
+        /* Discover Bar */
+        .discover-section {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .discover-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        
+        .discover-label {
+            color: #888;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .discover-label-icon {
+            font-size: 1.1rem;
+        }
+        
+        .discover-scroll-hint {
+            color: #555;
+            font-size: 0.8rem;
+        }
+        
+        .discover-bar {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 4px 0 12px 0;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0,217,255,0.3) transparent;
+        }
+        
+        .discover-bar::-webkit-scrollbar {
+            height: 6px;
+        }
+        
+        .discover-bar::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+        }
+        
+        .discover-bar::-webkit-scrollbar-thumb {
+            background: rgba(0,217,255,0.3);
+            border-radius: 3px;
+        }
+        
+        .discover-bar::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,217,255,0.5);
+        }
+        
+        .discover-item {
+            flex-shrink: 0;
+            width: 140px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .discover-item:hover {
+            transform: translateY(-4px);
+        }
+        
+        .discover-item:hover .discover-thumb {
+            border-color: #00d9ff;
+            box-shadow: 0 4px 20px rgba(0,217,255,0.3);
+        }
+        
+        .discover-thumb {
+            width: 140px;
+            height: 79px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid rgba(255,255,255,0.1);
+            transition: all 0.2s;
+        }
+        
+        .discover-title {
+            font-size: 0.75rem;
+            color: #aaa;
+            margin-top: 6px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .discover-item:hover .discover-title {
+            color: #fff;
+        }
+        
+        .discover-category {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            background: rgba(0,0,0,0.7);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.65rem;
+        }
+        
+        .discover-instant {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            display: none;
+        }
+        
+        .discover-item.instant .discover-instant {
+            display: block;
+        }
+        
         /* Voting Section */
         .voting-section {
             background: rgba(0,217,255,0.05);
@@ -550,6 +679,91 @@
         .gallery-subtitle {
             color: #888;
             font-size: 0.95rem;
+        }
+        
+        .gallery-search {
+            max-width: 400px;
+            margin: 20px auto;
+            position: relative;
+        }
+        
+        .gallery-search-input {
+            width: 100%;
+            padding: 14px 20px 14px 44px;
+            font-size: 0.95rem;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            background: rgba(0,0,0,0.3);
+            color: #fff;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        .gallery-search-input:focus {
+            border-color: #00d9ff;
+            background: rgba(0,0,0,0.5);
+        }
+        
+        .gallery-search-input::placeholder {
+            color: #666;
+        }
+        
+        .gallery-search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            font-size: 1rem;
+            pointer-events: none;
+        }
+        
+        .gallery-search-clear {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #888;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        
+        .gallery-search-clear:hover {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+        
+        .gallery-search.has-value .gallery-search-clear {
+            display: flex;
+        }
+        
+        .gallery-no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+        
+        .gallery-no-results-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+        
+        .gallery-no-results-text {
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        
+        .gallery-no-results-hint {
+            font-size: 0.9rem;
+            color: #555;
         }
         
         .category-tabs {
@@ -2281,6 +2495,20 @@
                 </div>
             </div>
             
+            <!-- Discover Bar -->
+            <div class="discover-section" id="discoverSection">
+                <div class="discover-header">
+                    <span class="discover-label">
+                        <span class="discover-label-icon">🔍</span>
+                        Discover popular fixes
+                    </span>
+                    <span class="discover-scroll-hint">scroll →</span>
+                </div>
+                <div class="discover-bar" id="discoverBar">
+                    <!-- Populated dynamically from gallery -->
+                </div>
+            </div>
+            
             <div class="error" id="error"></div>
         </div>
         
@@ -2308,6 +2536,16 @@
             <div class="gallery-header">
                 <h2 class="gallery-title">⚡ Featured Fixes</h2>
                 <p class="gallery-subtitle">Verified tutorials — click any card to get the steps instantly</p>
+                
+                <div class="gallery-search" id="gallerySearch">
+                    <span class="gallery-search-icon">🔍</span>
+                    <input type="text" 
+                           class="gallery-search-input" 
+                           id="gallerySearchInput" 
+                           placeholder="Search fixes... (e.g., python, oil change, PC build)"
+                           oninput="searchGallery(this.value)">
+                    <button class="gallery-search-clear" onclick="clearGallerySearch()">✕</button>
+                </div>
             </div>
             
             <div class="category-tabs" id="categoryTabs">
@@ -2659,6 +2897,8 @@
                 userFavorites = [];
                 userHistory = [];
             }
+            // Re-render discover bar to update INSTANT badges
+            renderDiscoverBar();
         }
         
         function showAuthModal() {
@@ -3052,6 +3292,7 @@
                     GALLERY_FIXES = fixData.fixes || [];
                     console.log('Loaded gallery fixes:', GALLERY_FIXES.length);
                     renderGalleryGrid();
+                    renderDiscoverBar();  // Populate discover bar
                 } else {
                     grid.innerHTML = '<div class="gallery-loading" style="color: #ff6b6b;">Could not load fixes (status: ' + fixResponse.status + ')</div>';
                 }
@@ -3118,6 +3359,27 @@
             `;
         }
         
+        let gallerySearchQuery = '';
+        
+        function searchGallery(query) {
+            gallerySearchQuery = query.toLowerCase().trim();
+            
+            // Update search box state
+            const searchBox = document.getElementById('gallerySearch');
+            if (gallerySearchQuery) {
+                searchBox.classList.add('has-value');
+            } else {
+                searchBox.classList.remove('has-value');
+            }
+            
+            renderGalleryGrid();
+        }
+        
+        function clearGallerySearch() {
+            document.getElementById('gallerySearchInput').value = '';
+            searchGallery('');
+        }
+        
         function filterCategory(categoryId) {
             currentCategory = categoryId;
             currentSubcategory = null; // Reset subcategory when changing category
@@ -3136,6 +3398,14 @@
             
             let fixes = GALLERY_FIXES;
             
+            // Filter by search query
+            if (gallerySearchQuery) {
+                fixes = fixes.filter(f => {
+                    const searchText = `${f.title} ${f.description} ${f.category} ${f.subcategory || ''}`.toLowerCase();
+                    return searchText.includes(gallerySearchQuery);
+                });
+            }
+            
             // Filter by category
             if (currentCategory !== 'all') {
                 fixes = fixes.filter(f => f.category === currentCategory);
@@ -3147,7 +3417,17 @@
             }
             
             if (!fixes.length) {
-                container.innerHTML = '<div class="gallery-loading">No fixes in this category yet</div>';
+                if (gallerySearchQuery) {
+                    container.innerHTML = `
+                        <div class="gallery-no-results">
+                            <div class="gallery-no-results-icon">🔍</div>
+                            <div class="gallery-no-results-text">No fixes found for "${gallerySearchQuery}"</div>
+                            <div class="gallery-no-results-hint">Try different keywords or browse categories</div>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = '<div class="gallery-loading">No fixes in this category yet</div>';
+                }
                 return;
             }
             
@@ -3205,6 +3485,90 @@
             } catch (err) {
                 console.warn('Failed to upvote:', err);
             }
+        }
+        
+        // Render Discover Bar
+        function renderDiscoverBar() {
+            const bar = document.getElementById('discoverBar');
+            if (!bar || !GALLERY_FIXES || GALLERY_FIXES.length === 0) {
+                console.log('Discover bar: no fixes to show');
+                return;
+            }
+            
+            // Get a diverse set of fixes (max 15, mix of categories)
+            const seen = new Set();
+            const diverse = [];
+            const categories = ['tech', 'auto', 'home', 'gaming', 'phone', 'kitchen'];
+            
+            // First pass: one from each category
+            for (const cat of categories) {
+                const fix = GALLERY_FIXES.find(f => f.category === cat && !seen.has(f.id));
+                if (fix) {
+                    diverse.push(fix);
+                    seen.add(fix.id);
+                }
+            }
+            
+            // Second pass: fill remaining with top-voted
+            for (const fix of GALLERY_FIXES) {
+                if (diverse.length >= 15) break;
+                if (!seen.has(fix.id)) {
+                    diverse.push(fix);
+                    seen.add(fix.id);
+                }
+            }
+            
+            const isSignedIn = currentUser !== null;
+            
+            bar.innerHTML = diverse.map(fix => {
+                const catInfo = GALLERY_CATEGORIES?.find(c => c.id === fix.category);
+                const emoji = catInfo?.emoji || '📺';
+                
+                return `
+                    <div class="discover-item ${isSignedIn ? 'instant' : ''}" 
+                         onclick="discoverClick('${fix.video_id}', '${fix.title.replace(/'/g, "\\'")}', ${isSignedIn})"
+                         title="${fix.title}">
+                        <span class="discover-category">${emoji}</span>
+                        ${isSignedIn ? '<span class="discover-instant">⚡ INSTANT</span>' : ''}
+                        <img class="discover-thumb" 
+                             src="${fix.thumbnail}" 
+                             alt="${fix.title}"
+                             loading="lazy">
+                        <div class="discover-title">${fix.title}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        async function discoverClick(videoId, title, isInstant) {
+            const url = `https://youtube.com/watch?v=${videoId}`;
+            document.getElementById('urlInput').value = url;
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            if (isInstant) {
+                // Signed-in user: try to load from cache first
+                try {
+                    showToast('⚡ Loading from cache...');
+                    const response = await fetch(`${API_URL}/extraction/${videoId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.cached && data.result) {
+                            showToast('⚡ Loaded instantly!', 'success');
+                            displayResult(data.result);
+                            return;
+                        }
+                    }
+                } catch (err) {
+                    console.warn('Cache lookup failed:', err);
+                }
+                // Fallback to extraction
+                showToast('📥 Extracting fresh...');
+            }
+            
+            // Start extraction (counts against guest limit)
+            setTimeout(() => extract(), 300);
         }
         
         // Initialize on page load

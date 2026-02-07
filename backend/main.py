@@ -165,12 +165,14 @@ class ExtractRequest(BaseModel):
     
     @field_validator('url')
     @classmethod
-    def validate_youtube_url(cls, v):
-        youtube_patterns = [
+    def validate_video_url(cls, v):
+        # Support YouTube and Twitter/X
+        supported_patterns = [
             r'(youtube\.com|youtu\.be)',
+            r'(twitter\.com|x\.com)/\w+/status/',
         ]
-        if not any(re.search(p, v) for p in youtube_patterns):
-            raise ValueError('Must be a valid YouTube URL')
+        if not any(re.search(p, v) for p in supported_patterns):
+            raise ValueError('Must be a valid YouTube or Twitter/X URL')
         return v
     
     @field_validator('max_steps')
@@ -204,6 +206,19 @@ class ExtractResponse(BaseModel):
     time_to_read: str
     source_url: str
     video_id: str
+
+
+def is_twitter_url(url: str) -> bool:
+    """Check if URL is a Twitter/X video URL."""
+    return bool(re.search(r'(twitter\.com|x\.com)/\w+/status/', url))
+
+
+def extract_twitter_id(url: str) -> str:
+    """Extract Twitter status ID from URL."""
+    match = re.search(r'(?:twitter\.com|x\.com)/\w+/status/(\d+)', url)
+    if match:
+        return match.group(1)
+    raise HTTPException(status_code=400, detail="Could not extract Twitter status ID from URL")
 
 
 def extract_video_id(url: str) -> str:
@@ -294,6 +309,95 @@ def get_transcript(url: str) -> str:
                 time.sleep(2)  # Wait 2s before proxy retry
     
     raise HTTPException(status_code=400, detail=f"Failed to get transcript. YouTube may be busy — try again in a moment.")
+
+
+def get_twitter_transcript(url: str) -> str:
+    """Fetch transcript from Twitter/X video using yt-dlp."""
+    import subprocess
+    import tempfile
+    import os
+    
+    tweet_id = extract_twitter_id(url)
+    
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # Try to get subtitles with yt-dlp
+        subtitle_file = os.path.join(tmpdir, f"{tweet_id}.en.vtt")
+        info_file = os.path.join(tmpdir, "info.json")
+        
+        try:
+            # First, try to extract subtitles
+            result = subprocess.run([
+                "yt-dlp",
+                "--write-auto-sub",
+                "--sub-lang", "en",
+                "--skip-download",
+                "--write-info-json",
+                "-o", os.path.join(tmpdir, "%(id)s.%(ext)s"),
+                url
+            ], capture_output=True, text=True, timeout=30)
+            
+            # Check if we got subtitles
+            vtt_files = [f for f in os.listdir(tmpdir) if f.endswith('.vtt')]
+            if vtt_files:
+                vtt_path = os.path.join(tmpdir, vtt_files[0])
+                with open(vtt_path, 'r') as f:
+                    vtt_content = f.read()
+                
+                # Parse VTT to timestamped lines
+                lines = []
+                current_time = None
+                for line in vtt_content.split('\n'):
+                    if '-->' in line:
+                        # Parse timestamp: "00:00:01.000 --> 00:00:04.000"
+                        start_ts = line.split(' --> ')[0].strip()
+                        # Convert to MM:SS format
+                        parts = start_ts.split(':')
+                        if len(parts) == 3:
+                            mins = int(parts[0]) * 60 + int(parts[1])
+                            secs = float(parts[2])
+                            current_time = f"{mins}:{int(secs):02d}"
+                        elif len(parts) == 2:
+                            current_time = f"{int(parts[0])}:{int(float(parts[1])):02d}"
+                    elif line.strip() and not line.startswith('WEBVTT') and not line.strip().isdigit() and current_time:
+                        # Clean up common VTT formatting
+                        clean_line = re.sub(r'<[^>]+>', '', line.strip())
+                        if clean_line:
+                            lines.append(f"[{current_time}] {clean_line}")
+                            current_time = None
+                
+                if lines:
+                    return '\n'.join(lines)
+            
+            # No subtitles - try to get video description as fallback
+            json_files = [f for f in os.listdir(tmpdir) if f.endswith('.json')]
+            if json_files:
+                import json
+                with open(os.path.join(tmpdir, json_files[0]), 'r') as f:
+                    info = json.load(f)
+                    
+                description = info.get('description', '')
+                title = info.get('title', '')
+                
+                if description or title:
+                    # Use description as context
+                    text = f"{title}\n\n{description}" if title else description
+                    # Add fake timestamp for compatibility
+                    return f"[0:00] {text}"
+            
+            raise HTTPException(
+                status_code=400, 
+                detail="This Twitter/X video doesn't have captions. Try a video with auto-generated or manual captions."
+            )
+            
+        except subprocess.TimeoutExpired:
+            raise HTTPException(status_code=400, detail="Twitter video fetch timed out. Please try again.")
+        except FileNotFoundError:
+            raise HTTPException(
+                status_code=500, 
+                detail="yt-dlp not installed. Run: pip install yt-dlp"
+            )
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Failed to extract Twitter video: {str(e)[:100]}")
 
 
 def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
@@ -516,13 +620,17 @@ async def extract(request: Request, body: ExtractRequest):
             detail=f"Daily limit reached ({GUEST_DAILY_LIMIT} extractions/day). Sign in for unlimited access!"
         )
     
-    # Validate it looks like a YouTube URL
-    try:
-        video_id = extract_video_id(body.url)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    
-    transcript = get_transcript(body.url)
+    # Handle YouTube or Twitter/X URLs
+    if is_twitter_url(body.url):
+        video_id = f"tw_{extract_twitter_id(body.url)}"
+        transcript = get_twitter_transcript(body.url)
+    else:
+        # YouTube
+        try:
+            video_id = extract_video_id(body.url)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        transcript = get_transcript(body.url)
     
     if len(transcript) < 50:
         raise HTTPException(status_code=400, detail="Transcript too short to extract meaningful steps")

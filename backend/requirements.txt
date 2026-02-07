@@ -7,3 +7,4 @@ pydantic==2.5.3
 slowapi==0.1.9
 certifi>=2023.0.0
 requests>=2.31.0
+yt-dlp>=2024.1.0
