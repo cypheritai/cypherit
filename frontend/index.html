@@ -682,14 +682,27 @@
         }
         
         .gallery-search {
-            max-width: 400px;
+            max-width: 450px;
             margin: 20px auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .gallery-search-icon {
+            color: #666;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .gallery-search-wrapper {
             position: relative;
+            flex: 1;
         }
         
         .gallery-search-input {
             width: 100%;
-            padding: 14px 20px 14px 44px;
+            padding: 14px 44px 14px 20px;
             font-size: 0.95rem;
             border: 2px solid rgba(255,255,255,0.1);
             border-radius: 30px;
@@ -708,19 +721,9 @@
             color: #666;
         }
         
-        .gallery-search-icon {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #666;
-            font-size: 1rem;
-            pointer-events: none;
-        }
-        
         .gallery-search-clear {
             position: absolute;
-            right: 12px;
+            right: 14px;
             top: 50%;
             transform: translateY(-50%);
             background: rgba(255,255,255,0.1);
@@ -2539,12 +2542,14 @@
                 
                 <div class="gallery-search" id="gallerySearch">
                     <span class="gallery-search-icon">🔍</span>
-                    <input type="text" 
-                           class="gallery-search-input" 
-                           id="gallerySearchInput" 
-                           placeholder="Search fixes... (e.g., python, oil change, PC build)"
-                           oninput="searchGallery(this.value)">
-                    <button class="gallery-search-clear" onclick="clearGallerySearch()">✕</button>
+                    <div class="gallery-search-wrapper">
+                        <input type="text" 
+                               class="gallery-search-input" 
+                               id="gallerySearchInput" 
+                               placeholder="Search fixes... (e.g., python, oil change)"
+                               oninput="searchGallery(this.value)">
+                        <button class="gallery-search-clear" onclick="clearGallerySearch()">✕</button>
+                    </div>
                 </div>
             </div>
             
