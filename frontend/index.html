@@ -3250,8 +3250,17 @@
                 }
             }
             
-            loadDemos();
-            loadGallery();
+            try {
+                loadDemos();
+            } catch (e) {
+                console.error('Failed to load demos:', e);
+            }
+            
+            try {
+                loadGallery();
+            } catch (e) {
+                console.error('Failed to load gallery:', e);
+            }
             
             // Check for shared video link (?v=VIDEO_ID)
             const params = new URLSearchParams(window.location.search);
@@ -4321,19 +4330,25 @@
             const list = document.getElementById('commentsList');
             const countEl = document.getElementById('commentsCount');
             
+            if (!list || !countEl) return; // Guard against missing elements
+            
             countEl.textContent = `(${videoComments.length})`;
             
             // Update form visibility based on auth state
+            const signinPrompt = document.getElementById('commentSigninPrompt');
+            const commentForm = document.getElementById('commentForm');
+            
             if (currentUser) {
-                document.getElementById('commentSigninPrompt').style.display = 'none';
-                document.getElementById('commentForm').style.display = 'block';
+                if (signinPrompt) signinPrompt.style.display = 'none';
+                if (commentForm) commentForm.style.display = 'block';
             } else {
-                document.getElementById('commentSigninPrompt').style.display = 'block';
-                document.getElementById('commentForm').style.display = 'none';
+                if (signinPrompt) signinPrompt.style.display = 'block';
+                if (commentForm) commentForm.style.display = 'none';
             }
             
             if (videoComments.length === 0) {
                 list.innerHTML = '<div class="no-comments">No comments yet. Be the first to share!</div>';
+                initCommentCharCount();
                 return;
             }
             
@@ -4354,6 +4369,8 @@
                     </div>
                 `;
             }).join('');
+            
+            initCommentCharCount();
         }
         
         function formatTimeAgo(timestamp) {
@@ -4432,15 +4449,17 @@
             }
         }
         
-        // Character count for comment textarea
-        document.addEventListener('DOMContentLoaded', () => {
+        // Character count for comment textarea (initialized when comments load)
+        function initCommentCharCount() {
             const textarea = document.getElementById('commentText');
-            if (textarea) {
+            if (textarea && !textarea.dataset.initialized) {
+                textarea.dataset.initialized = 'true';
                 textarea.addEventListener('input', () => {
-                    document.getElementById('charCount').textContent = textarea.value.length;
+                    const countEl = document.getElementById('charCount');
+                    if (countEl) countEl.textContent = textarea.value.length;
                 });
             }
-        });
+        }
         
         // ============ SHARE FUNCTIONS ============
         function shareApp() {
