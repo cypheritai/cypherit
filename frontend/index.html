@@ -1295,22 +1295,23 @@
             transition: all 0.2s;
             position: relative;
             overflow: hidden;
-            animation: subtleBlink 2s ease-in-out infinite;
         }
         
         @keyframes subtleBlink {
             0%, 100% { 
-                border-color: rgba(0,217,255,0.4);
-                box-shadow: 0 0 0 rgba(0,217,255,0);
+                border-color: rgba(0,255,136,0.5);
+                box-shadow: 0 0 0 rgba(0,255,136,0);
             }
             50% { 
-                border-color: rgba(0,217,255,0.8);
-                box-shadow: 0 0 15px rgba(0,217,255,0.3);
+                border-color: rgba(0,255,136,1);
+                box-shadow: 0 0 20px rgba(0,255,136,0.4);
             }
         }
         
+        /* Blink only AFTER video completes */
         .next-step-btn.completed {
-            animation: none;
+            animation: subtleBlink 1.5s ease-in-out infinite;
+            border-color: rgba(0,255,136,0.5);
         }
         
         .next-step-btn .btn-progress {
@@ -4653,15 +4654,25 @@
             
             const startTime = timestampToSeconds(step.dataset.timestamp);
             
-            // Reset just the progress bar - keep completed state and replay button
+            // Reset progress bar
             const btnProgress = document.getElementById(`btn-progress-${idx}`);
             if (btnProgress) btnProgress.style.width = '0%';
+            
+            // Reset caption for "live feed" effect on replay
+            const captionEl = document.getElementById(`step-caption-${idx}`);
+            if (captionEl) {
+                const textEl = captionEl.querySelector('.caption-text');
+                if (textEl) textEl.textContent = '';
+                captionEl.classList.remove('complete');
+                delete captionShownSteps[idx]; // Allow caption to re-type
+            }
             
             // Seek to start and play
             player.seekTo(startTime, true);
             player.playVideo();
             
-            // Captions stay visible (don't reset) - only reset on page refresh
+            // Restart caption sync
+            startCaptionTyping(idx);
         }
         
         // ============ THUMBNAIL + TAP-TO-PLAY ============
