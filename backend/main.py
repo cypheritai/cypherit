@@ -420,7 +420,7 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
 
     response = client.messages.create(
         model="claude-sonnet-4-20250514",  # Latest Sonnet - accurate timestamps
-        max_tokens=2000,
+        max_tokens=4000,  # Increased for detailed extractions
         messages=[{"role": "user", "content": prompt}]
     )
     
