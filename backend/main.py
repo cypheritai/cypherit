@@ -432,7 +432,14 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
         lines = [l for l in lines if not l.startswith('```')]
         response_text = '\n'.join(lines)
     
-    result = json.loads(response_text)
+    # Parse JSON with error handling
+    try:
+        result = json.loads(response_text)
+    except json.JSONDecodeError as e:
+        # Log the error for debugging
+        print(f"JSON parse error: {e}")
+        print(f"Response text (first 500 chars): {response_text[:500]}")
+        raise ValueError(f"AI returned invalid response format. Please try again.")
     result["source_url"] = url
     result["video_id"] = extract_video_id(url)
     
@@ -643,7 +650,13 @@ async def extract(request: Request, body: ExtractRequest):
     if len(transcript) < 50:
         raise HTTPException(status_code=400, detail="Transcript too short to extract meaningful steps")
     
-    result = extract_fix_steps(transcript, body.url, body.max_steps, language=body.language)
+    try:
+        result = extract_fix_steps(transcript, body.url, body.max_steps, language=body.language)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"Extraction error: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail="Extraction failed. Please try again.")
     
     # Track extraction for auto-promote + cache for sharing
     save_extraction(
