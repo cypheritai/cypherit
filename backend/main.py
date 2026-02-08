@@ -427,18 +427,32 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
     response_text = response.content[0].text.strip()
     
     # Handle potential markdown wrapping
-    if response_text.startswith('```'):
-        lines = response_text.split('\n')
-        lines = [l for l in lines if not l.startswith('```')]
-        response_text = '\n'.join(lines)
+    if '```json' in response_text:
+        response_text = response_text.split('```json')[-1].split('```')[0]
+    elif '```' in response_text:
+        parts = response_text.split('```')
+        for part in parts:
+            if part.strip().startswith('{'):
+                response_text = part.strip()
+                break
     
-    # Try to extract JSON from response (handle extra text before/after)
-    import re
-    json_match = re.search(r'\{[\s\S]*\}', response_text)
-    if json_match:
-        response_text = json_match.group()
+    # Find the JSON object (handle text before/after)
+    start_idx = response_text.find('{')
+    if start_idx != -1:
+        # Find matching closing brace
+        depth = 0
+        end_idx = start_idx
+        for i, char in enumerate(response_text[start_idx:], start_idx):
+            if char == '{':
+                depth += 1
+            elif char == '}':
+                depth -= 1
+                if depth == 0:
+                    end_idx = i + 1
+                    break
+        response_text = response_text[start_idx:end_idx]
     
-    # Parse JSON with error handling and retry
+    # Parse JSON with error handling
     try:
         result = json.loads(response_text)
     except json.JSONDecodeError as e:
@@ -446,7 +460,7 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
         print(f"JSON parse error: {e}")
         print(f"Response text (first 1000 chars): {response_text[:1000]}")
         # Return partial info for debugging
-        raise ValueError(f"AI response parse error. First 200 chars: {response_text[:200]}")
+        raise ValueError(f"JSON parse failed at position {e.pos}: {e.msg}. Check: {response_text[max(0,e.pos-20):e.pos+20]}")
     result["source_url"] = url
     result["video_id"] = extract_video_id(url)
     
