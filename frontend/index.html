@@ -3700,8 +3700,15 @@
             currentAbortController = new AbortController();
             
             try {
+                // Detect browser language for localized output
+                const browserLang = navigator.language?.split('-')[0] || 'en';
+                
                 // Include user_id to bypass server-side IP limit for signed-in users
-                const extractPayload = { url, max_steps: 6 };
+                const extractPayload = { 
+                    url, 
+                    max_steps: 6,
+                    language: browserLang  // Output results in user's language
+                };
                 if (currentUser) {
                     extractPayload.user_id = currentUser.id;
                 }

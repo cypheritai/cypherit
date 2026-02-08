@@ -110,14 +110,40 @@ def detect_category(title: str, transcript: str) -> tuple[str, str]:
     return best_category, best_subcategory
 
 
-def get_extraction_prompt(category: str, transcript: str, max_steps: int = 10) -> str:
-    """Simple extraction - let it execute naturally."""
+def get_extraction_prompt(category: str, transcript: str, max_steps: int = 10, language: str = "en") -> str:
+    """Simple extraction - let it execute naturally.
+    
+    Args:
+        category: Detected content category
+        transcript: Video transcript
+        max_steps: Maximum steps to extract
+        language: ISO language code (e.g., 'en', 'es', 'fr', 'de', 'pt')
+    """
     
     # Get subcategory list for the detected category
     cat_data = CATEGORIES.get(category, CATEGORIES["tech"])
     subcategory_list = ", ".join(cat_data["subcategories"].keys())
     
+    # Language mapping for natural output
+    LANGUAGE_NAMES = {
+        "en": "English",
+        "es": "Spanish",
+        "fr": "French",
+        "de": "German",
+        "pt": "Portuguese",
+        "it": "Italian",
+        "ja": "Japanese",
+        "ko": "Korean",
+        "zh": "Chinese",
+        "ru": "Russian",
+        "ar": "Arabic",
+        "hi": "Hindi",
+    }
+    output_language = LANGUAGE_NAMES.get(language[:2].lower(), "English")
+    
     return f"""You are CypherIt. Extract the essential steps from this video.
+
+OUTPUT LANGUAGE: Respond in {output_language}. All text fields (title, problem, action, detail, summary, warnings, tips) must be in {output_language}.
 
 Your job: Turn a long video into clear, actionable steps someone can follow.
 

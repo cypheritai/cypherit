@@ -162,6 +162,7 @@ class ExtractRequest(BaseModel):
     url: str
     max_steps: int = 5
     user_id: Optional[str] = None  # Supabase user ID (bypasses IP limit if provided)
+    language: str = "en"  # ISO language code (e.g., 'en', 'es', 'fr') - auto-detected from browser
     
     @field_validator('url')
     @classmethod
@@ -400,15 +401,22 @@ def get_twitter_transcript(url: str) -> str:
             raise HTTPException(status_code=400, detail=f"Failed to extract Twitter video: {str(e)[:100]}")
 
 
-def extract_fix_steps(transcript: str, url: str, max_steps: int = 6) -> dict:
-    """Use Claude to extract structured fix steps from transcript using category frameworks."""
+def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: str = "en") -> dict:
+    """Use Claude to extract structured fix steps from transcript using category frameworks.
+    
+    Args:
+        transcript: Video transcript text
+        url: Source video URL
+        max_steps: Maximum steps to extract
+        language: ISO language code for output (e.g., 'en', 'es', 'fr')
+    """
     from frameworks import detect_category, get_extraction_prompt
     
     # Detect category and subcategory from transcript
     category, subcategory = detect_category("", transcript)
     
-    # Get the specialized prompt for this category
-    prompt = get_extraction_prompt(category, transcript, max_steps)
+    # Get the specialized prompt for this category (with language support)
+    prompt = get_extraction_prompt(category, transcript, max_steps, language=language)
 
     response = client.messages.create(
         model="claude-sonnet-4-20250514",
@@ -635,7 +643,7 @@ async def extract(request: Request, body: ExtractRequest):
     if len(transcript) < 50:
         raise HTTPException(status_code=400, detail="Transcript too short to extract meaningful steps")
     
-    result = extract_fix_steps(transcript, body.url, body.max_steps)
+    result = extract_fix_steps(transcript, body.url, body.max_steps, language=body.language)
     
     # Track extraction for auto-promote + cache for sharing
     save_extraction(
