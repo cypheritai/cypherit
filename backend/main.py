@@ -613,6 +613,28 @@ async def health():
     }
 
 
+@app.get("/debug/transcript/{video_id}")
+async def debug_transcript(video_id: str):
+    """Debug endpoint to test transcript fetching."""
+    try:
+        from youtube_transcript_api import YouTubeTranscriptApi
+        api = YouTubeTranscriptApi()
+        transcript = api.fetch(video_id)
+        return {
+            "status": "success",
+            "segments": len(transcript.snippets),
+            "first_text": transcript.snippets[0].text if transcript.snippets else None
+        }
+    except Exception as e:
+        import traceback
+        return {
+            "status": "error",
+            "error_type": type(e).__name__,
+            "error": str(e),
+            "traceback": traceback.format_exc()
+        }
+
+
 @app.get("/demos")
 async def get_demos():
     """Get validated demo videos. Caches results for 6 hours."""
@@ -651,12 +673,17 @@ async def extract(request: Request, body: ExtractRequest):
         raise HTTPException(status_code=400, detail="Transcript too short to extract meaningful steps")
     
     try:
+        print(f"Starting extraction for {body.url}, transcript length: {len(transcript)}")
         result = extract_fix_steps(transcript, body.url, body.max_steps, language=body.language)
+        print(f"Extraction successful, got {len(result.get('steps', []))} steps")
     except ValueError as e:
+        print(f"ValueError in extraction: {e}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        import traceback
         print(f"Extraction error: {type(e).__name__}: {e}")
-        raise HTTPException(status_code=500, detail="Extraction failed. Please try again.")
+        print(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Extraction failed: {type(e).__name__}")
     
     # Track extraction for auto-promote + cache for sharing
     save_extraction(
