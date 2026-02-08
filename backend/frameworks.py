@@ -141,15 +141,29 @@ def get_extraction_prompt(category: str, transcript: str, max_steps: int = 10, l
     }
     output_language = LANGUAGE_NAMES.get(language[:2].lower(), "English")
     
-    return f"""You are CypherIt. Extract the essential steps from this video.
+    return f"""You are CypherIt. Extract COMPLETE, SAFE, step-by-step instructions from this video.
 
 OUTPUT LANGUAGE: Respond in {output_language}. All text fields (title, problem, action, detail, summary, warnings, tips) must be in {output_language}.
 
-Your job: Turn a long video into clear, actionable steps someone can follow.
+Your job: Turn a long video into clear, actionable steps that a COMPLETE BEGINNER with ZERO experience can follow SAFELY.
+
+🚨 CRITICAL: COMPLETENESS OVER BREVITY 🚨
+• Include EVERY step, even ones that seem "obvious" to experts
+• A skipped step could cause damage, injury, or failure
+• Example: For an oil change, you MUST include "Add new oil" — forgetting this destroys the engine
+• Example: For electrical work, you MUST include "Turn off power at breaker"
+• When in doubt, INCLUDE the step
+
+INCLUDE THESE ESSENTIAL STEPS:
+• Setup/preparation steps (gather tools, safety precautions)
+• The main action steps
+• Verification steps (how to check if you did it right)
+• Completion steps (cleanup, reassembly, testing)
+• Safety warnings (what could go wrong if skipped)
 
 FOR EACH STEP:
-• "action" = What to do (clear, actionable)  
-• "detail" = Why it matters or helpful context
+• "action" = What to do (clear, actionable, specific)  
+• "detail" = Why it matters, what could go wrong if skipped, or helpful context
 • "timestamp" = When this specific point is discussed in the video
 • "end_timestamp" = When to stop (MUST be AFTER timestamp)
 
@@ -169,8 +183,9 @@ HOW TO FIND THE RIGHT TIMESTAMP:
 
 GUIDELINES:
 • Skip intros, outros, sponsors, and filler
-• End with a key takeaway or action item
-• Be concise — only include what's truly needed
+• NEVER skip safety steps, verification steps, or "obvious" steps
+• End with verification: how does the user know they succeeded?
+• Think: "What would a first-timer need to know?"
 
 The transcript has timestamps in [MM:SS] format. USE THESE TIMESTAMPS — they mark where each part of the video occurs.
 
@@ -191,20 +206,26 @@ Respond with ONLY valid JSON:
     "category": "{category}",
     "subcategory": "most_relevant_subcategory_or_null",
     "quick_info": {{
-        "tools_needed": ["What you need"],
+        "tools_needed": ["Everything needed before starting"],
         "time_estimate": "How long the task takes",
-        "warnings": ["Important warnings if any"],
-        "tips": ["Helpful tips if any"]
+        "difficulty": "beginner/intermediate/advanced",
+        "warnings": ["⚠️ CRITICAL safety warnings - what could go wrong"],
+        "tips": ["Pro tips for better results"]
     }},
     "steps": [
         {{
             "number": 1,
-            "action": "Clear action to take",
-            "detail": "Why this matters",
+            "action": "Clear, specific action to take",
+            "detail": "Why this matters / what goes wrong if skipped",
             "timestamp": "2:15",
             "end_timestamp": "2:45",
             "transcript_quote": "the exact words from transcript at this timestamp"
         }}
     ],
-    "summary": "Brief summary of what was covered and the key takeaway"
+    "verify": [
+        "How to check step 1 was done correctly",
+        "How to check step 2 was done correctly",
+        "Final verification: how do you know the whole task succeeded?"
+    ],
+    "summary": "Brief summary + what the user should see/experience if done correctly"
 }}"""

@@ -254,6 +254,134 @@
             margin-right: 6px;
         }
         
+        /* See it in action Preview */
+        .preview-section {
+            margin-top: 24px;
+            background: rgba(0,217,255,0.05);
+            border: 1px solid rgba(0,217,255,0.15);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .preview-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 20px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .preview-header:hover {
+            background: rgba(0,217,255,0.08);
+        }
+        
+        .preview-icon {
+            font-size: 1.2rem;
+        }
+        
+        .preview-title {
+            flex: 1;
+            font-weight: 600;
+            color: #00d9ff;
+        }
+        
+        .preview-toggle {
+            color: #00d9ff;
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+        }
+        
+        .preview-section.expanded .preview-toggle {
+            transform: rotate(180deg);
+        }
+        
+        .preview-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        
+        .preview-section.expanded .preview-content {
+            max-height: 500px;
+        }
+        
+        .preview-example {
+            padding: 0 20px 20px 20px;
+        }
+        
+        .preview-video-title {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        
+        .preview-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .preview-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+        }
+        
+        .preview-step.verify {
+            background: rgba(0,255,136,0.1);
+            border: 1px solid rgba(0,255,136,0.2);
+        }
+        
+        .preview-step-num {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #000;
+            flex-shrink: 0;
+        }
+        
+        .preview-step.verify .preview-step-num {
+            background: #00ff88;
+        }
+        
+        .preview-step-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        
+        .preview-step-text strong {
+            font-size: 0.95rem;
+            color: #fff;
+        }
+        
+        .preview-detail {
+            font-size: 0.85rem;
+            color: #888;
+        }
+        
+        .preview-cta {
+            margin-top: 16px;
+            text-align: center;
+            color: #00d9ff;
+            font-size: 0.9rem;
+            padding: 12px;
+            background: rgba(0,217,255,0.08);
+            border-radius: 10px;
+        }
+        
         /* Discover Bar */
         .discover-section {
             margin-top: 24px;
@@ -2529,6 +2657,53 @@
                 <div class="demo-buttons" id="demoButtons">
                     <!-- Populated dynamically from /demos API -->
                     <span style="color: #666; font-size: 0.9rem;">Loading examples...</span>
+                </div>
+            </div>
+            
+            <!-- See it in action preview -->
+            <div class="preview-section" id="previewSection">
+                <div class="preview-header" onclick="togglePreview()">
+                    <span class="preview-icon">👀</span>
+                    <span class="preview-title">See how it works</span>
+                    <span class="preview-toggle" id="previewToggle">▼</span>
+                </div>
+                <div class="preview-content" id="previewContent">
+                    <div class="preview-example">
+                        <div class="preview-video-title">Example: "How to Fix a Running Toilet"</div>
+                        <div class="preview-steps">
+                            <div class="preview-step">
+                                <span class="preview-step-num">1</span>
+                                <div class="preview-step-text">
+                                    <strong>Turn off water supply valve</strong>
+                                    <span class="preview-detail">Located behind toilet, turn clockwise</span>
+                                </div>
+                            </div>
+                            <div class="preview-step">
+                                <span class="preview-step-num">2</span>
+                                <div class="preview-step-text">
+                                    <strong>Flush to empty the tank</strong>
+                                    <span class="preview-detail">Hold handle down to drain completely</span>
+                                </div>
+                            </div>
+                            <div class="preview-step">
+                                <span class="preview-step-num">3</span>
+                                <div class="preview-step-text">
+                                    <strong>Replace the flapper valve</strong>
+                                    <span class="preview-detail">Unhook old flapper, snap new one in place</span>
+                                </div>
+                            </div>
+                            <div class="preview-step verify">
+                                <span class="preview-step-num">✓</span>
+                                <div class="preview-step-text">
+                                    <strong>Verify: Turn water back on</strong>
+                                    <span class="preview-detail">Tank should fill and stop — no more running!</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="preview-cta">
+                            <span>👆 Paste any YouTube tutorial above to get steps like these</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -4891,6 +5066,21 @@
             const input = document.getElementById('urlInput');
             input.value = '';
             input.focus();
+        }
+        
+        // ============ PREVIEW TOGGLE ============
+        function togglePreview() {
+            const section = document.getElementById('previewSection');
+            section.classList.toggle('expanded');
+        }
+        
+        // Auto-expand preview for first-time visitors
+        if (!localStorage.getItem('cypherit_visited')) {
+            setTimeout(() => {
+                const section = document.getElementById('previewSection');
+                if (section) section.classList.add('expanded');
+            }, 1000);
+            localStorage.setItem('cypherit_visited', 'true');
         }
         
         // ============ RESET / STOP ============
