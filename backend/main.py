@@ -492,23 +492,37 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
     if "steps" not in result:
         result["steps"] = []
     
-    # Validate and fix timestamps for each step (no max cap - trust extraction)
+    # Validate and fix timestamps for each step
+    MAX_CLIP_DURATION = 30  # Maximum 30 seconds per clip
+    DEFAULT_CLIP_DURATION = 15  # Default clip length
+    
     for step in result.get("steps", []):
         if step.get("timestamp") and step.get("end_timestamp"):
             start = _ts_to_seconds(step["timestamp"])
             end = _ts_to_seconds(step["end_timestamp"])
             
             # Fix backwards timestamps (end before start)
-            if end <= start:
-                if end < start:
-                    step["timestamp"], step["end_timestamp"] = step["end_timestamp"], step["timestamp"]
-                else:
-                    step["end_timestamp"] = _seconds_to_ts(start + 20)
+            if end < start:
+                # Swap them
+                start, end = end, start
+                step["timestamp"] = _seconds_to_ts(start)
+                step["end_timestamp"] = _seconds_to_ts(end)
+            
+            # Cap maximum clip duration
+            if end - start > MAX_CLIP_DURATION:
+                step["end_timestamp"] = _seconds_to_ts(start + MAX_CLIP_DURATION)
+            elif end - start < 5:
+                # Minimum 5 second clip
+                step["end_timestamp"] = _seconds_to_ts(start + DEFAULT_CLIP_DURATION)
                 
         elif step.get("timestamp") and not step.get("end_timestamp"):
             # Add default end_timestamp if missing
             start = _ts_to_seconds(step["timestamp"])
-            step["end_timestamp"] = _seconds_to_ts(start + 20)
+            step["end_timestamp"] = _seconds_to_ts(start + DEFAULT_CLIP_DURATION)
+        elif not step.get("timestamp"):
+            # No timestamp at all - skip this step or use default
+            step["timestamp"] = "0:00"
+            step["end_timestamp"] = "0:15"
     
     # Calculate read time based on actual clip durations
     total_seconds = 0
