@@ -432,7 +432,13 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
         lines = [l for l in lines if not l.startswith('```')]
         response_text = '\n'.join(lines)
     
-    # Parse JSON with error handling
+    # Try to extract JSON from response (handle extra text before/after)
+    import re
+    json_match = re.search(r'\{[\s\S]*\}', response_text)
+    if json_match:
+        response_text = json_match.group()
+    
+    # Parse JSON with error handling and retry
     try:
         result = json.loads(response_text)
     except json.JSONDecodeError as e:
