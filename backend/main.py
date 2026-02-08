@@ -437,13 +437,19 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
     
     # Strategy 2: Handle markdown code blocks
     if result is None and '```' in response_text:
-        import re
-        code_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
-        if code_match:
-            try:
-                result = json.loads(code_match.group(1))
-            except json.JSONDecodeError:
-                pass
+        # Simple approach: split by ``` and find the JSON part
+        parts = response_text.split('```')
+        for part in parts:
+            # Remove 'json' language marker if present
+            clean_part = part.strip()
+            if clean_part.startswith('json'):
+                clean_part = clean_part[4:].strip()
+            if clean_part.startswith('{'):
+                try:
+                    result = json.loads(clean_part)
+                    break
+                except json.JSONDecodeError:
+                    pass
     
     # Strategy 3: Find JSON by braces
     if result is None:
