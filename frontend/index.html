@@ -4967,11 +4967,12 @@
             // Disable demo buttons while loading
             document.querySelectorAll('.demo-btn').forEach(btn => btn.disabled = show);
             
-            // Hide gallery and demo sections during extraction for cleaner UX
-            if (show) {
-                document.getElementById('gallerySection').style.display = 'none';
-                document.getElementById('demoSection').style.display = 'none';
-            }
+            // Hide/show extra sections during extraction for cleaner, focused UX
+            const sectionsToToggle = ['gallerySection', 'demoSection', 'previewSection', 'discoverSection'];
+            sectionsToToggle.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = show ? 'none' : 'block';
+            });
             
             // Control progress bar
             const progressBar = document.getElementById('progressBar');
@@ -5101,8 +5102,10 @@
             document.getElementById('error').classList.remove('visible');
             document.getElementById('result').classList.remove('visible');
             
-            // Show search box, demos, and gallery
+            // Show search box, demos, preview, discover, and gallery
             document.getElementById('demoSection').style.display = 'block';
+            document.getElementById('previewSection').style.display = 'block';
+            document.getElementById('discoverSection').style.display = 'block';
             document.getElementById('gallerySection').style.display = 'block';
             
             // Scroll to top
