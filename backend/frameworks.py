@@ -181,6 +181,13 @@ HOW TO FIND THE RIGHT TIMESTAMP:
 4. The clip will loop this section, so it MUST match the content
 5. Size the clip to fit the content - include the full explanation
 
+FULL VIDEO COVERAGE - CRITICAL:
+- Extract steps from the ENTIRE video, not just the beginning
+- Timestamps should span from early in the video to near the end
+- If the video is 15 minutes, steps should cover 0:30 through 14:00+
+- Don't cluster all steps in the first few minutes
+- The LAST step should be from the final portion of the video (cleanup, verification, completion)
+
 GUIDELINES:
 - Skip intros, outros, sponsors, and filler
 - NEVER skip safety steps, verification steps, or "obvious" steps
