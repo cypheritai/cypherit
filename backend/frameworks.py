@@ -181,15 +181,16 @@ HOW TO FIND THE RIGHT TIMESTAMP:
 4. The clip will loop this section, so it MUST match the content
 5. Size the clip to fit the content - include the full explanation
 
-FULL VIDEO COVERAGE - CRITICAL:
-- Extract steps from the ENTIRE video, not just the beginning
-- Timestamps should span from early in the video to near the end
-- If the video is 15 minutes, steps should cover 0:30 through 14:00+
-- Don't cluster all steps in the first few minutes
-- The LAST step should be from the FINAL portion of the video
-- MUST include completion steps (e.g., "Add new oil", "Check oil level", "Test the repair")
-- For maintenance tasks: include refilling/reassembly steps - these are CRITICAL
-- A tutorial is incomplete without showing the finished result
+FULL VIDEO COVERAGE - MANDATORY:
+- Extract ALL steps from START to FINISH of the video
+- Do NOT limit yourself - include every meaningful step
+- Timestamps MUST span the entire video duration
+- If the video is 15 minutes, your steps should go from ~0:30 to ~14:30
+- The FIRST step should be near the beginning (after intro)
+- The LAST step MUST be from the final 1-2 minutes of the video
+- MUST include completion steps: refilling, reassembly, testing, verification
+- A task is NOT complete until it's tested and working
+- Example: Oil change MUST end with "Add new oil" and "Check oil level" - not just draining!
 
 GUIDELINES:
 - Skip intros, outros, sponsors, and filler

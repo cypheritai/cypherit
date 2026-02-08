@@ -4193,7 +4193,7 @@
                 // Include user_id to bypass server-side IP limit for signed-in users
                 const extractPayload = { 
                     url, 
-                    max_steps: 12,
+                    max_steps: 50,  // No practical limit - extract full video
                     language: browserLang  // Output results in user's language
                 };
                 if (currentUser) {

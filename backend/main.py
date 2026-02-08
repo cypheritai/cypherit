@@ -179,8 +179,8 @@ class ExtractRequest(BaseModel):
     @field_validator('max_steps')
     @classmethod  
     def validate_max_steps(cls, v):
-        if v < 1 or v > 10:
-            raise ValueError('max_steps must be between 1 and 10')
+        if v < 1 or v > 100:
+            raise ValueError('max_steps must be between 1 and 100')
         return v
 
 
