@@ -186,7 +186,10 @@ FULL VIDEO COVERAGE - CRITICAL:
 - Timestamps should span from early in the video to near the end
 - If the video is 15 minutes, steps should cover 0:30 through 14:00+
 - Don't cluster all steps in the first few minutes
-- The LAST step should be from the final portion of the video (cleanup, verification, completion)
+- The LAST step should be from the FINAL portion of the video
+- MUST include completion steps (e.g., "Add new oil", "Check oil level", "Test the repair")
+- For maintenance tasks: include refilling/reassembly steps - these are CRITICAL
+- A tutorial is incomplete without showing the finished result
 
 GUIDELINES:
 - Skip intros, outros, sponsors, and filler
