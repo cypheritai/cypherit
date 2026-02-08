@@ -419,8 +419,8 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
     prompt = get_extraction_prompt(category, transcript, max_steps, language=language)
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
-        max_tokens=2000,  # Manual-style format needs more tokens
+        model="claude-3-5-haiku-20241022",  # Faster model for quick extractions
+        max_tokens=2000,
         messages=[{"role": "user", "content": prompt}]
     )
     
