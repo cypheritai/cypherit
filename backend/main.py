@@ -87,28 +87,28 @@ client = Anthropic(api_key=api_key)
 
 # Demo videos with fallbacks - first working video per category wins
 DEMO_VIDEOS = {
-    "usb": {
-        "emoji": "💾",
-        "label": "USB Installer",
+    "home": {
+        "emoji": "🔧",
+        "label": "Home Fix",
         "videos": [
-            "0HBA9Nov17Q",  # macOS bootable USB tutorial
-            "Hc79sDi3f0U",  # Backup
+            "xVEYiuAduEE",  # How to Fix a Running Toilet
+            "J91av5uniKk",  # Toilet repair backup
         ]
     },
-    "dev": {
-        "emoji": "🐍",
-        "label": "Dev Setup",
+    "auto": {
+        "emoji": "🚗",
+        "label": "Oil Change",
         "videos": [
-            "kqtD5dpn9C8",  # Python setup
-            "rfscVS0vtbw",  # freeCodeCamp Python (long)
+            "O1hF25Cowv8",  # How to change your oil
+            "jVS3tNRymOo",  # Oil change backup
         ]
     },
     "tech": {
         "emoji": "💻",
-        "label": "Tech Tutorial",
+        "label": "Tech Setup",
         "videos": [
-            "Hc79sDi3f0U",  # Tech tutorial
-            "kqtD5dpn9C8",  # Backup
+            "kqtD5dpn9C8",  # Python setup for beginners
+            "rfscVS0vtbw",  # freeCodeCamp Python (long)
         ]
     }
 }
