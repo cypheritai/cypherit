@@ -1295,6 +1295,22 @@
             transition: all 0.2s;
             position: relative;
             overflow: hidden;
+            animation: subtleBlink 2s ease-in-out infinite;
+        }
+        
+        @keyframes subtleBlink {
+            0%, 100% { 
+                border-color: rgba(0,217,255,0.4);
+                box-shadow: 0 0 0 rgba(0,217,255,0);
+            }
+            50% { 
+                border-color: rgba(0,217,255,0.8);
+                box-shadow: 0 0 15px rgba(0,217,255,0.3);
+            }
+        }
+        
+        .next-step-btn.completed {
+            animation: none;
         }
         
         .next-step-btn .btn-progress {
@@ -1319,12 +1335,29 @@
             box-shadow: 0 4px 15px rgba(0,217,255,0.3);
         }
         
-        .next-step-btn.completed {
-            border-color: #00ff88;
-        }
-        
         .next-step-btn.completed .btn-progress {
             background: linear-gradient(90deg, rgba(0,255,136,0.25), rgba(0,217,255,0.25));
+        }
+        
+        /* Aurora transition for voting section */
+        .voting-section.aurora-reveal {
+            animation: auroraReveal 1s ease-out forwards;
+        }
+        
+        @keyframes auroraReveal {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+                box-shadow: 0 0 0 rgba(0,217,255,0), 0 0 0 rgba(0,255,136,0);
+            }
+            50% {
+                box-shadow: 0 0 40px rgba(0,217,255,0.4), 0 -20px 60px rgba(0,255,136,0.3);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+                box-shadow: 0 0 20px rgba(0,217,255,0.2), 0 0 30px rgba(0,255,136,0.1);
+            }
         }
         
         .replay-btn {
@@ -4070,6 +4103,23 @@
             }
         }
         
+        // Scroll to voting section with aurora reveal animation
+        function scrollToVotingWithAurora() {
+            const votingSection = document.getElementById('votingBottom');
+            if (votingSection) {
+                // Remove aurora class if previously applied
+                votingSection.classList.remove('aurora-reveal');
+                
+                // Smooth scroll to the voting section
+                votingSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Trigger aurora animation after scroll settles
+                setTimeout(() => {
+                    votingSection.classList.add('aurora-reveal');
+                }, 400);
+            }
+        }
+        
         // Track which steps have loaded videos
         const loadedSteps = new Set();
         let currentVideoId = null;
@@ -4165,10 +4215,10 @@
                             </div>
                         ` : `
                             <div class="step-controls-wrapper" id="step-controls-${index}">
-                                <div class="step-complete next-step-btn" id="next-btn-${index}">
+                                <button class="step-complete next-step-btn" id="next-btn-${index}" onclick="scrollToVotingWithAurora()">
                                     <div class="btn-progress" id="btn-progress-${index}"></div>
-                                    <span class="btn-text">✅ Final Step — You're done!</span>
-                                </div>
+                                    <span class="btn-text">✅ Final Step — Was this helpful? →</span>
+                                </button>
                                 <button class="replay-btn" id="replay-btn-${index}" onclick="replayStep(${index})" style="display:none;">
                                     🔄 Replay This Step
                                 </button>
@@ -4572,22 +4622,21 @@
                         btnProgress.style.width = progress + '%';
                     }
                     
-                    // LOOP: When reaching end of segment, seek back to start
-                    if (currentTime >= endTime - 0.5) {
-                        loopCount++;
-                        console.log(`Step ${idx}: completed loop ${loopCount}`);
+                    // When reaching end of segment, mark complete and STOP (no loop)
+                    if (currentTime >= endTime - 0.5 && loopCount === 0) {
+                        loopCount = 1;
+                        console.log(`Step ${idx}: completed playback (no loop)`);
                         
-                        // Mark step as completed after first loop
-                        if (loopCount === 1) {
-                            completedSteps[idx] = true;
-                            const nextBtn = getNextBtn();
-                            const replayBtn = getReplayBtn();
-                            if (nextBtn) nextBtn.classList.add('completed');
-                            if (replayBtn) replayBtn.style.display = 'block';
-                        }
+                        // Mark step as completed
+                        completedSteps[idx] = true;
+                        const nextBtn = getNextBtn();
+                        const replayBtn = getReplayBtn();
+                        if (nextBtn) nextBtn.classList.add('completed');
+                        if (replayBtn) replayBtn.style.display = 'block';
                         
-                        player.seekTo(startTime, true);
-                        player.playVideo();
+                        // PAUSE instead of looping - user can replay manually
+                        player.pauseVideo();
+                        clearInterval(boundaryCheckInterval);
                     }
                 } catch (e) {}
             }, 100); // Check every 100ms for smoother progress
