@@ -147,52 +147,52 @@ OUTPUT LANGUAGE: Respond in {output_language}. All text fields (title, problem, 
 
 Your job: Turn a long video into clear, actionable steps that a COMPLETE BEGINNER with ZERO experience can follow SAFELY.
 
-🚨 CRITICAL: COMPLETENESS OVER BREVITY 🚨
-• Include EVERY step, even ones that seem "obvious" to experts
-• A skipped step could cause damage, injury, or failure
-• Example: For an oil change, you MUST include "Add new oil" — forgetting this destroys the engine
-• Example: For electrical work, you MUST include "Turn off power at breaker"
-• When in doubt, INCLUDE the step
+CRITICAL - COMPLETENESS OVER BREVITY:
+- Include EVERY step, even ones that seem "obvious" to experts
+- A skipped step could cause damage, injury, or failure
+- Example: For an oil change, you MUST include "Add new oil" - forgetting this destroys the engine
+- Example: For electrical work, you MUST include "Turn off power at breaker"
+- When in doubt, INCLUDE the step
 
 INCLUDE THESE ESSENTIAL STEPS:
-• Setup/preparation steps (gather tools, safety precautions)
-• The main action steps
-• Verification steps (how to check if you did it right)
-• Completion steps (cleanup, reassembly, testing)
-• Safety warnings (what could go wrong if skipped)
+- Setup/preparation steps (gather tools, safety precautions)
+- The main action steps
+- Verification steps (how to check if you did it right)
+- Completion steps (cleanup, reassembly, testing)
+- Safety warnings (what could go wrong if skipped)
 
 FOR EACH STEP:
-• "action" = What to do (clear, actionable, specific)  
-• "detail" = Why it matters, what could go wrong if skipped, or helpful context
-• "timestamp" = When this specific point is discussed in the video
-• "end_timestamp" = When to stop (MUST be AFTER timestamp)
+- "action" = What to do (clear, actionable, specific)  
+- "detail" = Why it matters, what could go wrong if skipped, or helpful context
+- "timestamp" = When this specific point is discussed in the video
+- "end_timestamp" = When to stop (MUST be AFTER timestamp)
 
 CRITICAL TIMESTAMP RULES:
-• Look at the transcript timestamps [MM:SS] — find where THIS EXACT topic is discussed
-• The timestamp you return MUST be from the transcript where the speaker says this
-• If the step is about "synthesis abilities", find where they SAY "synthesis" in the transcript
-• Don't guess timestamps — only use timestamps that appear in the transcript
-• end_timestamp should be 10-30 seconds after timestamp
+- Look at the transcript timestamps [MM:SS] - find where THIS EXACT topic is discussed
+- The timestamp you return MUST be from the transcript where the speaker says this
+- If the step is about "synthesis abilities", find where they SAY "synthesis" in the transcript
+- Don't guess timestamps - only use timestamps that appear in the transcript
+- end_timestamp should be 10-30 seconds after timestamp
 
 HOW TO FIND THE RIGHT TIMESTAMP:
 1. Read your extracted step (e.g., "Develop synthesis abilities...")
 2. Search the transcript for where this is actually discussed
 3. Use THAT timestamp from the transcript
 4. The clip will loop this section, so it MUST match the content
-5. Size the clip to fit the content — include the full explanation
+5. Size the clip to fit the content - include the full explanation
 
 GUIDELINES:
-• Skip intros, outros, sponsors, and filler
-• NEVER skip safety steps, verification steps, or "obvious" steps
-• End with verification: how does the user know they succeeded?
-• Think: "What would a first-timer need to know?"
+- Skip intros, outros, sponsors, and filler
+- NEVER skip safety steps, verification steps, or "obvious" steps
+- End with verification: how does the user know they succeeded?
+- Think: "What would a first-timer need to know?"
 
-The transcript has timestamps in [MM:SS] format. USE THESE TIMESTAMPS — they mark where each part of the video occurs.
+The transcript has timestamps in [MM:SS] format. USE THESE TIMESTAMPS - they mark where each part of the video occurs.
 
 Transcript:
 {transcript[:12000]}
 
-IMPORTANT: For each step, include "transcript_quote" — a short phrase from the transcript that proves you found the right timestamp.
+IMPORTANT: For each step, include "transcript_quote" - a short phrase from the transcript that proves you found the right timestamp.
 
 CATEGORY DETECTION:
 Main category is "{category}".
@@ -209,7 +209,7 @@ Respond with ONLY valid JSON:
         "tools_needed": ["Everything needed before starting"],
         "time_estimate": "How long the task takes",
         "difficulty": "beginner/intermediate/advanced",
-        "warnings": ["⚠️ CRITICAL safety warnings - what could go wrong"],
+        "warnings": ["CRITICAL safety warnings - what could go wrong"],
         "tips": ["Pro tips for better results"]
     }},
     "steps": [
