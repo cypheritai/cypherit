@@ -426,9 +426,12 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
     
     response_text = response.content[0].text.strip()
     
+    # Store original for debugging
+    original_response = response_text
+    
     # Handle potential markdown wrapping
     if '```json' in response_text:
-        response_text = response_text.split('```json')[-1].split('```')[0]
+        response_text = response_text.split('```json')[-1].split('```')[0].strip()
     elif '```' in response_text:
         parts = response_text.split('```')
         for part in parts:
@@ -451,6 +454,9 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
                     end_idx = i + 1
                     break
         response_text = response_text[start_idx:end_idx]
+    else:
+        # No JSON found - return the raw response for debugging
+        raise ValueError(f"No JSON found in response. Raw (first 300): {original_response[:300]}")
     
     # Parse JSON with error handling
     try:
@@ -458,9 +464,9 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
     except json.JSONDecodeError as e:
         # Log the error for debugging
         print(f"JSON parse error: {e}")
-        print(f"Response text (first 1000 chars): {response_text[:1000]}")
-        # Return partial info for debugging
-        raise ValueError(f"JSON parse failed at position {e.pos}: {e.msg}. Check: {response_text[max(0,e.pos-20):e.pos+20]}")
+        print(f"Extracted text: {response_text[:500]}")
+        print(f"Original response: {original_response[:500]}")
+        raise ValueError(f"JSON parse failed. Extracted: {response_text[:200]}")
     result["source_url"] = url
     result["video_id"] = extract_video_id(url)
     
