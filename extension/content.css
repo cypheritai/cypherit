@@ -1,0 +1,68 @@
+/* CypherIt Button - Injected on YouTube */
+
+.cypherit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  margin-left: 8px;
+  background: linear-gradient(135deg, #00d9ff, #00ff88);
+  border: none;
+  border-radius: 18px;
+  color: #000;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 217, 255, 0.3);
+}
+
+.cypherit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 217, 255, 0.4);
+}
+
+.cypherit-btn:active {
+  transform: translateY(0);
+}
+
+.cypherit-btn.loading {
+  background: linear-gradient(135deg, #00a0c0, #00cc70);
+  cursor: wait;
+}
+
+.cypherit-icon {
+  font-size: 16px;
+}
+
+.cypherit-text {
+  font-weight: 600;
+}
+
+.cypherit-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #000;
+  border-radius: 50%;
+  animation: cypherit-spin 0.8s linear infinite;
+}
+
+@keyframes cypherit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dark mode compatibility */
+html[dark] .cypherit-btn,
+[dark] .cypherit-btn {
+  box-shadow: 0 2px 8px rgba(0, 217, 255, 0.2);
+}
+
+html[dark] .cypherit-btn:hover,
+[dark] .cypherit-btn:hover {
+  box-shadow: 0 4px 16px rgba(0, 217, 255, 0.3);
+}

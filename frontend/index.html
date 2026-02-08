@@ -3932,9 +3932,21 @@
                 console.error('Failed to load gallery:', e);
             }
             
-            // Check for shared video link (?v=VIDEO_ID)
+            // Check for shared video link (?v=VIDEO_ID) or full URL (?url=YOUTUBE_URL)
             const params = new URLSearchParams(window.location.search);
-            const videoId = params.get('v');
+            let videoId = params.get('v');
+            const urlParam = params.get('url');
+            
+            // If full URL passed (from extension), extract video ID
+            if (urlParam && !videoId) {
+                const urlMatch = urlParam.match(/[?&]v=([^&]+)/) || urlParam.match(/youtu\.be\/([^?&]+)/);
+                if (urlMatch) {
+                    videoId = urlMatch[1];
+                    // Also fill the input with the URL
+                    document.getElementById('urlInput').value = urlParam;
+                }
+            }
+            
             console.log('URL params:', window.location.search, 'videoId:', videoId);
             
             if (videoId && videoId.length === 11) {
