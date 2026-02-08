@@ -426,47 +426,43 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
     
     response_text = response.content[0].text.strip()
     
-    # Store original for debugging
-    original_response = response_text
+    # Try multiple parsing strategies
+    result = None
     
-    # Handle potential markdown wrapping
-    if '```json' in response_text:
-        response_text = response_text.split('```json')[-1].split('```')[0].strip()
-    elif '```' in response_text:
-        parts = response_text.split('```')
-        for part in parts:
-            if part.strip().startswith('{'):
-                response_text = part.strip()
-                break
-    
-    # Find the JSON object (handle text before/after)
-    start_idx = response_text.find('{')
-    if start_idx != -1:
-        # Find matching closing brace
-        depth = 0
-        end_idx = start_idx
-        for i, char in enumerate(response_text[start_idx:], start_idx):
-            if char == '{':
-                depth += 1
-            elif char == '}':
-                depth -= 1
-                if depth == 0:
-                    end_idx = i + 1
-                    break
-        response_text = response_text[start_idx:end_idx]
-    else:
-        # No JSON found - return the raw response for debugging
-        raise ValueError(f"No JSON found in response. Raw (first 300): {original_response[:300]}")
-    
-    # Parse JSON with error handling
+    # Strategy 1: Direct parse
     try:
         result = json.loads(response_text)
-    except json.JSONDecodeError as e:
-        # Log the error for debugging
-        print(f"JSON parse error: {e}")
-        print(f"Extracted text: {response_text[:500]}")
-        print(f"Original response: {original_response[:500]}")
-        raise ValueError(f"JSON parse failed. Extracted: {response_text[:200]}")
+    except json.JSONDecodeError:
+        pass
+    
+    # Strategy 2: Handle markdown code blocks
+    if result is None and '```' in response_text:
+        import re
+        code_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
+        if code_match:
+            try:
+                result = json.loads(code_match.group(1))
+            except json.JSONDecodeError:
+                pass
+    
+    # Strategy 3: Find JSON by braces
+    if result is None:
+        start = response_text.find('{')
+        if start == -1:
+            raise ValueError(f"No JSON found. Response: {response_text[:200]}")
+        
+        # Try parsing from { to each } from end backwards
+        for end in range(len(response_text), start, -1):
+            if response_text[end-1] == '}':
+                try:
+                    result = json.loads(response_text[start:end])
+                    break
+                except json.JSONDecodeError:
+                    continue
+    
+    if result is None:
+        raise ValueError(f"Could not parse JSON. Content: {response_text[:200]}")
+    
     result["source_url"] = url
     result["video_id"] = extract_video_id(url)
     
