@@ -2750,6 +2750,272 @@
     <script>
         const API_URL = '';
         
+        // ============ INTERNATIONALIZATION (i18n) ============
+        const TRANSLATIONS = {
+            en: {
+                tagline: "Get the Steps in 60sec or Less.",
+                placeholder: "Paste YouTube link...",
+                searchPlaceholder: "Search fixes... (e.g., python, oil change)",
+                loading: "Loading...",
+                loadingExamples: "Loading examples...",
+                loadingPopular: "Loading popular fixes...",
+                loadingPreview: "Loading preview...",
+                cancel: "Cancel",
+                extract: "Extract",
+                share: "Share",
+                copy: "Copy",
+                copied: "Copied!",
+                signIn: "Sign In",
+                signOut: "Sign Out",
+                signInPrompt: "Get the full experience — no password needed",
+                signInToComment: "Sign in to leave a comment",
+                emailPlaceholder: "Enter your email",
+                sendMagicLink: "Send Magic Link",
+                commentPlaceholder: "Share a tip or what worked for you...",
+                shareThisFix: "Share this fix:",
+                tryDifferent: "Try different keywords or browse categories",
+                noResults: "No results found",
+                stepsFound: "steps found",
+                tools: "Tools Needed",
+                time: "Time",
+                warnings: "Warnings",
+                tips: "Tips",
+                summary: "Summary",
+                watchClip: "Watch clip",
+                favorites: "Favorites",
+                history: "History",
+                gallery: "Gallery",
+                featuredFixes: "Featured Fixes",
+                communityPicks: "Community Picks",
+                helpful: "Helpful",
+                notHelpful: "Not Helpful",
+                comments: "Comments",
+                addComment: "Add Comment"
+            },
+            es: {
+                tagline: "Obtén los Pasos en 60seg o Menos.",
+                placeholder: "Pega el enlace de YouTube...",
+                searchPlaceholder: "Buscar soluciones... (ej: python, cambio de aceite)",
+                loading: "Cargando...",
+                loadingExamples: "Cargando ejemplos...",
+                loadingPopular: "Cargando soluciones populares...",
+                loadingPreview: "Cargando vista previa...",
+                cancel: "Cancelar",
+                extract: "Extraer",
+                share: "Compartir",
+                copy: "Copiar",
+                copied: "¡Copiado!",
+                signIn: "Iniciar Sesión",
+                signOut: "Cerrar Sesión",
+                signInPrompt: "Obtén la experiencia completa — sin contraseña",
+                signInToComment: "Inicia sesión para comentar",
+                emailPlaceholder: "Ingresa tu correo",
+                sendMagicLink: "Enviar Enlace Mágico",
+                commentPlaceholder: "Comparte un consejo o qué te funcionó...",
+                shareThisFix: "Comparte esta solución:",
+                tryDifferent: "Prueba palabras diferentes o explora categorías",
+                noResults: "No se encontraron resultados",
+                stepsFound: "pasos encontrados",
+                tools: "Herramientas Necesarias",
+                time: "Tiempo",
+                warnings: "Advertencias",
+                tips: "Consejos",
+                summary: "Resumen",
+                watchClip: "Ver clip",
+                favorites: "Favoritos",
+                history: "Historial",
+                gallery: "Galería",
+                featuredFixes: "Soluciones Destacadas",
+                communityPicks: "Selecciones de la Comunidad",
+                helpful: "Útil",
+                notHelpful: "No Útil",
+                comments: "Comentarios",
+                addComment: "Agregar Comentario"
+            },
+            fr: {
+                tagline: "Obtenez les Étapes en 60sec ou Moins.",
+                placeholder: "Collez le lien YouTube...",
+                searchPlaceholder: "Rechercher des solutions... (ex: python, vidange)",
+                loading: "Chargement...",
+                loadingExamples: "Chargement des exemples...",
+                loadingPopular: "Chargement des solutions populaires...",
+                loadingPreview: "Chargement de l'aperçu...",
+                cancel: "Annuler",
+                extract: "Extraire",
+                share: "Partager",
+                copy: "Copier",
+                copied: "Copié!",
+                signIn: "Connexion",
+                signOut: "Déconnexion",
+                signInPrompt: "Profitez de l'expérience complète — sans mot de passe",
+                signInToComment: "Connectez-vous pour commenter",
+                emailPlaceholder: "Entrez votre email",
+                sendMagicLink: "Envoyer le Lien Magique",
+                commentPlaceholder: "Partagez un conseil ou ce qui a fonctionné...",
+                shareThisFix: "Partagez cette solution:",
+                tryDifferent: "Essayez d'autres mots-clés ou parcourez les catégories",
+                noResults: "Aucun résultat trouvé",
+                stepsFound: "étapes trouvées",
+                tools: "Outils Nécessaires",
+                time: "Temps",
+                warnings: "Avertissements",
+                tips: "Conseils",
+                summary: "Résumé",
+                watchClip: "Voir le clip",
+                favorites: "Favoris",
+                history: "Historique",
+                gallery: "Galerie",
+                featuredFixes: "Solutions en Vedette",
+                communityPicks: "Choix de la Communauté",
+                helpful: "Utile",
+                notHelpful: "Pas Utile",
+                comments: "Commentaires",
+                addComment: "Ajouter un Commentaire"
+            },
+            de: {
+                tagline: "Erhalte die Schritte in 60sek oder Weniger.",
+                placeholder: "YouTube-Link einfügen...",
+                searchPlaceholder: "Lösungen suchen... (z.B. Python, Ölwechsel)",
+                loading: "Lädt...",
+                loadingExamples: "Beispiele laden...",
+                loadingPopular: "Beliebte Lösungen laden...",
+                loadingPreview: "Vorschau laden...",
+                cancel: "Abbrechen",
+                extract: "Extrahieren",
+                share: "Teilen",
+                copy: "Kopieren",
+                copied: "Kopiert!",
+                signIn: "Anmelden",
+                signOut: "Abmelden",
+                signInPrompt: "Volle Erfahrung — kein Passwort nötig",
+                signInToComment: "Anmelden um zu kommentieren",
+                emailPlaceholder: "E-Mail eingeben",
+                sendMagicLink: "Magic Link senden",
+                commentPlaceholder: "Teile einen Tipp oder was funktioniert hat...",
+                shareThisFix: "Diese Lösung teilen:",
+                tryDifferent: "Versuche andere Begriffe oder durchsuche Kategorien",
+                noResults: "Keine Ergebnisse gefunden",
+                stepsFound: "Schritte gefunden",
+                tools: "Benötigte Werkzeuge",
+                time: "Zeit",
+                warnings: "Warnungen",
+                tips: "Tipps",
+                summary: "Zusammenfassung",
+                watchClip: "Clip ansehen",
+                favorites: "Favoriten",
+                history: "Verlauf",
+                gallery: "Galerie",
+                featuredFixes: "Empfohlene Lösungen",
+                communityPicks: "Community-Auswahl",
+                helpful: "Hilfreich",
+                notHelpful: "Nicht Hilfreich",
+                comments: "Kommentare",
+                addComment: "Kommentar hinzufügen"
+            },
+            pt: {
+                tagline: "Obtenha os Passos em 60seg ou Menos.",
+                placeholder: "Cole o link do YouTube...",
+                searchPlaceholder: "Buscar soluções... (ex: python, troca de óleo)",
+                loading: "Carregando...",
+                loadingExamples: "Carregando exemplos...",
+                loadingPopular: "Carregando soluções populares...",
+                loadingPreview: "Carregando prévia...",
+                cancel: "Cancelar",
+                extract: "Extrair",
+                share: "Compartilhar",
+                copy: "Copiar",
+                copied: "Copiado!",
+                signIn: "Entrar",
+                signOut: "Sair",
+                signInPrompt: "Experiência completa — sem senha",
+                signInToComment: "Entre para comentar",
+                emailPlaceholder: "Digite seu email",
+                sendMagicLink: "Enviar Link Mágico",
+                commentPlaceholder: "Compartilhe uma dica ou o que funcionou...",
+                shareThisFix: "Compartilhe esta solução:",
+                tryDifferent: "Tente palavras diferentes ou navegue pelas categorias",
+                noResults: "Nenhum resultado encontrado",
+                stepsFound: "passos encontrados",
+                tools: "Ferramentas Necessárias",
+                time: "Tempo",
+                warnings: "Avisos",
+                tips: "Dicas",
+                summary: "Resumo",
+                watchClip: "Ver clipe",
+                favorites: "Favoritos",
+                history: "Histórico",
+                gallery: "Galeria",
+                featuredFixes: "Soluções em Destaque",
+                communityPicks: "Escolhas da Comunidade",
+                helpful: "Útil",
+                notHelpful: "Não Útil",
+                comments: "Comentários",
+                addComment: "Adicionar Comentário"
+            }
+        };
+        
+        // Get user's preferred language
+        const USER_LANG = navigator.language?.split('-')[0] || 'en';
+        const i18n = TRANSLATIONS[USER_LANG] || TRANSLATIONS['en'];
+        
+        // Helper function to get translation
+        function t(key) {
+            return i18n[key] || TRANSLATIONS['en'][key] || key;
+        }
+        
+        // Apply translations to static elements on page load
+        function applyTranslations() {
+            // Update HTML lang attribute
+            document.documentElement.lang = USER_LANG;
+            
+            // Tagline
+            const tagline = document.querySelector('.tagline');
+            if (tagline) tagline.textContent = t('tagline');
+            
+            // Input placeholder
+            const urlInput = document.getElementById('urlInput');
+            if (urlInput) urlInput.placeholder = t('placeholder');
+            
+            // Search placeholder
+            const searchInput = document.getElementById('gallerySearch');
+            if (searchInput) searchInput.placeholder = t('searchPlaceholder');
+            
+            // Auth elements
+            const authEmail = document.getElementById('authEmail');
+            if (authEmail) authEmail.placeholder = t('emailPlaceholder');
+            
+            // Comment textarea
+            const commentText = document.getElementById('commentText');
+            if (commentText) commentText.placeholder = t('commentPlaceholder');
+            
+            // Sign in prompt
+            const signInPrompt = document.querySelector('.auth-subtitle');
+            if (signInPrompt) signInPrompt.textContent = t('signInPrompt');
+            
+            // Cancel button
+            const cancelBtn = document.querySelector('.stop-btn');
+            if (cancelBtn) cancelBtn.innerHTML = `✕ ${t('cancel')}`;
+            
+            // Gallery loading
+            const galleryLoading = document.querySelector('.gallery-loading');
+            if (galleryLoading && galleryLoading.textContent.includes('Loading')) {
+                galleryLoading.textContent = t('loadingPopular');
+            }
+            
+            // Share label
+            const shareLabel = document.querySelector('.share-label');
+            if (shareLabel) shareLabel.textContent = t('shareThisFix');
+            
+            // Sign in to comment
+            const signInToComment = document.querySelector('.comment-signin-prompt');
+            if (signInToComment) signInToComment.textContent = t('signInToComment');
+            
+            console.log(`CypherIt: UI language set to ${USER_LANG}`);
+        }
+        
+        // Run on DOM ready
+        document.addEventListener('DOMContentLoaded', applyTranslations);
+        
         // ============ SUPABASE AUTH ============
         const SUPABASE_URL = 'https://fbankzoubprfpgsxqajg.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZiYW5rem91YnByZnBnc3hxYWpnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzODYzMTUsImV4cCI6MjA4NTk2MjMxNX0.9NibIDtQn6xI0xNoo_sA2wG-BUbw5lvsplRx_DHbY4c';
@@ -3279,7 +3545,7 @@
         
         async function loadGallery() {
             const grid = document.getElementById('galleryGrid');
-            grid.innerHTML = '<div class="gallery-loading">Loading popular fixes...</div>';
+            grid.innerHTML = `<div class="gallery-loading">${t('loadingPopular')}</div>`;
             
             try {
                 // Load categories
@@ -3427,7 +3693,7 @@
                         <div class="gallery-no-results">
                             <div class="gallery-no-results-icon">🔍</div>
                             <div class="gallery-no-results-text">No fixes found for "${gallerySearchQuery}"</div>
-                            <div class="gallery-no-results-hint">Try different keywords or browse categories</div>
+                            <div class="gallery-no-results-hint">${t('tryDifferent')}</div>
                         </div>
                     `;
                 } else {
