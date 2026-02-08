@@ -613,60 +613,9 @@ async def health():
     }
 
 
-@app.get("/debug/transcript/{video_id}")
-async def debug_transcript(video_id: str):
-    """Debug endpoint to test transcript fetching."""
-    try:
-        from youtube_transcript_api import YouTubeTranscriptApi
-        api = YouTubeTranscriptApi()
-        transcript = api.fetch(video_id)
-        return {
-            "status": "success",
-            "segments": len(transcript.snippets),
-            "first_text": transcript.snippets[0].text if transcript.snippets else None
-        }
-    except Exception as e:
-        import traceback
-        return {
-            "status": "error",
-            "error_type": type(e).__name__,
-            "error": str(e),
-            "traceback": traceback.format_exc()
-        }
-
-
-@app.get("/debug/extract")
-async def debug_extract(url: str):
-    """Debug endpoint to test full extraction pipeline."""
-    import traceback
-    result = {"url": url, "stages": {}}
-    
-    # Stage 1: Extract video ID
-    try:
-        video_id = extract_video_id(url)
-        result["stages"]["video_id"] = {"status": "success", "value": video_id}
-    except Exception as e:
-        result["stages"]["video_id"] = {"status": "error", "error": str(e)}
-        return result
-    
-    # Stage 2: Get transcript
-    try:
-        transcript = get_transcript(url)
-        result["stages"]["transcript"] = {"status": "success", "length": len(transcript)}
-    except Exception as e:
-        result["stages"]["transcript"] = {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
-        return result
-    
-    # Stage 3: Extract steps
-    try:
-        steps = extract_fix_steps(transcript, url, max_steps=3, language="en")
-        result["stages"]["extraction"] = {"status": "success", "steps": len(steps.get("steps", []))}
-    except Exception as e:
-        result["stages"]["extraction"] = {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
-        return result
-    
-    result["status"] = "success"
-    return result
+## Debug endpoints removed for production - uncomment if needed for troubleshooting
+# @app.get("/debug/transcript/{video_id}")
+# @app.get("/debug/extract")
 
 
 @app.get("/demos")
