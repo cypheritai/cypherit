@@ -635,6 +635,40 @@ async def debug_transcript(video_id: str):
         }
 
 
+@app.get("/debug/extract")
+async def debug_extract(url: str):
+    """Debug endpoint to test full extraction pipeline."""
+    import traceback
+    result = {"url": url, "stages": {}}
+    
+    # Stage 1: Extract video ID
+    try:
+        video_id = extract_video_id(url)
+        result["stages"]["video_id"] = {"status": "success", "value": video_id}
+    except Exception as e:
+        result["stages"]["video_id"] = {"status": "error", "error": str(e)}
+        return result
+    
+    # Stage 2: Get transcript
+    try:
+        transcript = get_transcript(url)
+        result["stages"]["transcript"] = {"status": "success", "length": len(transcript)}
+    except Exception as e:
+        result["stages"]["transcript"] = {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
+        return result
+    
+    # Stage 3: Extract steps
+    try:
+        steps = extract_fix_steps(transcript, url, max_steps=3, language="en")
+        result["stages"]["extraction"] = {"status": "success", "steps": len(steps.get("steps", []))}
+    except Exception as e:
+        result["stages"]["extraction"] = {"status": "error", "error": str(e), "traceback": traceback.format_exc()}
+        return result
+    
+    result["status"] = "success"
+    return result
+
+
 @app.get("/demos")
 async def get_demos():
     """Get validated demo videos. Caches results for 6 hours."""
