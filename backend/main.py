@@ -444,8 +444,9 @@ def extract_fix_steps(transcript: str, url: str, max_steps: int = 6, language: s
     except json.JSONDecodeError as e:
         # Log the error for debugging
         print(f"JSON parse error: {e}")
-        print(f"Response text (first 500 chars): {response_text[:500]}")
-        raise ValueError(f"AI returned invalid response format. Please try again.")
+        print(f"Response text (first 1000 chars): {response_text[:1000]}")
+        # Return partial info for debugging
+        raise ValueError(f"AI response parse error. First 200 chars: {response_text[:200]}")
     result["source_url"] = url
     result["video_id"] = extract_video_id(url)
     
