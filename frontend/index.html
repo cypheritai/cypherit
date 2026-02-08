@@ -4700,23 +4700,23 @@
             
             const idx = String(index);
             
-            // STOP previous player if any
-            if (activeStepIndex !== null && activeStepIndex !== idx) {
-                const prevPlayer = videoPlayers[activeStepIndex];
-                if (prevPlayer) {
-                    try {
-                        prevPlayer.pauseVideo();
-                        prevPlayer.mute();
-                    } catch (e) {}
+            // STOP ALL other players - only one plays at a time
+            Object.keys(videoPlayers).forEach(playerIdx => {
+                if (playerIdx !== idx) {
+                    const otherPlayer = videoPlayers[playerIdx];
+                    if (otherPlayer) {
+                        try {
+                            otherPlayer.pauseVideo();
+                            otherPlayer.mute();
+                        } catch (e) {}
+                    }
+                    // Update sound button to muted
+                    const otherBtn = document.querySelector(`.step[data-step-index="${playerIdx}"] .sound-btn`);
+                    if (otherBtn) otherBtn.textContent = '🔇';
                 }
-                // Update previous sound button to muted
-                const prevBtn = document.querySelector(`.step[data-step-index="${activeStepIndex}"] .sound-btn`);
-                if (prevBtn) prevBtn.textContent = '🔇';
-                
-                // Hide previous caption
-                const prevCaption = document.getElementById(`step-caption-${activeStepIndex}`);
-                if (prevCaption) prevCaption.classList.remove('active');
-            }
+            });
+            
+            // Keep previous captions visible - don't hide them
             
             // Show caption for this step
             const caption = document.getElementById(`step-caption-${index}`);
