@@ -201,7 +201,7 @@ GUIDELINES:
 The transcript has timestamps in [MM:SS] format. USE THESE TIMESTAMPS - they mark where each part of the video occurs.
 
 Transcript:
-{transcript[:12000]}
+{transcript[:24000]}
 
 IMPORTANT: For each step, include "transcript_quote" - a short phrase from the transcript that proves you found the right timestamp.
 
