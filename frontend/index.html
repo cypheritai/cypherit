@@ -3483,7 +3483,7 @@
                 
                 if (error) throw error;
                 
-                message.textContent = '✨ Magic link sent! Check your email';
+                message.textContent = '✨ Magic link sent! Check your email. On mobile? Copy the link and paste it in Safari/Chrome.';
                 message.className = 'auth-message success';
                 message.style.display = 'block';
                 plausible('Auth', {props: {event: 'magic_link_sent'}});
